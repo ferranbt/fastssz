@@ -27,7 +27,7 @@ Test the spectests:
 $ go test -v ./spectests/... -run TestSpec
 ```
 
-Run the fuzzer with BeaconBlockBody
+Run the fuzzer:
 
 ```
 $ FUZZ_TESTS=True go test -v ./spectests/... -run TestFuzz

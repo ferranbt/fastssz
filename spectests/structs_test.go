@@ -233,7 +233,7 @@ func TestSpecMinimal(t *testing.T) {
 	}
 }
 
-func TestSMainnet(t *testing.T) {
+func TestSpecMainnet(t *testing.T) {
 	files := readDir(t, filepath.Join(testsPath, "/mainnet/phase0/ssz_static"))
 	for _, f := range files {
 		spl := strings.Split(f, "/")
