@@ -19,14 +19,6 @@ import (
 
 const bytesPerLengthOffset = 4
 
-func isDir(path string) (bool, error) {
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-	return fileInfo.IsDir(), err
-}
-
 func main() {
 	var source string
 	var objsStr string
@@ -36,39 +28,26 @@ func main() {
 
 	flag.Parse()
 
-	var valid []string
+	var targets []string
 	if objsStr != "" {
-		valid = strings.Split(strings.TrimSpace(objsStr), ",")
+		targets = strings.Split(strings.TrimSpace(objsStr), ",")
 	}
 
-	if err := encode(source, valid); err != nil {
+	if err := encode(source, targets); err != nil {
 		fmt.Printf("[ERR]: %v", err)
 	}
 }
 
-func encode(source string, valid []string) error {
-	files := map[string]*ast.File{}
+// The SSZ code generation works in three steps:
+// 1. Parse the Go input with the go/parser library to generate an AST representation.
+// 2. Convert the AST into an Internal Representation (IR) to describe the structs and fields
+// using the Value object.
+// 3. Use the IR to print the encoding functions
 
-	ok, err := isDir(source)
+func encode(source string, targets []string) error {
+	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
-	}
-	if ok {
-		// folder
-		astFiles, err := parser.ParseDir(token.NewFileSet(), source, nil, parser.AllErrors)
-		if err != nil {
-			return err
-		}
-		for _, v := range astFiles {
-			files = v.Files
-		}
-	} else {
-		// single file
-		astfile, err := parser.ParseFile(token.NewFileSet(), source, nil, parser.AllErrors)
-		if err != nil {
-			return err
-		}
-		files[source] = astfile
 	}
 
 	// read package
@@ -81,14 +60,14 @@ func encode(source string, valid []string) error {
 		files:    files,
 		objs:     map[string]*Value{},
 		packName: packName,
-		valid:    valid,
+		targets:  targets,
 	}
 
-	if err := e.encode(); err != nil {
+	if err := e.generateIR(); err != nil { // 2.
 		return err
 	}
 
-	out := e.printall()
+	out := e.generateEncodings() // 3.
 	for name, str := range out {
 		output := []byte(str)
 
@@ -103,7 +82,35 @@ func encode(source string, valid []string) error {
 	return nil
 }
 
-// Value is a SSZ type
+func parseInput(source string) (map[string]*ast.File, error) {
+	files := map[string]*ast.File{}
+
+	fileInfo, err := os.Stat(source)
+	if err != nil {
+		return nil, err
+	}
+	if fileInfo.IsDir() {
+		// dir
+		astFiles, err := parser.ParseDir(token.NewFileSet(), source, nil, parser.AllErrors)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range astFiles {
+			files = v.Files
+		}
+	} else {
+		// single file
+		astfile, err := parser.ParseFile(token.NewFileSet(), source, nil, parser.AllErrors)
+		if err != nil {
+			return nil, err
+		}
+		files[source] = astfile
+	}
+	return files, nil
+}
+
+// Value is a type that represents a Go field or struct and his
+// correspondent SSZ type.
 type Value struct {
 	// name of the variable this value represents
 	name string
@@ -142,13 +149,21 @@ func (v *Value) copy() *Value {
 type Type int
 
 const (
+	// TypeUint is a SSZ int type
 	TypeUint Type = iota
+	// TypeBool is a SSZ bool type
 	TypeBool
+	// TypeBytes is a SSZ fixed or dynamic bytes type
 	TypeBytes
+	// TypeBitVector is a SSZ bitvector
 	TypeBitVector
+	// TypeBitList is a SSZ bitlist
 	TypeBitList
+	// TypeVector is a SSZ vector
 	TypeVector
+	// TypeList is a SSZ list
 	TypeList
+	// TypeContainer is a SSZ container
 	TypeContainer
 )
 
@@ -176,16 +191,23 @@ func (t Type) String() string {
 }
 
 type env struct {
-	files    map[string]*ast.File
+	// map of files with their Go AST format
+	files map[string]*ast.File
+	// name of the package
 	packName string
-	raw      map[string]*ast.StructType
-	objs     map[string]*Value
-	current  string
-	order    map[string][]string
-	valid    []string
+	// map of structs with their Go AST format
+	raw map[string]*ast.StructType
+	// map of structs with their IR format
+	objs map[string]*Value
+	// map of files with their structs in order
+	order map[string][]string
+	// target structures to encode
+	targets []string
 }
 
-func (e *env) printall() map[string]string {
+const encodingPrefix = "_encoding.go"
+
+func (e *env) generateEncodings() map[string]string {
 	outs := map[string]string{}
 
 	firstDone := true
@@ -193,7 +215,7 @@ func (e *env) printall() map[string]string {
 		// remove .go prefix and replace if with our own
 		ext := filepath.Ext(name)
 		name = strings.TrimSuffix(name, ext)
-		name += "_encoding.go"
+		name += encodingPrefix
 
 		vvv, ok := e.print(firstDone, order)
 		if ok {
@@ -220,7 +242,8 @@ func (e *env) print(first bool, order []string) (string, bool) {
 	package {{.package}}
 	
 	import (
-		{{ if .errorFuncs }}"fmt"{{ end }}
+		{{ if .errorFuncs }}"fmt"
+		{{ end }}
 		ssz "github.com/ferranbt/fastssz"
 	)
 
@@ -243,7 +266,9 @@ func (e *env) print(first bool, order []string) (string, bool) {
 	}
 
 	if first {
-		// include the error functions only once
+		// Marshal and Unmarshal function return global error functions when the safe checks fail.
+		// We must ensure there is only one copy of those functions in the package. We only include
+		// the functions on the first file with content.
 		data["errorFuncs"] = errorFunctions
 	}
 
@@ -252,6 +277,7 @@ func (e *env) print(first bool, order []string) (string, bool) {
 	}
 
 	objs := []*Obj{}
+	// Print the objects in the order in which they appear on the file.
 	for _, name := range order {
 		obj, ok := e.objs[name]
 		if !ok {
@@ -265,558 +291,49 @@ func (e *env) print(first bool, order []string) (string, bool) {
 	}
 
 	if len(objs) == 0 {
+		// No valid objects found for this file
 		return "", false
 	}
 	data["objs"] = objs
 	return execTmpl(tmpl, data), true
 }
 
+// All the generated functions use the '::' string to represent the pointer receiver
+// of the struct method (i.e 'm' in func(m *Method) XX()) for convenience.
+// This function replaces the '::' string with a valid one that corresponds
+// to the first letter of the method in lower case.
 func appendObjSignature(str string, v *Value) string {
 	sig := strings.ToLower(string(v.name[0]))
 	return strings.Replace(str, "::", sig, -1)
 }
 
-func (e *env) size(name string, v *Value) string {
-	tmpl := `// Size returns the ssz encoded size in bytes for the {{.name}} object
-	func (:: *{{.name}}) Size() (size int) {
-		size = {{.fixed}}{{if .dynamic}}
-
-		{{.dynamic}}
-		{{end}}
-		return
-	}`
-
-	str := execTmpl(tmpl, map[string]interface{}{
-		"name":    name,
-		"fixed":   v.n,
-		"dynamic": v.sizeContainer("size", true),
-	})
-	return appendObjSignature(str, v)
-}
-
-func (e *env) unmarshal(name string, v *Value) string {
-	tmpl := `// Unmarshal ssz unmarshals the {{.name}} object
-	func (:: *{{.name}}) Unmarshal(buf []byte) error {
-		var err error
-		{{.unmarshal}}
-		return err
-	}`
-
-	str := execTmpl(tmpl, map[string]interface{}{
-		"name":      name,
-		"unmarshal": v.umarshalContainer(true, "buf"),
-	})
-	return appendObjSignature(str, v)
-}
-
-func (e *env) marshal(name string, v *Value) string {
-	tmpl := `// Marshal ssz marshals the {{.name}} object
-	func (:: *{{.name}}) Marshal() ([]byte, error) {
-		buf := make([]byte, ::.Size())
-		return ::.MarshalTo(buf[:0])
-	}
-
-	// MarshalTo ssz marshals the {{.name}} object to a target array	
-	func (:: *{{.name}}) MarshalTo(dst []byte) ([]byte, error) {
-		var err error
-		{{.offset}}
-		{{.marshal}}
-		return dst, err
-	}`
-
-	data := map[string]interface{}{
-		"name":    name,
-		"marshal": v.marshalContainer(true),
-		"offset":  "",
-	}
-	if !v.isFixed() {
-		data["offset"] = fmt.Sprintf("offset := int(%d)\n", v.n)
-	}
-	str := execTmpl(tmpl, data)
-	return appendObjSignature(str, v)
-}
-
-func (v *Value) sizeContainer(name string, start bool) string {
-	if !start {
-		return fmt.Sprintf(name+" += ::.%s.Size()", v.name)
-	}
-	out := []string{}
-	for indx, v := range v.o {
-		if !v.isFixed() {
-			out = append(out, fmt.Sprintf("// Field (%d) '%s'\n%s", indx, v.name, v.size(name)))
-		}
-	}
-	return strings.Join(out, "\n\n")
-}
-
-func (v *Value) size(name string) string {
-	if v.isFixed() {
-		if v.t == TypeContainer {
-			return v.sizeContainer(name, false)
-		}
-		if v.n == 1 {
-			return name + "++"
-		}
-		return name + " += " + strconv.Itoa(int(v.n))
-	}
-
-	switch v.t {
-	case TypeContainer:
-		return v.sizeContainer(name, false)
-
-	case TypeBitList:
-		fallthrough
-
-	case TypeBytes:
-		return fmt.Sprintf(name+" += len(::.%s)", v.name)
-
-	case TypeList:
-		fallthrough
-
-	case TypeVector:
-		if v.e.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.n)
-		}
-		v.e.name = v.name + "[ii]"
-		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
-			{{.size}} += 4
-			{{.dynamic}}
-		}`
-		return execTmpl(tmpl, map[string]interface{}{
-			"name":    v.name,
-			"size":    name,
-			"dynamic": v.e.size(name),
-		})
-
-	default:
-		panic(fmt.Errorf("size not implemented for type %s", v.t.String()))
-	}
-}
-
-func (v *Value) marshal() string {
-	switch v.t {
-	case TypeContainer:
-		return v.marshalContainer(false)
-
-	case TypeBytes:
-		if v.isFixed() {
-			return fmt.Sprintf("if dst, err = ssz.MarshalFixedBytes(dst, ::.%s, %d); err != nil {\n return nil, errMarshalFixedBytes\n}", v.name, v.s)
-		}
-		// dynamic bytes
-		return fmt.Sprintf("if len(::.%s) > %d {\n return nil, errMarshalDynamicBytes\n}\ndst = append(dst, ::.%s...)", v.name, v.m, v.name)
-
-	case TypeUint:
-		return fmt.Sprintf("dst = ssz.Marshal%s(dst, ::.%s)", uintVToName(v), v.name)
-
-	case TypeBitList:
-		return fmt.Sprintf("dst = append(dst, ::.%s...)", v.name)
-
-	case TypeBool:
-		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
-
-	case TypeVector:
-		if v.e.isFixed() {
-			return v.marshalVector()
-		}
-		fallthrough
-
-	case TypeList:
-		return v.marshalList()
-
-	default:
-		panic(fmt.Errorf("marshal not implemented for type %s", v.t.String()))
-	}
-}
-
-func (v *Value) marshalList() string {
-	v.e.name = v.name + "[ii]"
-
-	// bound check
-	str := fmt.Sprintf("if len(::.%s) > %d {\n return nil, errMarshalList\n}\n", v.name, v.s)
-
-	if v.e.isFixed() {
-		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
-			{{.dynamic}}
-		}`
-		str += execTmpl(tmpl, map[string]interface{}{
-			"name":    v.name,
-			"dynamic": v.e.marshal(),
-		})
-		return str
-	}
-
-	// encode a list of dynamic objects:
-	// 1. write offsets for each
-	// 2. marshal each element
-
-	tmpl := `{
-		offset = 4 * len(::.{{.name}})
-		for ii := 0; ii < len(::.{{.name}}); ii++ {
-			dst = ssz.WriteOffset(dst, offset)
-			{{.size}}
-		}
-	}
-	for ii := 0; ii < len(::.{{.name}}); ii++ {
-		{{.marshal}}
-	}`
-
-	str += execTmpl(tmpl, map[string]interface{}{
-		"name":    v.name,
-		"size":    v.e.size("offset"),
-		"marshal": v.e.marshal(),
-	})
-	return str
-}
-
-func (v *Value) marshalVector() (str string) {
-	v.e.name = fmt.Sprintf("%s[ii]", v.name)
-
-	tmpl := `if len(::.{{.name}}) != {{.size}} {
-		return nil, errMarshalVector
-	}
-	for ii := 0; ii < {{.size}}; ii++ {
-		{{.marshal}}
-	}`
-	return execTmpl(tmpl, map[string]interface{}{
-		"name":    v.name,
-		"size":    v.s,
-		"marshal": v.e.marshal(),
-	})
-}
-
-func (v *Value) marshalContainer(start bool) string {
-	if !start {
-		return fmt.Sprintf("if dst, err = ::.%s.MarshalTo(dst); err != nil {\n return nil, err\n}", v.name)
-	}
-
-	offset := v.n
-	out := []string{}
-
-	for indx, i := range v.o {
-		var str string
-		if i.isFixed() {
-			// write the content
-			str = fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.marshal())
-		} else {
-			// write the offset
-			str = fmt.Sprintf("// Offset (%d) '%s'\ndst = ssz.WriteOffset(dst, offset)\n%s\n", indx, i.name, i.size("offset"))
-			offset += i.n
-		}
-		out = append(out, str)
-	}
-
-	// write the dynamic parts
-	for indx, i := range v.o {
-		if !i.isFixed() {
-			out = append(out, fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.marshal()))
-		}
-	}
-	return strings.Join(out, "\n")
-}
-
-func uintVToName(v *Value) string {
-	if v.t != TypeUint {
-		panic("not expected")
-	}
-	switch v.n {
-	case 8:
-		return "Uint64"
-	case 4:
-		return "Uint32"
-	case 2:
-		return "Uint16"
-	case 1:
-		return "Uint8"
-	default:
-		panic("not found")
-	}
-}
-
-func (v *Value) createItem() string {
-	// intended to be used in vectors
-	if v.t != TypeVector && v.t != TypeList {
-		panic("BUG")
-	}
-	s := "num"
-	if v.s != 0 {
-		s = strconv.Itoa(int(v.s))
-	}
-	switch v.e.t {
-	case TypeUint:
-		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName(v.e), v.name, s)
-
-	case TypeContainer:
-		return fmt.Sprintf("::.%s = make([]*%s, %s)", v.name, v.e.obj, s)
-
-	case TypeBytes:
-		// [][]byte
-		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, s)
-
-	default:
-		panic(fmt.Sprintf("create not implemented for type %s", v.e.t.String()))
-	}
-}
-
-func (v *Value) unmarshal(dst, ddd string) string {
-	switch v.t {
-	case TypeContainer:
-		return v.umarshalContainer(false, ddd)
-
-	case TypeBytes:
-		if !v.isFixed() {
-			// dynamic
-			return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
-		}
-		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, ddd)
-
-	case TypeUint:
-		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), ddd)
-
-	case TypeBitList:
-		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
-
-	case TypeVector:
-		// check if its [][]byte we can do something special for that
-		if v.e.isFixed() {
-			xxx := ddd + fmt.Sprintf("[ii*%d: (ii+1)*%d]", v.e.n, v.e.n)
-
-			tmpl := `{{.create}}
-			for ii := 0; ii < {{.size}}; ii++ {
-				{{.unmarshal}}
-			}`
-			return execTmpl(tmpl, map[string]interface{}{
-				"create":    v.createItem(),
-				"size":      v.s,
-				"unmarshal": v.e.unmarshal(dst, xxx),
-			})
-		}
-		fallthrough
-
-	case TypeList:
-		return v.unmarshalList()
-
-	case TypeBool:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, ddd)
-
-	default:
-		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
-	}
-}
-
-func (v *Value) unmarshalList() string {
-	if v.e.isFixed() {
-		maxSize := v.s
-		v.s = 0
-		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.n, v.e.n)
-
-		tmpl := `num, ok := ssz.DivideInt(len(buf), {{.size}})
-		if !ok {
-			return errDivideInt
-		}
-		if num > {{.max}} {
-			return errListTooBig
-		}
-		{{.create}}
-		for ii := 0; ii < num; ii++ {
-			{{.unmarshal}}
-		}`
-		return execTmpl(tmpl, map[string]interface{}{
-			"size":      v.e.n,
-			"max":       maxSize,
-			"create":    v.createItem(),
-			"unmarshal": v.e.unmarshal("buf", dst),
-		})
-	}
-
-	if v.t == TypeVector {
-		panic("it cannot happen")
-	}
-
-	tmpl := `num, err := ssz.DecodeDynamicLength(buf, {{.size}})
-	if err != nil {
-		return err
-	}
-	{{.create}}
-	err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-		{{.unmarshal}}
-		return nil
-	})
-	if err != nil {
-		return err
-	}`
-
-	data := map[string]interface{}{
-		"size": v.s,
-	}
-
-	v.s = 0
-	data["create"] = v.createItem()
-
-	v.e.name = v.name + "[indx]"
-	data["unmarshal"] = v.e.unmarshal("buf", "buf")
-
-	return execTmpl(tmpl, data)
-}
-
-func (v *Value) umarshalContainer(start bool, dst string) (str string) {
-	if !start {
-		tmpl := `if ::.{{.name}} == nil {
-			::.{{.name}} = new({{.obj}})
-		}
-		if err = ::.{{.name}}.Unmarshal({{.dst}}); err != nil {
-			return err
-		}`
-		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
-			"obj":  v.obj,
-			"dst":  dst,
-		})
-	}
-
-	var offsets []string
-	offsetsMatch := map[string]string{}
-
-	for indx, i := range v.o {
-		if !i.isFixed() {
-			name := "o" + strconv.Itoa(indx)
-			if len(offsets) != 0 {
-				offsetsMatch[name] = offsets[len(offsets)-1]
-			}
-			offsets = append(offsets, name)
-		}
-	}
-
-	// safe check for the size
-	var cmp string
-	if v.isFixed() {
-		cmp = "!="
-	} else {
-		cmp = "<"
-	}
-
-	tmpl := `size := uint64(len(buf))
-	if size {{.cmp}} {{.size}} {
-		return errSize
-	}
-	{{if .offsets}}
-		tail := buf
-		var {{.offsets}} uint64
-	{{end}}
-	`
-
-	str += execTmpl(tmpl, map[string]interface{}{
-		"cmp":     cmp,
-		"size":    v.n,
-		"offsets": strings.Join(offsets, ", "),
-	})
-
-	var o0 uint64
-
-	outs := []string{}
-	for indx, i := range v.o {
-
-		// How much it increases on every item
-		var incr uint64
-		if i.isFixed() {
-			incr = i.n
-		} else {
-			incr = 4
-		}
-
-		ddd := fmt.Sprintf("%s[%d:%d]", "buf", o0, o0+incr)
-		o0 += incr
-
-		var res string
-		if i.isFixed() {
-			res = fmt.Sprintf("// Field (%d) '%s'\n%s\n\n", indx, i.name, i.unmarshal(dst, ddd))
-
-		} else {
-			// read the offset
-			offset := "o" + strconv.Itoa(indx)
-
-			data := map[string]interface{}{
-				"indx":   indx,
-				"name":   i.name,
-				"offset": offset,
-				"dst":    ddd,
-			}
-
-			if prev, ok := offsetsMatch[offset]; ok {
-				data["more"] = fmt.Sprintf(" || %s > %s", prev, offset)
-			} else {
-				data["more"] = ""
-			}
-
-			tmpl := `// Offset ({{.indx}}) '{{.name}}'
-			if {{.offset}} = ssz.ReadOffset({{.dst}}); {{.offset}} > size {{.more}} {
-				return errOffset
-			}
-			`
-			res = execTmpl(tmpl, data)
-		}
-		outs = append(outs, res)
-	}
-
-	c := 0
-	for indx, i := range v.o {
-		if !i.isFixed() {
-
-			from := offsets[c]
-			var to string
-			if c == len(offsets)-1 {
-				to = ""
-			} else {
-				to = offsets[c+1]
-			}
-
-			tmpl := `// Field ({{.indx}}) '{{.name}}'
-			{
-				buf = tail[{{.from}}:{{.to}}]
-				{{.unmarshal}}
-			}`
-			res := execTmpl(tmpl, map[string]interface{}{
-				"indx":      indx,
-				"name":      i.name,
-				"from":      from,
-				"to":        to,
-				"unmarshal": i.unmarshal("buf", "buf"),
-			})
-			outs = append(outs, res)
-			c++
-		}
-	}
-
-	str += strings.Join(outs, "\n\n")
-	return
-}
-
-func (e *env) encode() error {
+func (e *env) generateIR() error {
 	e.raw = map[string]*ast.StructType{}
 	e.order = map[string][]string{}
 
 	for name, file := range e.files {
-		order := []string{}
+		structOrdering := []string{}
 		for _, dec := range file.Decls {
 			if genDecl, ok := dec.(*ast.GenDecl); ok {
 				for _, spec := range genDecl.Specs {
 					if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 						if structType, ok := typeSpec.Type.(*ast.StructType); ok {
 							e.raw[typeSpec.Name.Name] = structType
-							order = append(order, typeSpec.Name.Name)
+							structOrdering = append(structOrdering, typeSpec.Name.Name)
 						}
 					}
 				}
 			}
 		}
-		e.order[name] = order
+		e.order[name] = structOrdering
 	}
 
 	for name := range e.raw {
 		var valid bool
-		if e.valid == nil {
+		if e.targets == nil {
 			valid = true
 		} else {
-			valid = contains(name, e.valid)
+			valid = contains(name, e.targets)
 		}
 		if valid {
 			if _, err := e.encodeItem(name); err != nil {
@@ -851,6 +368,7 @@ func (e *env) encodeItem(name string) (*Value, error) {
 	return v.copy(), nil
 }
 
+// parse the Go AST struct
 func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, error) {
 	v := &Value{
 		name: name,
@@ -886,15 +404,18 @@ func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, erro
 			v.n += f.n
 		} else {
 			v.n += bytesPerLengthOffset
+			// container is dynamic
 			v.c = true
 		}
 	}
 	return v, nil
 }
 
+// parse the Go AST field
 func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 	switch obj := expr.(type) {
 	case *ast.StarExpr:
+		// *Struct
 		return e.encodeItem(obj.X.(*ast.Ident).Name)
 
 	case *ast.ArrayType:
@@ -936,6 +457,7 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 			return &Value{t: TypeList, c: true, s: f, e: &Value{t: TypeBytes, n: s, s: s}}, nil
 		}
 
+		// []*Struct
 		elem, err := e.parseASTFieldType(tags, obj.Elt)
 		if err != nil {
 			return nil, err
@@ -958,6 +480,7 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 		return v, nil
 
 	case *ast.Ident:
+		// basic type
 		var v *Value
 		switch obj.Name {
 		case "uint64":
@@ -970,8 +493,6 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 			v = &Value{t: TypeUint, n: 1}
 		case "bool":
 			v = &Value{t: TypeBool, n: 1}
-		case "string":
-			v = &Value{t: TypeBytes, c: true}
 		default:
 			panic(fmt.Errorf("basic type %s not found", obj.Name))
 		}
@@ -1013,6 +534,8 @@ func isExportedField(str string) bool {
 	return str[0] <= 90
 }
 
+// getTagsTuple decodes tags of the format 'ssz-size:"33,32"'. If the
+// first value is '?' it returns -1.
 func getTagsTuple(str string, field string) (uint64, uint64, bool) {
 	tupleStr, ok := getTags(str, field)
 	if !ok {
@@ -1043,6 +566,7 @@ func getTagsTuple(str string, field string) (uint64, uint64, bool) {
 	return first, uint64(second), true
 }
 
+// getTagsInt returns tags of the format 'ssz-size:"32"'
 func getTagsInt(str string, field string) (uint64, bool) {
 	numStr, ok := getTags(str, field)
 	if !ok {
@@ -1055,6 +579,7 @@ func getTagsInt(str string, field string) (uint64, bool) {
 	return uint64(num), true
 }
 
+// getTags returns the tags from a given field
 func getTags(str string, field string) (string, bool) {
 	str = strings.Trim(str, "`")
 
@@ -1083,17 +608,8 @@ func getTags(str string, field string) (string, bool) {
 
 func (v *Value) isFixed() bool {
 	switch v.t {
-	case TypeUint:
-		return true
-
 	case TypeVector:
 		return v.e.isFixed()
-
-	case TypeBitList:
-		return false
-
-	case TypeBitVector:
-		return true
 
 	case TypeBytes:
 		if v.s != 0 {
@@ -1103,12 +619,20 @@ func (v *Value) isFixed() bool {
 		// dynamic bytes
 		return false
 
-	case TypeList:
-		return false
-
 	case TypeContainer:
 		return !v.c
 
+	// Dynamic types
+	case TypeBitList:
+		fallthrough
+	case TypeList:
+		return false
+
+	// Fixed types
+	case TypeBitVector:
+		fallthrough
+	case TypeUint:
+		fallthrough
 	case TypeBool:
 		return true
 
@@ -1127,4 +651,22 @@ func execTmpl(tpl string, input interface{}) string {
 		panic(err)
 	}
 	return buf.String()
+}
+
+func uintVToName(v *Value) string {
+	if v.t != TypeUint {
+		panic("not expected")
+	}
+	switch v.n {
+	case 8:
+		return "Uint64"
+	case 4:
+		return "Uint32"
+	case 2:
+		return "Uint16"
+	case 1:
+		return "Uint8"
+	default:
+		panic("not found")
+	}
 }

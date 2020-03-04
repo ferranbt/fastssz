@@ -3,6 +3,7 @@ package spectests
 
 import (
 	"fmt"
+
 	ssz "github.com/ferranbt/fastssz"
 )
 

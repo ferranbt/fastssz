@@ -16,7 +16,7 @@ $ make build-spec-tests
 Generate encodings for a specific package:
 
 ```
-$ go run sszgen/main.go --path ./ethereumapis/eth/v1alpha1 [--objs BeaconBlock,Eth1Data]
+$ go run sszgen/*.go --path ./ethereumapis/eth/v1alpha1 [--objs BeaconBlock,Eth1Data]
 ```
 
 Optionally, you can specify the objs you want to generate. Otherwise, it will generate encodings for all structs in the package. Note that if a struct does not have 'ssz' tags when required (i.e size of arrays), the generator will fail.
@@ -31,6 +31,12 @@ Run the fuzzer:
 
 ```
 $ FUZZ_TESTS=True go test -v ./spectests/... -run TestFuzz
+```
+
+To install the generator run:
+
+```
+$ go get github.com/ferranbt/fastssz/sszgen
 ```
 
 Benchmark (BeaconBlock):
