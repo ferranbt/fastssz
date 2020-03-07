@@ -502,12 +502,9 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 		name := obj.X.(*ast.Ident).Name
 		sel := obj.Sel.Name
 
-		switch name {
-		case "bitfield":
-			if sel == "Bitlist" {
-				// go-bitfield/Bitlist
-				return &Value{t: TypeBitList}, nil
-			}
+		if sel == "Bitlist" {
+			// go-bitfield/Bitlist
+			return &Value{t: TypeBitList}, nil
 		}
 		return nil, fmt.Errorf("select for %s.%s not found", name, sel)
 
