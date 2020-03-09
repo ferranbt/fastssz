@@ -22,9 +22,11 @@ const bytesPerLengthOffset = 4
 func main() {
 	var source string
 	var objsStr string
+	var output string
 
 	flag.StringVar(&source, "path", "", "")
 	flag.StringVar(&objsStr, "objs", "", "")
+	flag.StringVar(&output, "output", "", "")
 
 	flag.Parse()
 
@@ -33,7 +35,7 @@ func main() {
 		targets = strings.Split(strings.TrimSpace(objsStr), ",")
 	}
 
-	if err := encode(source, targets); err != nil {
+	if err := encode(source, targets, output); err != nil {
 		fmt.Printf("[ERR]: %v", err)
 	}
 }
@@ -44,7 +46,7 @@ func main() {
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func encode(source string, targets []string) error {
+func encode(source string, targets []string, output string) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
@@ -57,6 +59,7 @@ func encode(source string, targets []string) error {
 	}
 
 	e := &env{
+		source:   source,
 		files:    files,
 		objs:     map[string]*Value{},
 		packName: packName,
@@ -67,7 +70,15 @@ func encode(source string, targets []string) error {
 		return err
 	}
 
-	out := e.generateEncodings() // 3.
+	// 3.
+	var out map[string]string
+	if output == "" {
+		out = e.generateEncodings()
+	} else {
+		// output to a specific path
+		out = e.generateOutputEncodings(output)
+	}
+
 	for name, str := range out {
 		output := []byte(str)
 
@@ -82,14 +93,22 @@ func encode(source string, targets []string) error {
 	return nil
 }
 
+func isDir(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	return fileInfo.IsDir(), nil
+}
+
 func parseInput(source string) (map[string]*ast.File, error) {
 	files := map[string]*ast.File{}
 
-	fileInfo, err := os.Stat(source)
+	ok, err := isDir(source)
 	if err != nil {
 		return nil, err
 	}
-	if fileInfo.IsDir() {
+	if ok {
 		// dir
 		astFiles, err := parser.ParseDir(token.NewFileSet(), source, nil, parser.AllErrors)
 		if err != nil {
@@ -191,6 +210,7 @@ func (t Type) String() string {
 }
 
 type env struct {
+	source string
 	// map of files with their Go AST format
 	files map[string]*ast.File
 	// name of the package
@@ -206,6 +226,19 @@ type env struct {
 }
 
 const encodingPrefix = "_encoding.go"
+
+func (e *env) generateOutputEncodings(output string) map[string]string {
+	out := map[string]string{}
+
+	orders := []string{}
+	for _, order := range e.order {
+		orders = append(orders, order...)
+	}
+
+	res, _ := e.print(true, orders)
+	out[output] = res
+	return out
+}
 
 func (e *env) generateEncodings() map[string]string {
 	outs := map[string]string{}
