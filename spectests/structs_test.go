@@ -19,8 +19,8 @@ import (
 )
 
 type codec interface {
-	MarshalTo([]byte) ([]byte, error)
-	Unmarshal([]byte) error
+	MarshalSSZTo([]byte) ([]byte, error)
+	UnmarshalSSZ([]byte) error
 }
 
 type testCallback func() codec
@@ -100,7 +100,7 @@ func TestFuzzMarshalWithWrongSizes(t *testing.T) {
 
 			failed := f.Fuzz(obj)
 			if failed {
-				if _, err := obj.MarshalTo(nil); err == nil {
+				if _, err := obj.MarshalSSZTo(nil); err == nil {
 					t.Fatal("it should have failed")
 				}
 			}
@@ -118,13 +118,13 @@ func TestFuzzEncoding(t *testing.T) {
 			f := fuzz.New()
 			f.Fuzz(obj)
 
-			dst, err := obj.MarshalTo(nil)
+			dst, err := obj.MarshalSSZTo(nil)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			obj2 := codec()
-			if err := obj2.Unmarshal(dst); err != nil {
+			if err := obj2.UnmarshalSSZ(dst); err != nil {
 				t.Fatal(err)
 			}
 			if !deepEqual(obj, obj2) {
@@ -144,7 +144,7 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 			f := fuzz.New()
 			f.Fuzz(obj)
 
-			dst, err := obj.MarshalTo(nil)
+			dst, err := obj.MarshalSSZTo(nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -163,7 +163,7 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 				buf = append(buf, dst[pos:]...)
 
 				obj2 := codec()
-				if err := obj2.Unmarshal(buf); err == nil {
+				if err := obj2.UnmarshalSSZ(buf); err == nil {
 					if deepEqual(obj, obj2) {
 						t.Fatal("bad")
 					}
@@ -182,7 +182,7 @@ func TestFuzzUnmarshalShuffle(t *testing.T) {
 		f := fuzz.New()
 		f.Fuzz(obj)
 
-		dst, err := obj.MarshalTo(nil)
+		dst, err := obj.MarshalSSZTo(nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -199,7 +199,7 @@ func TestFuzzUnmarshalShuffle(t *testing.T) {
 				continue
 			}
 			obj2 := codec()
-			if err := obj2.Unmarshal(buf); err == nil {
+			if err := obj2.UnmarshalSSZ(buf); err == nil {
 				if deepEqual(obj, obj2) {
 					t.Fatal("bad")
 				}
@@ -259,7 +259,7 @@ func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 	expected := readValidGenericSSZ(t, f, &obj)
 
 	// Marshal
-	res, err := obj.MarshalTo(nil)
+	res, err := obj.MarshalSSZTo(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -269,7 +269,7 @@ func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 
 	// Unmarshal
 	obj2 := base()
-	if err := obj2.Unmarshal(expected); err != nil {
+	if err := obj2.UnmarshalSSZ(expected); err != nil {
 		panic(err)
 	}
 	if !deepEqual(obj, obj2) {
@@ -299,7 +299,7 @@ func BenchmarkMarshalFast(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		obj.Marshal()
+		obj.MarshalSSZ()
 	}
 }
 
@@ -313,7 +313,7 @@ func BenchmarkMarshalSuperFast(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		buf, _ = obj.MarshalTo(buf[:0])
+		buf, _ = obj.MarshalSSZTo(buf[:0])
 	}
 }
 
@@ -341,7 +341,7 @@ func BenchmarkUnMarshalFast(b *testing.B) {
 	obj := new(BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
-	dst, err := obj.Marshal()
+	dst, err := obj.MarshalSSZ()
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -351,7 +351,7 @@ func BenchmarkUnMarshalFast(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		obj2 := new(BeaconBlock)
-		if err := obj2.Unmarshal(dst); err != nil {
+		if err := obj2.UnmarshalSSZ(dst); err != nil {
 			b.Fatal(err)
 		}
 	}

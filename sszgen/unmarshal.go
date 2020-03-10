@@ -8,8 +8,8 @@ import (
 
 // unmarshal creates a function that decodes the structs with the input byte in SSZ format.
 func (e *env) unmarshal(name string, v *Value) string {
-	tmpl := `// Unmarshal ssz unmarshals the {{.name}} object
-	func (:: *{{.name}}) Unmarshal(buf []byte) error {
+	tmpl := `// UnmarshalSSZ ssz unmarshals the {{.name}} object
+	func (:: *{{.name}}) UnmarshalSSZ(buf []byte) error {
 		var err error
 		{{.unmarshal}}
 		return err
@@ -130,7 +130,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 		tmpl := `if ::.{{.name}} == nil {
 			::.{{.name}} = new({{.obj}})
 		}
-		if err = ::.{{.name}}.Unmarshal({{.dst}}); err != nil {
+		if err = ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
 			return err
 		}`
 		return execTmpl(tmpl, map[string]interface{}{

@@ -9,14 +9,14 @@ import (
 // 1. MarshalTo(dst []byte) marshals the content to the target array.
 // 2. Marshal() marshals the content to a newly created array.
 func (e *env) marshal(name string, v *Value) string {
-	tmpl := `// Marshal ssz marshals the {{.name}} object
-	func (:: *{{.name}}) Marshal() ([]byte, error) {
-		buf := make([]byte, ::.Size())
-		return ::.MarshalTo(buf[:0])
+	tmpl := `// MarshalSSZ ssz marshals the {{.name}} object
+	func (:: *{{.name}}) MarshalSSZ() ([]byte, error) {
+		buf := make([]byte, ::.SizeSSZ())
+		return ::.MarshalSSZTo(buf[:0])
 	}
 
-	// MarshalTo ssz marshals the {{.name}} object to a target array	
-	func (:: *{{.name}}) MarshalTo(dst []byte) ([]byte, error) {
+	// MarshalSSZTo ssz marshals the {{.name}} object to a target array	
+	func (:: *{{.name}}) MarshalSSZTo(dst []byte) ([]byte, error) {
 		var err error
 		{{.offset}}
 		{{.marshal}}
@@ -130,7 +130,7 @@ func (v *Value) marshalVector() (str string) {
 
 func (v *Value) marshalContainer(start bool) string {
 	if !start {
-		return fmt.Sprintf("if dst, err = ::.%s.MarshalTo(dst); err != nil {\n return nil, err\n}", v.name)
+		return fmt.Sprintf("if dst, err = ::.%s.MarshalSSZTo(dst); err != nil {\n return nil, err\n}", v.name)
 	}
 
 	offset := v.n

@@ -10,8 +10,8 @@ import (
 // 1. Fixed: Size that we can determine at compilation time (i.e. uint, fixed bytes, fixed vector...)
 // 2. Dynamic: Size that depends on the input (i.e. lists, dynamic containers...)
 func (e *env) size(name string, v *Value) string {
-	tmpl := `// Size returns the ssz encoded size in bytes for the {{.name}} object
-	func (:: *{{.name}}) Size() (size int) {
+	tmpl := `// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
+	func (:: *{{.name}}) SizeSSZ() (size int) {
 		size = {{.fixed}}{{if .dynamic}}
 
 		{{.dynamic}}
@@ -29,7 +29,7 @@ func (e *env) size(name string, v *Value) string {
 
 func (v *Value) sizeContainer(name string, start bool) string {
 	if !start {
-		return fmt.Sprintf(name+" += ::.%s.Size()", v.name)
+		return fmt.Sprintf(name+" += ::.%s.SizeSSZ()", v.name)
 	}
 	out := []string{}
 	for indx, v := range v.o {
