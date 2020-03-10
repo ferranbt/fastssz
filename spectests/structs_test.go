@@ -13,14 +13,15 @@ import (
 	"strings"
 	"testing"
 
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/ferranbt/fastssz/fuzz"
 	"github.com/ghodss/yaml"
 	baseSSZ "github.com/prysmaticlabs/go-ssz"
 )
 
 type codec interface {
-	MarshalSSZTo([]byte) ([]byte, error)
-	UnmarshalSSZ([]byte) error
+	ssz.Marshaler
+	ssz.Unmarshaler
 }
 
 type testCallback func() codec
