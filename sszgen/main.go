@@ -78,6 +78,10 @@ func encode(source string, targets []string, output string) error {
 		// output to a specific path
 		out = e.generateOutputEncodings(output)
 	}
+	if out == nil {
+		// empty output
+		panic("No files to generate")
+	}
 
 	for name, str := range out {
 		output := []byte(str)
@@ -235,7 +239,10 @@ func (e *env) generateOutputEncodings(output string) map[string]string {
 		orders = append(orders, order...)
 	}
 
-	res, _ := e.print(true, orders)
+	res, ok := e.print(true, orders)
+	if !ok {
+		return nil
+	}
 	out[output] = res
 	return out
 }
