@@ -23,21 +23,28 @@ func main() {
 	var source string
 	var objsStr string
 	var output string
+	var include string
 
 	flag.StringVar(&source, "path", "", "")
 	flag.StringVar(&objsStr, "objs", "", "")
 	flag.StringVar(&output, "output", "", "")
+	flag.StringVar(&include, "include", "", "")
 
 	flag.Parse()
 
-	var targets []string
-	if objsStr != "" {
-		targets = strings.Split(strings.TrimSpace(objsStr), ",")
-	}
+	targets := decodeList(objsStr)
+	includeList := decodeList(include)
 
-	if err := encode(source, targets, output); err != nil {
+	if err := encode(source, targets, output, includeList); err != nil {
 		fmt.Printf("[ERR]: %v", err)
 	}
+}
+
+func decodeList(input string) []string {
+	if input == "" {
+		return []string{}
+	}
+	return strings.Split(strings.TrimSpace(input), ",")
 }
 
 // The SSZ code generation works in three steps:
@@ -46,10 +53,22 @@ func main() {
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func encode(source string, targets []string, output string) error {
+func encode(source string, targets []string, output string, includePaths []string) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
+	}
+
+	// parse all the include paths as well
+	include := map[string]*ast.File{}
+	for _, i := range includePaths {
+		files, err := parseInput(i)
+		if err != nil {
+			return err
+		}
+		for k, v := range files {
+			include[k] = v
+		}
 	}
 
 	// read package
@@ -59,6 +78,7 @@ func encode(source string, targets []string, output string) error {
 	}
 
 	e := &env{
+		include:  include,
 		source:   source,
 		files:    files,
 		objs:     map[string]*Value{},
@@ -215,6 +235,8 @@ func (t Type) String() string {
 
 type env struct {
 	source string
+	// map of the include path for cross package reference
+	include map[string]*ast.File
 	// map of files with their Go AST format
 	files map[string]*ast.File
 	// name of the package
@@ -347,30 +369,68 @@ func appendObjSignature(str string, v *Value) string {
 	return strings.Replace(str, "::", sig, -1)
 }
 
-func (e *env) generateIR() error {
-	e.raw = map[string]*ast.StructType{}
-	e.order = map[string][]string{}
-
-	for name, file := range e.files {
-		structOrdering := []string{}
-		for _, dec := range file.Decls {
-			if genDecl, ok := dec.(*ast.GenDecl); ok {
-				for _, spec := range genDecl.Specs {
-					if typeSpec, ok := spec.(*ast.TypeSpec); ok {
-						if structType, ok := typeSpec.Type.(*ast.StructType); ok {
-							e.raw[typeSpec.Name.Name] = structType
-							structOrdering = append(structOrdering, typeSpec.Name.Name)
+func decodeASTStruct(file *ast.File, handle func(*ast.TypeSpec, *ast.StructType) error) error {
+	for _, dec := range file.Decls {
+		if genDecl, ok := dec.(*ast.GenDecl); ok {
+			for _, spec := range genDecl.Specs {
+				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+					if structType, ok := typeSpec.Type.(*ast.StructType); ok {
+						if err := handle(typeSpec, structType); err != nil {
+							return err
 						}
 					}
 				}
 			}
 		}
+	}
+	return nil
+}
+
+func (e *env) generateIR() error {
+	e.raw = map[string]*ast.StructType{}
+	e.order = map[string][]string{}
+
+	// we want to make sure we only include one reference for each struct name
+	// among the source and include paths.
+	addStruct := func(typeSpec *ast.TypeSpec, structType *ast.StructType) error {
+		name := typeSpec.Name.Name
+		if _, ok := e.raw[name]; ok {
+			return fmt.Errorf("two structs share the same name %s", name)
+		}
+		e.raw[name] = structType
+		return nil
+	}
+
+	// decode the structs from the input path
+	for name, file := range e.files {
+		// keep the ordering in which the structs appear so that we always generate them in
+		// the same predictable order
+		structOrdering := []string{}
+		err := decodeASTStruct(file, func(typeSpec *ast.TypeSpec, structType *ast.StructType) error {
+			structOrdering = append(structOrdering, typeSpec.Name.Name)
+			return addStruct(typeSpec, structType)
+		})
+		if err != nil {
+			return err
+		}
 		e.order[name] = structOrdering
+	}
+
+	// decode the structs from the include path but ONLY include them on 'raw' not in 'order'.
+	// If the structs are in raw they can be used as a reference at compilation time and since they are
+	// not in 'order' they cannot be used to marshal/unmarshal encodings
+	for _, file := range e.include {
+		err := decodeASTStruct(file, func(typeSpec *ast.TypeSpec, structType *ast.StructType) error {
+			return addStruct(typeSpec, structType)
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	for name := range e.raw {
 		var valid bool
-		if e.targets == nil {
+		if e.targets == nil || len(e.targets) == 0 {
 			valid = true
 		} else {
 			valid = contains(name, e.targets)
@@ -397,7 +457,11 @@ func (e *env) encodeItem(name string) (*Value, error) {
 	v, ok := e.objs[name]
 	if !ok {
 		var err error
-		v, err = e.parseASTStructType(name, e.raw[name])
+		raw, ok := e.raw[name]
+		if !ok {
+			return nil, fmt.Errorf("could not find struct with name '%s'", name)
+		}
+		v, err = e.parseASTStructType(name, raw)
 		if err != nil {
 			return nil, err
 		}
@@ -456,7 +520,18 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 	switch obj := expr.(type) {
 	case *ast.StarExpr:
 		// *Struct
-		return e.encodeItem(obj.X.(*ast.Ident).Name)
+		switch elem := obj.X.(type) {
+		case *ast.Ident:
+			// reference to a local package
+			return e.encodeItem(elem.Name)
+
+		case *ast.SelectorExpr:
+			// reference to a struct from another package
+			return e.encodeItem(elem.Sel.Name)
+
+		default:
+			return nil, fmt.Errorf("cannot handle %s", elem)
+		}
 
 	case *ast.ArrayType:
 		if isByte(obj.Elt) {

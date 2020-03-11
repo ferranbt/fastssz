@@ -60,3 +60,16 @@ BenchmarkUnMarshalFast-4      	   43824	     27190 ns/op	   31024 B/op	     577 
 PASS
 ok  	github.com/ferranbt/fastssz/spectests	6.608s
 ```
+
+# Package reference
+
+To reference a struct from another package use the '--include' flag to point to that package.
+
+Example:
+
+```
+$ go run sszgen/*.go --path ./example2
+$ go run sszgen/*.go --path ./example 
+[ERR]: could not find struct with name 'Checkpoint'
+$ go run sszgen/*.go --path ./example --include ./example2
+```
