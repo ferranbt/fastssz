@@ -792,6 +792,13 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 		if sel == "Bitlist" {
 			// go-bitfield/Bitlist
 			return &Value{t: TypeBitList}, nil
+		} else if strings.HasPrefix(sel, "Bitvector") {
+			// go-bitfield/Bitvector, fixed bytes
+			size, ok := getTagsInt(tags, "ssz-size")
+			if !ok {
+				return nil, fmt.Errorf("cannot find ssz-size tag for bitlist Bitvector")
+			}
+			return &Value{t: TypeBytes, s: size, n: size}, nil
 		}
 		return nil, fmt.Errorf("select for %s.%s not found", name, sel)
 
