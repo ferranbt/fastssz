@@ -135,7 +135,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,
-			"obj":  v.obj,
+			"obj":  v.objRef(),
 			"dst":  dst,
 		})
 	}
@@ -291,8 +291,8 @@ func (v *Value) createSlice() string {
 		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName(v.e), v.name, size)
 
 	case TypeContainer:
-		// []*Struct{}
-		return fmt.Sprintf("::.%s = make([]*%s, %s)", v.name, v.e.obj, size)
+		// []*(ref.)Struct{}
+		return fmt.Sprintf("::.%s = make([]*%s, %s)", v.name, v.e.objRef(), size)
 
 	case TypeBytes:
 		// [][]byte

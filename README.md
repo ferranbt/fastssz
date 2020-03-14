@@ -73,3 +73,7 @@ $ go run sszgen/*.go --path ./example
 [ERR]: could not find struct with name 'Checkpoint'
 $ go run sszgen/*.go --path ./example --include ./example2
 ```
+
+There are some caveats required to use this functionality.
+- If multiple input paths import the same package, all of them need to import it with the same alias if any.
+- If the folder of the package is not the same as the name of the package, any input file that imports this package needs to do it with an alias.

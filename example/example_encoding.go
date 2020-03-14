@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	ssz "github.com/ferranbt/fastssz"
+	"github.com/ferranbt/fastssz/example2"
 )
 
 var (
@@ -71,7 +72,7 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 
 	// Field (3) 'Source'
 	if a.Source == nil {
-		a.Source = new(Checkpoint)
+		a.Source = new(example2.Checkpoint)
 	}
 	if err = a.Source.UnmarshalSSZ(buf[48:88]); err != nil {
 		return err
@@ -79,7 +80,7 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 
 	// Field (4) 'Target'
 	if a.Target == nil {
-		a.Target = new(Checkpoint)
+		a.Target = new(example2.Checkpoint)
 	}
 	if err = a.Target.UnmarshalSSZ(buf[88:128]); err != nil {
 		return err
