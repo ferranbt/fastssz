@@ -324,7 +324,6 @@ var errorFunctions = map[string]string{
 	"errMarshalDynamicBytes": "incorrect dynamic bytes marshalling",
 	"errDivideInt":           "incorrect int divide",
 	"errListTooBig":          "incorrect list size, too big",
-	"errNilStruct":           "the struct to be marshalled is nil",
 }
 
 func (e *env) print(first bool, order []string) (string, error, bool) {

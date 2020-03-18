@@ -31,24 +31,15 @@ func (e *env) size(name string, v *Value) string {
 
 func (v *Value) sizeContainer(name string, start bool) string {
 	if !start {
-		var tmpl string
-		if name == "offset" {
-			// calculate the size for the offsets inside the MarshalTo function.
-			// if the struct is nil we return an error. Only if is not a list
-			tmpl = `{{if not .isList}} if ::.{{.name}} == nil {
-				return nil, errNilStruct
-			}
-			{{end}} offset += ::.{{.name}}.SizeSSZ()`
-		} else {
-			// calculate the size inside the SizeSSZ function. If the struct is
-			// meaning that there is an error, we do not include the size. The error
-			// will be catched during the marshal step instead.
-			tmpl = `if ::.{{.name}} != nil {
-				size += ::.{{.name}}.SizeSSZ()
-			}`
+		tmpl := `{{if not .isList}} if ::.{{.name}} == nil {
+			::.{{.name}} = new({{.obj}})
 		}
+		{{end}} {{ .dst }} += ::.{{.name}}.SizeSSZ()`
+
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":   v.name,
+			"dst":    name,
+			"obj":    v.objRef(),
 			"isList": v.isListElem(),
 		})
 	}

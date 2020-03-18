@@ -14,7 +14,6 @@ var (
 	errMarshalFixedBytes   = fmt.Errorf("incorrect fixed bytes marshalling")
 	errMarshalList         = fmt.Errorf("incorrect vector list")
 	errMarshalVector       = fmt.Errorf("incorrect vector marshalling")
-	errNilStruct           = fmt.Errorf("the struct to be marshalled is nil")
 	errOffset              = fmt.Errorf("incorrect offset")
 	errSize                = fmt.Errorf("incorrect size")
 )
@@ -36,7 +35,7 @@ func (a *AggregateAndProof) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Offset (1) 'Aggregate'
 	dst = ssz.WriteOffset(dst, offset)
 	if a.Aggregate == nil {
-		return nil, errNilStruct
+		a.Aggregate = new(Attestation)
 	}
 	offset += a.Aggregate.SizeSSZ()
 
@@ -93,9 +92,10 @@ func (a *AggregateAndProof) SizeSSZ() (size int) {
 	size = 108
 
 	// Field (1) 'Aggregate'
-	if a.Aggregate != nil {
-		size += a.Aggregate.SizeSSZ()
+	if a.Aggregate == nil {
+		a.Aggregate = new(Attestation)
 	}
+	size += a.Aggregate.SizeSSZ()
 
 	return
 }
@@ -167,7 +167,7 @@ func (a *AttestationData) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (3) 'Source'
 	if a.Source == nil {
-		return nil, errNilStruct
+		a.Source = new(Checkpoint)
 	}
 	if dst, err = a.Source.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func (a *AttestationData) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (4) 'Target'
 	if a.Target == nil {
-		return nil, errNilStruct
+		a.Target = new(Checkpoint)
 	}
 	if dst, err = a.Target.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ func (a *Attestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (1) 'Data'
 	if a.Data == nil {
-		return nil, errNilStruct
+		a.Data = new(AttestationData)
 	}
 	if dst, err = a.Data.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -387,7 +387,7 @@ func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (1) 'Data'
 	if d.Data == nil {
-		return nil, errNilStruct
+		d.Data = new(DepositData)
 	}
 	if dst, err = d.Data.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -496,7 +496,7 @@ func (i *IndexedAttestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (1) 'Data'
 	if i.Data == nil {
-		return nil, errNilStruct
+		i.Data = new(AttestationData)
 	}
 	if dst, err = i.Data.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -590,7 +590,7 @@ func (p *PendingAttestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (1) 'Data'
 	if p.Data == nil {
-		return nil, errNilStruct
+		p.Data = new(AttestationData)
 	}
 	if dst, err = p.Data.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -847,7 +847,7 @@ func (s *SignedVoluntaryExit) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (0) 'Exit'
 	if s.Exit == nil {
-		return nil, errNilStruct
+		s.Exit = new(VoluntaryExit)
 	}
 	if dst, err = s.Exit.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1100,7 +1100,7 @@ func (p *ProposerSlashing) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (1) 'Header1'
 	if p.Header1 == nil {
-		return nil, errNilStruct
+		p.Header1 = new(SignedBeaconBlockHeader)
 	}
 	if dst, err = p.Header1.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1108,7 +1108,7 @@ func (p *ProposerSlashing) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (2) 'Header2'
 	if p.Header2 == nil {
-		return nil, errNilStruct
+		p.Header2 = new(SignedBeaconBlockHeader)
 	}
 	if dst, err = p.Header2.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1167,14 +1167,14 @@ func (a *AttesterSlashing) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Offset (0) 'Attestation1'
 	dst = ssz.WriteOffset(dst, offset)
 	if a.Attestation1 == nil {
-		return nil, errNilStruct
+		a.Attestation1 = new(IndexedAttestation)
 	}
 	offset += a.Attestation1.SizeSSZ()
 
 	// Offset (1) 'Attestation2'
 	dst = ssz.WriteOffset(dst, offset)
 	if a.Attestation2 == nil {
-		return nil, errNilStruct
+		a.Attestation2 = new(IndexedAttestation)
 	}
 	offset += a.Attestation2.SizeSSZ()
 
@@ -1241,14 +1241,16 @@ func (a *AttesterSlashing) SizeSSZ() (size int) {
 	size = 8
 
 	// Field (0) 'Attestation1'
-	if a.Attestation1 != nil {
-		size += a.Attestation1.SizeSSZ()
+	if a.Attestation1 == nil {
+		a.Attestation1 = new(IndexedAttestation)
 	}
+	size += a.Attestation1.SizeSSZ()
 
 	// Field (1) 'Attestation2'
-	if a.Attestation2 != nil {
-		size += a.Attestation2.SizeSSZ()
+	if a.Attestation2 == nil {
+		a.Attestation2 = new(IndexedAttestation)
 	}
+	size += a.Attestation2.SizeSSZ()
 
 	return
 }
@@ -1272,7 +1274,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (2) 'Fork'
 	if b.Fork == nil {
-		return nil, errNilStruct
+		b.Fork = new(Fork)
 	}
 	if dst, err = b.Fork.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1280,7 +1282,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (3) 'LatestBlockHeader'
 	if b.LatestBlockHeader == nil {
-		return nil, errNilStruct
+		b.LatestBlockHeader = new(BeaconBlockHeader)
 	}
 	if dst, err = b.LatestBlockHeader.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1312,7 +1314,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (7) 'Eth1Data'
 	if b.Eth1Data == nil {
-		return nil, errNilStruct
+		b.Eth1Data = new(Eth1Data)
 	}
 	if dst, err = b.Eth1Data.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1372,7 +1374,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (17) 'PreviousJustifiedCheckpoint'
 	if b.PreviousJustifiedCheckpoint == nil {
-		return nil, errNilStruct
+		b.PreviousJustifiedCheckpoint = new(Checkpoint)
 	}
 	if dst, err = b.PreviousJustifiedCheckpoint.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1380,7 +1382,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (18) 'CurrentJustifiedCheckpoint'
 	if b.CurrentJustifiedCheckpoint == nil {
-		return nil, errNilStruct
+		b.CurrentJustifiedCheckpoint = new(Checkpoint)
 	}
 	if dst, err = b.CurrentJustifiedCheckpoint.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1388,7 +1390,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (19) 'FinalizedCheckpoint'
 	if b.FinalizedCheckpoint == nil {
-		return nil, errNilStruct
+		b.FinalizedCheckpoint = new(Checkpoint)
 	}
 	if dst, err = b.FinalizedCheckpoint.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -1733,17 +1735,13 @@ func (b *BeaconState) SizeSSZ() (size int) {
 	// Field (14) 'PreviousEpochAttestations'
 	for ii := 0; ii < len(b.PreviousEpochAttestations); ii++ {
 		size += 4
-		if b.PreviousEpochAttestations[ii] != nil {
-			size += b.PreviousEpochAttestations[ii].SizeSSZ()
-		}
+		size += b.PreviousEpochAttestations[ii].SizeSSZ()
 	}
 
 	// Field (15) 'CurrentEpochAttestations'
 	for ii := 0; ii < len(b.CurrentEpochAttestations); ii++ {
 		size += 4
-		if b.CurrentEpochAttestations[ii] != nil {
-			size += b.CurrentEpochAttestations[ii].SizeSSZ()
-		}
+		size += b.CurrentEpochAttestations[ii].SizeSSZ()
 	}
 
 	return
@@ -1776,7 +1774,7 @@ func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Offset (3) 'Body'
 	dst = ssz.WriteOffset(dst, offset)
 	if b.Body == nil {
-		return nil, errNilStruct
+		b.Body = new(BeaconBlockBody)
 	}
 	offset += b.Body.SizeSSZ()
 
@@ -1831,9 +1829,10 @@ func (b *BeaconBlock) SizeSSZ() (size int) {
 	size = 76
 
 	// Field (3) 'Body'
-	if b.Body != nil {
-		size += b.Body.SizeSSZ()
+	if b.Body == nil {
+		b.Body = new(BeaconBlockBody)
 	}
+	size += b.Body.SizeSSZ()
 
 	return
 }
@@ -1852,7 +1851,7 @@ func (s *SignedBeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
 	if s.Block == nil {
-		return nil, errNilStruct
+		s.Block = new(BeaconBlock)
 	}
 	offset += s.Block.SizeSSZ()
 
@@ -1906,9 +1905,10 @@ func (s *SignedBeaconBlock) SizeSSZ() (size int) {
 	size = 100
 
 	// Field (0) 'Block'
-	if s.Block != nil {
-		size += s.Block.SizeSSZ()
+	if s.Block == nil {
+		s.Block = new(BeaconBlock)
 	}
+	size += s.Block.SizeSSZ()
 
 	return
 }
@@ -2007,7 +2007,7 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (1) 'Eth1Data'
 	if b.Eth1Data == nil {
-		return nil, errNilStruct
+		b.Eth1Data = new(Eth1Data)
 	}
 	if dst, err = b.Eth1Data.MarshalSSZTo(dst); err != nil {
 		return nil, err
@@ -2280,17 +2280,13 @@ func (b *BeaconBlockBody) SizeSSZ() (size int) {
 	// Field (4) 'AttesterSlashings'
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 		size += 4
-		if b.AttesterSlashings[ii] != nil {
-			size += b.AttesterSlashings[ii].SizeSSZ()
-		}
+		size += b.AttesterSlashings[ii].SizeSSZ()
 	}
 
 	// Field (5) 'Attestations'
 	for ii := 0; ii < len(b.Attestations); ii++ {
 		size += 4
-		if b.Attestations[ii] != nil {
-			size += b.Attestations[ii].SizeSSZ()
-		}
+		size += b.Attestations[ii].SizeSSZ()
 	}
 
 	// Field (6) 'Deposits'
@@ -2314,7 +2310,7 @@ func (s *SignedBeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Field (0) 'Header'
 	if s.Header == nil {
-		return nil, errNilStruct
+		s.Header = new(BeaconBlockHeader)
 	}
 	if dst, err = s.Header.MarshalSSZTo(dst); err != nil {
 		return nil, err
