@@ -161,11 +161,39 @@ func (fc *fuzzerContext) doFuzz(v reflect.Value, tag reflect.StructTag) {
 	case reflect.Struct:
 		typ := v.Type()
 		for i := 0; i < v.NumField(); i++ {
+			// fuzz nil values if the field of the struct is
+			// another struct
+			if isPtrToStruct(v.Field(i)) {
+				if fc.addNil(v.Field(i)) {
+					continue
+				}
+			}
 			fc.doFuzz(v.Field(i), typ.Field(i).Tag)
 		}
 	default:
 		panic(fmt.Sprintf("Can't handle %#v", v.Interface()))
 	}
+}
+
+func (fc *fuzzerContext) addNil(v reflect.Value) bool {
+	if !fc.failed {
+		if fc.fuzzer.getShoudlFail() {
+			// set to nil
+			v.Set(reflect.Zero(v.Type()))
+			fc.failed = true
+			return true
+		}
+	}
+	return false
+}
+
+func isPtrToStruct(v reflect.Value) bool {
+	if v.Kind() == reflect.Ptr {
+		if v.Type().Elem().Kind() == reflect.Struct {
+			return true
+		}
+	}
+	return false
 }
 
 func fuzzInt(v reflect.Value, r *rand.Rand) {

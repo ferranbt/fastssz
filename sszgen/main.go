@@ -181,6 +181,10 @@ type Value struct {
 	ref string
 }
 
+func (v *Value) isListElem() bool {
+	return strings.HasSuffix(v.name, "]")
+}
+
 func (v *Value) objRef() string {
 	// global reference of the object including the package if the reference
 	// is from an external package
@@ -320,6 +324,7 @@ var errorFunctions = map[string]string{
 	"errMarshalDynamicBytes": "incorrect dynamic bytes marshalling",
 	"errDivideInt":           "incorrect int divide",
 	"errListTooBig":          "incorrect list size, too big",
+	"errNilStruct":           "the struct to be marshalled is nil",
 }
 
 func (e *env) print(first bool, order []string) (string, error, bool) {
