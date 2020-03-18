@@ -29,7 +29,7 @@ func (e *env) size(name string, v *Value) string {
 
 func (v *Value) sizeContainer(name string, start bool) string {
 	if !start {
-		return fmt.Sprintf(name+" += ::.%s.SizeSSZ()", v.name)
+		return fmt.Sprintf("if ::.%s != nil {\n "+name+" += ::.%s.SizeSSZ()\n}", v.name, v.name)
 	}
 	out := []string{}
 	for indx, v := range v.o {
