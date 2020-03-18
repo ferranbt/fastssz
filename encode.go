@@ -39,6 +39,9 @@ func UnmarshalBool(src []byte) bool {
 
 // MarshalFixedBytes marshals buf of fixed size to dst
 func MarshalFixedBytes(dst []byte, buf []byte, size int) ([]byte, error) {
+	if len(buf) == 0 {
+		buf = make([]byte, size)
+	}
 	if len(buf) != size {
 		return nil, fmt.Errorf("expected size %d but found %d", len(buf), size)
 	}
