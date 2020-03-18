@@ -178,9 +178,8 @@ func (fc *fuzzerContext) doFuzz(v reflect.Value, tag reflect.StructTag) {
 func (fc *fuzzerContext) addNil(v reflect.Value) bool {
 	if !fc.failed {
 		if fc.fuzzer.getShoudlFail() {
-			// set to nil
+			// set to nil, we dont fail because marshal fills empty values
 			v.Set(reflect.Zero(v.Type()))
-			fc.failed = true
 			return true
 		}
 	}
