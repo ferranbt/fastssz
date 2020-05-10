@@ -223,7 +223,7 @@ func (a *Attestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Attestation object to a target array
 func (a *Attestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 	var err error
-	offset := int(228)
+	offset := int(232)
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -234,13 +234,23 @@ func (a *Attestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Field (2) 'Signature'
+	// Offset (2) 'CustodyBits'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(a.CustodyBits)
+
+	// Field (3) 'Signature'
 	if dst, err = ssz.MarshalFixedBytes(dst, a.Signature, 96); err != nil {
 		return nil, errMarshalFixedBytes
 	}
 
 	// Field (0) 'AggregationBits'
 	dst = append(dst, a.AggregationBits...)
+
+	// Field (2) 'CustodyBits'
+	if len(a.CustodyBits) > 2048 {
+		return nil, errMarshalDynamicBytes
+	}
+	dst = append(dst, a.CustodyBits...)
 
 	return dst, err
 }
@@ -249,12 +259,12 @@ func (a *Attestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 228 {
+	if size < 232 {
 		return errSize
 	}
 
 	tail := buf
-	var o0 uint64
+	var o0, o2 uint64
 
 	// Offset (0) 'AggregationBits'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
@@ -269,23 +279,37 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 		return err
 	}
 
-	// Field (2) 'Signature'
-	a.Signature = append(a.Signature, buf[132:228]...)
+	// Offset (2) 'CustodyBits'
+	if o2 = ssz.ReadOffset(buf[132:136]); o2 > size || o0 > o2 {
+		return errOffset
+	}
+
+	// Field (3) 'Signature'
+	a.Signature = append(a.Signature, buf[136:232]...)
 
 	// Field (0) 'AggregationBits'
 	{
-		buf = tail[o0:]
+		buf = tail[o0:o2]
 		a.AggregationBits = append(a.AggregationBits, buf...)
+	}
+
+	// Field (2) 'CustodyBits'
+	{
+		buf = tail[o2:]
+		a.CustodyBits = append(a.CustodyBits, buf...)
 	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Attestation object
 func (a *Attestation) SizeSSZ() (size int) {
-	size = 228
+	size = 232
 
 	// Field (0) 'AggregationBits'
 	size += len(a.AggregationBits)
+
+	// Field (2) 'CustodyBits'
+	size += len(a.CustodyBits)
 
 	return
 }

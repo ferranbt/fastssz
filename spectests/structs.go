@@ -22,7 +22,7 @@ type AttestationData struct {
 type Attestation struct {
 	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist"`
 	Data            *AttestationData `json:"data"`
-	CustodyBits     []byte
+	CustodyBits     []byte			 `json:"attesting_indices" ssz-max:"2048"`
 	Signature       []byte           `json:"signature" ssz-size:"96"`
 }
 
