@@ -22,7 +22,7 @@ type AttestationData struct {
 type Attestation struct {
 	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist"`
 	Data            *AttestationData `json:"data"`
-	CustodyBits     []byte			 `json:"attesting_indices" ssz-max:"2048"`
+	CustodyBits     []byte			 `json:"custody_bits" ssz-max:"2048"`
 	Signature       []byte           `json:"signature" ssz-size:"96"`
 }
 
@@ -171,6 +171,7 @@ type BeaconBlockBody struct {
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
 	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
 	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+	ShardTransition   []*ShardTransition     `json:"shard_transition" ssz-max:"64"`
 }
 
 type SignedBeaconBlockHeader struct {
@@ -183,4 +184,19 @@ type BeaconBlockHeader struct {
 	ParentRoot []byte `json:"parent_root" ssz-size:"32"`
 	StateRoot  []byte `json:"state_root" ssz-size:"32"`
 	BodyRoot   []byte `json:"body_root" ssz-size:"32"`
+}
+
+type ShardTransition struct {
+	StartSlot uint64
+	ShardBlockLengths []uint64 `ssz-max:"2048"`
+	ShardDataRoots [][]byte `ssz-size:"32,2048"`
+	ShardStates []*ShardState `ssz-max:"2048"`
+	ProposerSignatureAggregates []byte `json:"signature" ssz-size:"96"`
+}
+
+type ShardState struct {
+	Slot uint64
+	GasPrice uint64
+	TransitionDigest []byte `ssz-size:"32"`
+	LatestBlockRoot []byte `ssz-size:"32"`
 }
