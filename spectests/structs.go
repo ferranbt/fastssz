@@ -17,6 +17,8 @@ type AttestationData struct {
 	BeaconBlockHash []byte      `json:"beacon_block_root" ssz-size:"32"`
 	Source          *Checkpoint `json:"source"`
 	Target          *Checkpoint `json:"target"`
+	ShardHeadRoot []byte `json:"shard_head_root" ssz-size:"32"`
+	ShardTransitionRoot []byte `json:"shard_transition_root" ssz-size:"32"`
 }
 
 type Attestation struct {

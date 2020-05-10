@@ -169,6 +169,16 @@ func (a *AttestationData) MarshalSSZTo(dst []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	// Field (5) 'ShardHeadRoot'
+	if dst, err = ssz.MarshalFixedBytes(dst, a.ShardHeadRoot, 32); err != nil {
+		return nil, errMarshalFixedBytes
+	}
+
+	// Field (6) 'ShardTransitionRoot'
+	if dst, err = ssz.MarshalFixedBytes(dst, a.ShardTransitionRoot, 32); err != nil {
+		return nil, errMarshalFixedBytes
+	}
+
 	return dst, err
 }
 
@@ -176,7 +186,7 @@ func (a *AttestationData) MarshalSSZTo(dst []byte) ([]byte, error) {
 func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size != 128 {
+	if size != 192 {
 		return errSize
 	}
 
@@ -205,12 +215,18 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 		return err
 	}
 
+	// Field (5) 'ShardHeadRoot'
+	a.ShardHeadRoot = append(a.ShardHeadRoot, buf[128:160]...)
+
+	// Field (6) 'ShardTransitionRoot'
+	a.ShardTransitionRoot = append(a.ShardTransitionRoot, buf[160:192]...)
+
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the AttestationData object
 func (a *AttestationData) SizeSSZ() (size int) {
-	size = 128
+	size = 192
 	return
 }
 
@@ -223,7 +239,7 @@ func (a *Attestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Attestation object to a target array
 func (a *Attestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 	var err error
-	offset := int(232)
+	offset := int(296)
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -259,7 +275,7 @@ func (a *Attestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 232 {
+	if size < 296 {
 		return errSize
 	}
 
@@ -275,17 +291,17 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	if a.Data == nil {
 		a.Data = new(AttestationData)
 	}
-	if err = a.Data.UnmarshalSSZ(buf[4:132]); err != nil {
+	if err = a.Data.UnmarshalSSZ(buf[4:196]); err != nil {
 		return err
 	}
 
 	// Offset (2) 'CustodyBits'
-	if o2 = ssz.ReadOffset(buf[132:136]); o2 > size || o0 > o2 {
+	if o2 = ssz.ReadOffset(buf[196:200]); o2 > size || o0 > o2 {
 		return errOffset
 	}
 
 	// Field (3) 'Signature'
-	a.Signature = append(a.Signature, buf[136:232]...)
+	a.Signature = append(a.Signature, buf[200:296]...)
 
 	// Field (0) 'AggregationBits'
 	{
@@ -303,7 +319,7 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the Attestation object
 func (a *Attestation) SizeSSZ() (size int) {
-	size = 232
+	size = 296
 
 	// Field (0) 'AggregationBits'
 	size += len(a.AggregationBits)
@@ -494,7 +510,7 @@ func (i *IndexedAttestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the IndexedAttestation object to a target array
 func (i *IndexedAttestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 	var err error
-	offset := int(228)
+	offset := int(292)
 
 	// Offset (0) 'AttestationIndices'
 	dst = ssz.WriteOffset(dst, offset)
@@ -525,7 +541,7 @@ func (i *IndexedAttestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 228 {
+	if size < 292 {
 		return errSize
 	}
 
@@ -541,12 +557,12 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	if i.Data == nil {
 		i.Data = new(AttestationData)
 	}
-	if err = i.Data.UnmarshalSSZ(buf[4:132]); err != nil {
+	if err = i.Data.UnmarshalSSZ(buf[4:196]); err != nil {
 		return err
 	}
 
 	// Field (2) 'Signature'
-	i.Signature = append(i.Signature, buf[132:228]...)
+	i.Signature = append(i.Signature, buf[196:292]...)
 
 	// Field (0) 'AttestationIndices'
 	{
@@ -568,7 +584,7 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the IndexedAttestation object
 func (i *IndexedAttestation) SizeSSZ() (size int) {
-	size = 228
+	size = 292
 
 	// Field (0) 'AttestationIndices'
 	size += len(i.AttestationIndices) * 8
@@ -585,7 +601,7 @@ func (p *PendingAttestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PendingAttestation object to a target array
 func (p *PendingAttestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 	var err error
-	offset := int(148)
+	offset := int(212)
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -615,7 +631,7 @@ func (p *PendingAttestation) MarshalSSZTo(dst []byte) ([]byte, error) {
 func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 148 {
+	if size < 212 {
 		return errSize
 	}
 
@@ -631,15 +647,15 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	if p.Data == nil {
 		p.Data = new(AttestationData)
 	}
-	if err = p.Data.UnmarshalSSZ(buf[4:132]); err != nil {
+	if err = p.Data.UnmarshalSSZ(buf[4:196]); err != nil {
 		return err
 	}
 
 	// Field (2) 'InclusionDelay'
-	p.InclusionDelay = ssz.UnmarshallUint64(buf[132:140])
+	p.InclusionDelay = ssz.UnmarshallUint64(buf[196:204])
 
 	// Field (3) 'ProposerIndex'
-	p.ProposerIndex = ssz.UnmarshallUint64(buf[140:148])
+	p.ProposerIndex = ssz.UnmarshallUint64(buf[204:212])
 
 	// Field (0) 'AggregationBits'
 	{
@@ -651,7 +667,7 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the PendingAttestation object
 func (p *PendingAttestation) SizeSSZ() (size int) {
-	size = 148
+	size = 212
 
 	// Field (0) 'AggregationBits'
 	size += len(p.AggregationBits)
