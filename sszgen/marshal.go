@@ -130,7 +130,22 @@ func (v *Value) marshalVector() (str string) {
 
 func (v *Value) marshalContainer(start bool) string {
 	if !start {
-		return fmt.Sprintf("if dst, err = ::.%s.MarshalSSZTo(dst); err != nil {\n return nil, err\n}", v.name)
+		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
+			::.{{.name}} = new({{.obj}})
+		}
+		{{ end }}if dst, err = ::.{{.name}}.MarshalSSZTo(dst); err != nil {
+			return nil, err
+		}`
+		// validate only for fixed structs
+		check := v.isFixed()
+		if v.isListElem() {
+			check = false
+		}
+		return execTmpl(tmpl, map[string]interface{}{
+			"name":  v.name,
+			"obj":   v.objRef(),
+			"check": check,
+		})
 	}
 
 	offset := v.n

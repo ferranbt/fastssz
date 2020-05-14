@@ -9,6 +9,8 @@ import (
 // size creates a function that returns the SSZ size of the struct. There are two components:
 // 1. Fixed: Size that we can determine at compilation time (i.e. uint, fixed bytes, fixed vector...)
 // 2. Dynamic: Size that depends on the input (i.e. lists, dynamic containers...)
+// Note that if any of the internal fields of the struct is nil, we will not fail, only not add up
+// that field to the size. It is up to other methods like marshal to fail on that scenario.
 func (e *env) size(name string, v *Value) string {
 	tmpl := `// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
 	func (:: *{{.name}}) SizeSSZ() (size int) {
@@ -29,7 +31,17 @@ func (e *env) size(name string, v *Value) string {
 
 func (v *Value) sizeContainer(name string, start bool) string {
 	if !start {
-		return fmt.Sprintf(name+" += ::.%s.SizeSSZ()", v.name)
+		tmpl := `{{if not .isList}} if ::.{{.name}} == nil {
+			::.{{.name}} = new({{.obj}})
+		}
+		{{end}} {{ .dst }} += ::.{{.name}}.SizeSSZ()`
+
+		return execTmpl(tmpl, map[string]interface{}{
+			"name":   v.name,
+			"dst":    name,
+			"obj":    v.objRef(),
+			"isList": v.isListElem(),
+		})
 	}
 	out := []string{}
 	for indx, v := range v.o {

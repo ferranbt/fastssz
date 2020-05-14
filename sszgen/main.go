@@ -181,6 +181,10 @@ type Value struct {
 	ref string
 }
 
+func (v *Value) isListElem() bool {
+	return strings.HasSuffix(v.name, "]")
+}
+
 func (v *Value) objRef() string {
 	// global reference of the object including the package if the reference
 	// is from an external package
