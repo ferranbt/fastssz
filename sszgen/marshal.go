@@ -11,16 +11,15 @@ import (
 func (e *env) marshal(name string, v *Value) string {
 	tmpl := `// MarshalSSZ ssz marshals the {{.name}} object
 	func (:: *{{.name}}) MarshalSSZ() ([]byte, error) {
-		buf := make([]byte, ::.SizeSSZ())
-		return ::.MarshalSSZTo(buf[:0])
+		return ssz.MarshalSSZ(::)
 	}
 
 	// MarshalSSZTo ssz marshals the {{.name}} object to a target array	
-	func (:: *{{.name}}) MarshalSSZTo(dst []byte) ([]byte, error) {
-		var err error
+	func (:: *{{.name}}) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+		dst = buf
 		{{.offset}}
 		{{.marshal}}
-		return dst, err
+		return
 	}`
 
 	data := map[string]interface{}{
@@ -42,12 +41,16 @@ func (v *Value) marshal() string {
 		return v.marshalContainer(false)
 
 	case TypeBytes:
-		if v.isFixed() {
-			// fixed. It ensures that the size is correct
-			return fmt.Sprintf("if dst, err = ssz.MarshalFixedBytes(dst, ::.%s, %d); err != nil {\n return nil, errMarshalFixedBytes\n}", v.name, v.s)
+		name := v.name
+		if v.c {
+			name += "[:]"
 		}
-		// dynamic
-		return fmt.Sprintf("if len(::.%s) > %d {\n return nil, errMarshalDynamicBytes\n}\ndst = append(dst, ::.%s...)", v.name, v.m, v.name)
+		tmpl := `{{.validate}}dst = append(dst, ::.{{.name}}...)`
+
+		return execTmpl(tmpl, map[string]interface{}{
+			"validate": v.validate(),
+			"name":     name,
+		})
 
 	case TypeUint:
 		return fmt.Sprintf("dst = ssz.Marshal%s(dst, ::.%s)", uintVToName(v), v.name)
@@ -76,7 +79,7 @@ func (v *Value) marshalList() string {
 	v.e.name = v.name + "[ii]"
 
 	// bound check
-	str := fmt.Sprintf("if len(::.%s) > %d {\n return nil, errMarshalList\n}\n", v.name, v.s)
+	str := v.validate()
 
 	if v.e.isFixed() {
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
@@ -115,16 +118,14 @@ func (v *Value) marshalList() string {
 func (v *Value) marshalVector() (str string) {
 	v.e.name = fmt.Sprintf("%s[ii]", v.name)
 
-	tmpl := `if len(::.{{.name}}) != {{.size}} {
-		return nil, errMarshalVector
-	}
-	for ii := 0; ii < {{.size}}; ii++ {
+	tmpl := `{{.validate}}for ii := 0; ii < {{.size}}; ii++ {
 		{{.marshal}}
 	}`
 	return execTmpl(tmpl, map[string]interface{}{
-		"name":    v.name,
-		"size":    v.s,
-		"marshal": v.e.marshal(),
+		"validate": v.validate(),
+		"name":     v.name,
+		"size":     v.s,
+		"marshal":  v.e.marshal(),
 	})
 }
 
@@ -134,7 +135,7 @@ func (v *Value) marshalContainer(start bool) string {
 			::.{{.name}} = new({{.obj}})
 		}
 		{{ end }}if dst, err = ::.{{.name}}.MarshalSSZTo(dst); err != nil {
-			return nil, err
+			return
 		}`
 		// validate only for fixed structs
 		check := v.isFixed()

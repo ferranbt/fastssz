@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+// MarshalSSZ marshals an object
+func MarshalSSZ(m Marshaler) ([]byte, error) {
+	buf := make([]byte, m.SizeSSZ())
+	return m.MarshalSSZTo(buf[:0])
+}
+
+// Errors
+
+var (
+	ErrOffset       = fmt.Errorf("incorrect offset")
+	ErrSize         = fmt.Errorf("incorrect size")
+	ErrBytesLength  = fmt.Errorf("bytes array does not have the correct length")
+	ErrVectorLength = fmt.Errorf("vector does not have the correct length")
+	ErrListTooBig   = fmt.Errorf("list length is higher than max value")
+)
+
 // ---- Unmarshal functions ----
 
 // UnmarshallUint64 unmarshals a little endian uint64 from the src input
@@ -36,18 +52,6 @@ func UnmarshalBool(src []byte) bool {
 }
 
 // ---- Marshal functions ----
-
-// MarshalFixedBytes marshals buf of fixed size to dst
-func MarshalFixedBytes(dst []byte, buf []byte, size int) ([]byte, error) {
-	if buf == nil {
-		buf = make([]byte, size)
-	}
-	if len(buf) != size {
-		return nil, fmt.Errorf("expected size %d but found %d", len(buf), size)
-	}
-	dst = append(dst, buf...)
-	return dst, nil
-}
 
 // MarshalUint64 marshals a little endian uint64 to dst
 func MarshalUint64(dst []byte, i uint64) []byte {
@@ -110,6 +114,14 @@ func safeReadOffset(buf []byte) (uint64, []byte, error) {
 }
 
 // ---- extend functions ----
+
+func extendByteSlice(b []byte, needLen int) []byte {
+	b = b[:cap(b)]
+	if n := needLen - cap(b); n > 0 {
+		b = append(b, make([]byte, n)...)
+	}
+	return b[:needLen]
+}
 
 // ExtendUint64 extends a uint64 buffer to a given size
 func ExtendUint64(b []uint64, needLen int) []uint64 {
@@ -197,6 +209,17 @@ func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) 
 		length--
 	}
 	return nil
+}
+
+func DivideInt2(a, b, max int) (int, error) {
+	num, ok := DivideInt(a, b)
+	if !ok {
+		return 0, fmt.Errorf("xx")
+	}
+	if num > max {
+		return 0, fmt.Errorf("yy")
+	}
+	return num, nil
 }
 
 // DivideInt divides the int fully

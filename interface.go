@@ -11,3 +11,8 @@ type Marshaler interface {
 type Unmarshaler interface {
 	UnmarshalSSZ(buf []byte) error
 }
+
+type HashRoot interface {
+	HashTreeRoot() ([]byte, error)
+	HashTreeRootWith(hh *Hasher) error
+}

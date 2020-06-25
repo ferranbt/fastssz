@@ -29,6 +29,9 @@ func (v *Value) unmarshal(dst string) string {
 		return v.umarshalContainer(false, dst)
 
 	case TypeBytes:
+		if v.c {
+			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
+		}
 		// both fixed and dynamic are decoded equally
 		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
 
@@ -76,12 +79,9 @@ func (v *Value) unmarshalList() string {
 	if v.e.isFixed() {
 		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.n, v.e.n)
 
-		tmpl := `num, ok := ssz.DivideInt(len(buf), {{.size}})
-		if !ok {
-			return errDivideInt
-		}
-		if num > {{.max}} {
-			return errListTooBig
+		tmpl := `num, err := ssz.DivideInt2(len(buf), {{.size}}, {{.max}})
+		if err != nil {
+			return err
 		}
 		{{.create}}
 		for ii := 0; ii < num; ii++ {
@@ -168,7 +168,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	tmpl := `size := uint64(len(buf))
 	if size {{.cmp}} {{.size}} {
-		return errSize
+		return ssz.ErrSize
 	}
 	{{if .offsets}}
 		tail := buf
@@ -227,7 +227,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 			tmpl := `// Offset ({{.indx}}) '{{.name}}'
 			if {{.offset}} = ssz.ReadOffset({{.dst}}); {{.offset}} > size {{.more}} {
-				return errOffset
+				return ssz.ErrOffset
 			}
 			`
 			res = execTmpl(tmpl, data)
@@ -296,6 +296,12 @@ func (v *Value) createSlice() string {
 
 	case TypeBytes:
 		// [][]byte
+		if v.c {
+			return ""
+		}
+		if v.e.c {
+			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
+		}
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
