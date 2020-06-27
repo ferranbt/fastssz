@@ -24,7 +24,6 @@ type AttestationData struct {
 type Attestation struct {
 	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist"`
 	Data            *AttestationData `json:"data"`
-	CustodyBits     []byte			 `json:"custody_bits" ssz-max:"2048"`
 	Signature       []byte           `json:"signature" ssz-size:"96"`
 }
 
@@ -140,6 +139,10 @@ type BeaconState struct {
 	PreviousJustifiedCheckpoint *Checkpoint `json:"previous_justified_checkpoint"`
 	CurrentJustifiedCheckpoint  *Checkpoint `json:"current_justified_checkpoint"`
 	FinalizedCheckpoint         *Checkpoint `json:"finalized_checkpoint"`
+
+	CurrentEpochStartShard uint64
+	ShardStates []*ShardState `ssz-size:"64"`
+	OnlineCountdown          []uint64           `ssz-max:"1099511627776"`
 }
 
 type BeaconBlock struct {
@@ -190,9 +193,9 @@ type BeaconBlockHeader struct {
 
 type ShardTransition struct {
 	StartSlot uint64
-	ShardBlockLengths []uint64 `ssz-max:"2048"`
+	ShardBlockLengths []uint64 `ssz-size:"2048"`
 	ShardDataRoots [][]byte `ssz-size:"32,2048"`
-	ShardStates []*ShardState `ssz-max:"2048"`
+	ShardStates []*ShardState `ssz-size:"2048"`
 	ProposerSignatureAggregates []byte `json:"signature" ssz-size:"96"`
 }
 
@@ -201,4 +204,9 @@ type ShardState struct {
 	GasPrice uint64
 	TransitionDigest []byte `ssz-size:"32"`
 	LatestBlockRoot []byte `ssz-size:"32"`
+}
+
+type CompactCommittee struct {
+	PubKeys [][]byte  `ssz-size:"48,2048"`
+	CompactValidators []uint64 `ssz-size:"2048"`
 }
