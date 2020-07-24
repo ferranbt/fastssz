@@ -3,17 +3,22 @@ package main
 func (v *Value) validate() string {
 	switch v.t {
 	case TypeBitList, TypeBytes:
+		cmp := "!="
+		if v.t == TypeBitList {
+			cmp = ">"
+		}
 		if v.c {
 			return ""
 		}
 		// []byte are always fixed
 		size := v.s
-		tmpl := `if len(::.{{.name}}) != {{.size}} {
+		tmpl := `if len(::.{{.name}}) {{.cmp}} {{.size}} {
 			err = ssz.ErrBytesLength
 			return
 		}
 		`
 		return execTmpl(tmpl, map[string]interface{}{
+			"cmp":  cmp,
 			"name": v.name,
 			"size": size,
 		})
