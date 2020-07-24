@@ -28,15 +28,13 @@ func (v *Value) unmarshal(dst string) string {
 	case TypeContainer:
 		return v.umarshalContainer(false, dst)
 
-	case TypeBytes:
+	case TypeBitList, TypeBytes:
 		// both fixed and dynamic are decoded equally
-		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
+		return fmt.Sprintf("if cap(::.%s) == 0 {\n::.%s = make([]byte, 0, len(%s))\n}\n::.%s = append(::.%s, %s...)",  v.name, v.name, dst, v.name, v.name, dst)
 
 	case TypeUint:
 		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
 
-	case TypeBitList:
-		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
 
 	case TypeVector:
 		if v.e.isFixed() {
