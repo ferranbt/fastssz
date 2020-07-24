@@ -2,7 +2,7 @@ package main
 
 func (v *Value) validate() string {
 	switch v.t {
-	case TypeBytes:
+	case TypeBitList, TypeBytes:
 		if v.c {
 			return ""
 		}

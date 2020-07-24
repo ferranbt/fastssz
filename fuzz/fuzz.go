@@ -170,6 +170,13 @@ func (fc *fuzzerContext) doFuzz(v reflect.Value, tag reflect.StructTag) {
 			}
 			fc.doFuzz(v.Field(i), typ.Field(i).Tag)
 		}
+
+	case reflect.Array:
+		n := v.Len()
+		for i := 0; i < n; i++ {
+			fc.doFuzz(v.Index(i), tag)
+		}
+
 	default:
 		panic(fmt.Sprintf("Can't handle %#v", v.Interface()))
 	}

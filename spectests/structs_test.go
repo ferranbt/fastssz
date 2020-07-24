@@ -104,7 +104,7 @@ func TestFuzzMarshalWithWrongSizes(t *testing.T) {
 			failed := f.Fuzz(obj)
 			if failed {
 				if _, err := obj.MarshalSSZTo(nil); err == nil {
-					t.Fatal("it should have failed")
+					t.Fatalf("%s it should have failed", name)
 				}
 			}
 		}

@@ -56,7 +56,7 @@ func (v *Value) marshal() string {
 		return fmt.Sprintf("dst = ssz.Marshal%s(dst, ::.%s)", uintVToName(v), v.name)
 
 	case TypeBitList:
-		return fmt.Sprintf("dst = append(dst, ::.%s...)", v.name)
+		return fmt.Sprintf("%sdst = append(dst, ::.%s...)", v.validate(), v.name)
 
 	case TypeBool:
 		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)

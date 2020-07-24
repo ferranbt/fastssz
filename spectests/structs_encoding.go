@@ -313,6 +313,10 @@ func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = append(dst, a.Signature[:]...)
 
 	// Field (0) 'AggregationBits'
+	if len(a.AggregationBits) != 2048 {
+		err = ssz.ErrBytesLength
+		return
+	}
 	dst = append(dst, a.AggregationBits...)
 
 	return
@@ -822,6 +826,10 @@ func (p *PendingAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.MarshalUint64(dst, p.ProposerIndex)
 
 	// Field (0) 'AggregationBits'
+	if len(p.AggregationBits) != 2048 {
+		err = ssz.ErrBytesLength
+		return
+	}
 	dst = append(dst, p.AggregationBits...)
 
 	return
