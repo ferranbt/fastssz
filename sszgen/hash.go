@@ -8,7 +8,7 @@ import (
 // hashTreeRoot creates a function that SSZ hashes the structs,
 func (e *env) hashTreeRoot(name string, v *Value) string {
 	tmpl := `// HashTreeRoot ssz hashes the {{.name}} object
-	func (:: *{{.name}}) HashTreeRoot() ([]byte, error) {
+	func (:: *{{.name}}) HashTreeRoot() ([32]byte, error) {
 		return ssz.HashWithDefaultHasher(::)
 	}
 	

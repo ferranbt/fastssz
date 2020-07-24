@@ -286,7 +286,7 @@ func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(root, output.root) {
+	if !bytes.Equal(root[:], output.root) {
 		fmt.Printf("%s bad root\n", f)
 	}
 }

@@ -37,11 +37,11 @@ func init() {
 
 // HashWithDefaultHasher hashes a HashRoot object with a Hasher from
 // the default HasherPool
-func HashWithDefaultHasher(v HashRoot) ([]byte, error) {
+func HashWithDefaultHasher(v HashRoot) ([32]byte, error) {
 	hh := DefaultHasherPool.Get()
 	if err := v.HashTreeRootWith(hh); err != nil {
 		DefaultHasherPool.Put(hh)
-		return nil, err
+		return [32]byte{}, err
 	}
 	root, err := hh.HashRoot()
 	DefaultHasherPool.Put(hh)
@@ -245,13 +245,13 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 }
 
 // HashRoot creates the hash final hash root
-func (h *Hasher) HashRoot() ([]byte, error) {
+func (h *Hasher) HashRoot() (res [32]byte, err error) {
 	if len(h.buf) != 32 {
-		return nil, fmt.Errorf("expected 32 byte size")
+		err = fmt.Errorf("expected 32 byte size")
+		return
 	}
-	res := []byte{}
-	res = append(res, h.buf...)
-	return res, nil
+	copy(res[:], h.buf)
+	return
 }
 
 // HasherPool may be used for pooling Hashers for similarly typed SSZs.
