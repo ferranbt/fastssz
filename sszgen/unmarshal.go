@@ -39,7 +39,15 @@ func (v *Value) unmarshal(dst string) string {
 		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
 
 	case TypeBitList:
-		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
+		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
+			return err
+		}
+		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": v.name,
+			"dst":  dst,
+			"size": v.m,
+		})
 
 	case TypeVector:
 		if v.e.isFixed() {

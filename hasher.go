@@ -166,11 +166,10 @@ func (h *Hasher) PutUint64Array(b []uint64, maxCapacity ...uint64) {
 }
 
 func parseBitlist(dst, buf []byte) ([]byte, uint64) {
+	msb := uint8(bits.Len8(buf[len(buf)-1])) - 1
+	size := uint64(8*(len(buf)-1) + int(msb))
+
 	dst = append(dst, buf...)
-
-	msb := uint8(bits.Len8(dst[len(dst)-1])) - 1
-	size := uint64(8*(len(dst)-1) + int(msb))
-
 	dst[len(dst)-1] &^= uint8(1 << msb)
 
 	newLen := len(dst)
@@ -180,18 +179,19 @@ func parseBitlist(dst, buf []byte) ([]byte, uint64) {
 		}
 		newLen = i
 	}
-	return dst[:newLen], size
+	res := dst[:newLen]
+	return res, size
 }
 
 // PutBitlist appends a ssz bitlist
 func (h *Hasher) PutBitlist(bb []byte, maxSize uint64) {
-	var len uint64
-	h.tmp, len = parseBitlist(h.tmp[:0], bb)
+	var size uint64
+	h.tmp, size = parseBitlist(h.tmp[:0], bb)
 
 	// merkleize the content with mix in length
 	indx := h.Index()
 	h.appendBytes32(h.tmp)
-	h.MerkleizeWithMixin(indx, len, (maxSize+255)/256)
+	h.MerkleizeWithMixin(indx, size, (maxSize+255)/256)
 }
 
 // PutBool appends a boolean
@@ -343,7 +343,6 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 			if i&(uint64(1)<<j) == 0 {
 				// if we are at the count, we want to merge in zero-hashes for padding
 				if i == count && j < depth {
-					//fmt.Printf("\tCombi: %d\n", j)
 					h.doHash(hh, hh, zeroHashes[j][:])
 				} else {
 					// store the merge result (may be no merge, i.e. bottom leaf node)

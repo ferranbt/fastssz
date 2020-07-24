@@ -147,7 +147,7 @@ func (v *Value) hashTreeRoot() string {
 		})
 
 	default:
-		panic(fmt.Errorf("marshal not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("hash not implemented for type %s", v.t.String()))
 	}
 }
 

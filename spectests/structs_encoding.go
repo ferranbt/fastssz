@@ -348,6 +348,9 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'AggregationBits'
 	{
 		buf = tail[o0:]
+		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
+			return err
+		}
 		a.AggregationBits = append(a.AggregationBits, buf...)
 	}
 	return err
@@ -857,6 +860,9 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'AggregationBits'
 	{
 		buf = tail[o0:]
+		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
+			return err
+		}
 		p.AggregationBits = append(p.AggregationBits, buf...)
 	}
 	return err

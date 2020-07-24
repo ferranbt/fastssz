@@ -636,7 +636,7 @@ func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, erro
 			tags = f.Tag.Value
 		}
 
-		elem, err := e.parseASTFieldType(tags, f.Type)
+		elem, err := e.parseASTFieldType(name, tags, f.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -670,7 +670,7 @@ func getObjLen(obj *ast.ArrayType) uint64 {
 }
 
 // parse the Go AST field
-func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
+func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error) {
 	switch obj := expr.(type) {
 	case *ast.StarExpr:
 		// *Struct
@@ -735,7 +735,7 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 		}
 
 		// []*Struct
-		elem, err := e.parseASTFieldType(tags, obj.Elt)
+		elem, err := e.parseASTFieldType(name, tags, obj.Elt)
 		if err != nil {
 			return nil, err
 		}
@@ -751,7 +751,7 @@ func (e *env) parseASTFieldType(tags string, expr ast.Expr) (*Value, error) {
 		// list
 		maxSize, ok := getTagsInt(tags, "ssz-max")
 		if !ok {
-			return nil, fmt.Errorf("slice expects either ssz-max or ssz-size")
+			return nil, fmt.Errorf("slice '%s' expects either ssz-max or ssz-size", name)
 		}
 		v := &Value{t: TypeList, e: elem, s: maxSize, m: maxSize}
 		return v, nil

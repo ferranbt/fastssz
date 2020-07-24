@@ -141,9 +141,30 @@ func ExtendUint16(b []uint16, needLen int) []uint16 {
 	return b[:needLen]
 }
 
-// ---- unmarshal dynami content ----
+// ---- unmarshal dynamic content ----
 
 const bytesPerLengthOffset = 4
+
+// ValidateBitlist validates that the bitlist is correct
+func ValidateBitlist(buf []byte, bitLimit uint64) error {
+	byteLen := uint64(len(buf))
+	delim := (bitLimit >> 3) + 1
+	if byteLen > delim {
+		return fmt.Errorf("unexpected number of bytes, got %d but found %d", byteLen, delim)
+	}
+	if byteLen == 0 {
+		return fmt.Errorf("bitlist empty, it does not have length bit")
+	}
+
+	msb := buf[byteLen-1]
+	if msb == 0 {
+		return fmt.Errorf("trailing byte is zero")
+	}
+	if other := bitLimit - ((byteLen - 1) << 3); uint64(msb) > other {
+		return fmt.Errorf("too many bits")
+	}
+	return nil
+}
 
 // DecodeDynamicLength decodes the length from the dynamic input
 func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
