@@ -3,7 +3,7 @@ package spectests
 type AggregateAndProof struct {
 	Index          uint64       `json:"aggregator_index"`
 	Aggregate      *Attestation `json:"aggregate"`
-	SelectionProof []byte       `json:"selection_proof" ssz-size:"96"`
+	SelectionProof [96]byte     `json:"selection_proof" ssz-size:"96"`
 }
 
 type Checkpoint struct {
@@ -14,22 +14,22 @@ type Checkpoint struct {
 type AttestationData struct {
 	Slot            uint64      `json:"slot"`
 	Index           uint64      `json:"index"`
-	BeaconBlockHash []byte      `json:"beacon_block_root" ssz-size:"32"`
+	BeaconBlockHash [32]byte    `json:"beacon_block_root" ssz-size:"32"`
 	Source          *Checkpoint `json:"source"`
 	Target          *Checkpoint `json:"target"`
 }
 
 type Attestation struct {
-	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist"`
+	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
 	Data            *AttestationData `json:"data"`
-	Signature       []byte           `json:"signature" ssz-size:"96"`
+	Signature       [96]byte         `json:"signature" ssz-size:"96"`
 }
 
 type DepositData struct {
-	Pubkey                []byte `json:"pubkey" ssz-size:"48"`
-	WithdrawalCredentials []byte `json:"withdrawal_credentials" ssz-size:"32"`
-	Amount                uint64 `json:"amount"`
-	Signature             []byte `json:"signature" ssz-size:"96"`
+	Pubkey                [48]byte `json:"pubkey" ssz-size:"48"`
+	WithdrawalCredentials [32]byte `json:"withdrawal_credentials" ssz-size:"32"`
+	Amount                uint64   `json:"amount"`
+	Signature             []byte   `json:"signature" ssz-size:"96"`
 }
 
 type Deposit struct {
@@ -50,7 +50,7 @@ type IndexedAttestation struct {
 }
 
 type PendingAttestation struct {
-	AggregationBits []byte           `json:"aggregation_bits" ssz-max:"2048"`
+	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
 	Data            *AttestationData `json:"data"`
 	InclusionDelay  uint64           `json:"inclusion_delay"`
 	ProposerIndex   uint64           `json:"proposer_index"`
@@ -99,8 +99,8 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [][]byte `json:"block_roots" ssz-size:"64,32"`
-	StateRoots [][]byte `json:"state_roots" ssz-size:"64,32"`
+	BlockRoots [64][32]byte `json:"block_roots" ssz-size:"64"`
+	StateRoots [][]byte     `json:"state_roots" ssz-size:"64,32"`
 }
 
 type ProposerSlashing struct {
@@ -119,19 +119,19 @@ type BeaconState struct {
 	Slot              uint64             `json:"slot"`
 	Fork              *Fork              `json:"fork"`
 	LatestBlockHeader *BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots        [][]byte           `json:"block_roots" ssz-size:"64,32"`
-	StateRoots        [][]byte           `json:"state_roots" ssz-size:"64,32"`
-	HistoricalRoots   [][]byte           `json:"historical_roots" ssz-size:"?,32" ssz-max:"16777216"`
+	BlockRoots        [64][32]byte       `json:"block_roots" ssz-size:"64,32"`
+	StateRoots        [][32]byte         `json:"state_roots" ssz-size:"64"`
+	HistoricalRoots   [][32]byte         `json:"historical_roots" ssz-max:"16777216"`
 	Eth1Data          *Eth1Data          `json:"eth1_data"`
-	Eth1DataVotes     []*Eth1Data        `json:"eth1_data_votes" ssz-max:"1024"`
+	Eth1DataVotes     []*Eth1Data        `json:"eth1_data_votes" ssz-max:"16"`
 	Eth1DepositIndex  uint64             `json:"eth1_deposit_index"`
 	Validators        []*Validator       `json:"validators" ssz-max:"1099511627776"`
 	Balances          []uint64           `json:"balances" ssz-max:"1099511627776"`
 	RandaoMixes       [][]byte           `json:"randao_mixes" ssz-size:"64,32"`
 	Slashings         []uint64           `json:"slashings" ssz-size:"64"`
 
-	PreviousEpochAttestations []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"4096"`
-	CurrentEpochAttestations  []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"4096"`
+	PreviousEpochAttestations []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"1024"`
+	CurrentEpochAttestations  []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"1024"`
 	JustificationBits         []byte                `json:"justification_bits" ssz-size:"1"`
 
 	PreviousJustifiedCheckpoint *Checkpoint `json:"previous_justified_checkpoint"`
@@ -164,7 +164,7 @@ type Transfer struct {
 type BeaconBlockBody struct {
 	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          []byte                 `json:"graffiti" ssz-size:"32"`
+	Graffiti          [32]byte               `json:"graffiti"`
 	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
 	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"1"`
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`

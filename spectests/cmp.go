@@ -14,6 +14,14 @@ func deepEqualImpl(v1, v2 reflect.Value, depth int) bool {
 	}
 
 	switch v1.Kind() {
+	case reflect.Array:
+		for i := 0; i < v1.Len(); i++ {
+			if !deepEqualImpl(v1.Index(i), v2.Index(i), depth+1) {
+				return false
+			}
+		}
+		return true
+
 	case reflect.Slice:
 		v1Empty := v1.IsNil() || v1.Len() == 0
 		v2Empty := v2.IsNil() || v2.Len() == 0

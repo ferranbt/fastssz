@@ -2,26 +2,28 @@ package spectests
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
-	"regexp"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/ferranbt/fastssz/fuzz"
-	"github.com/ghodss/yaml"
-	baseSSZ "github.com/prysmaticlabs/go-ssz"
+	"github.com/mitchellh/mapstructure"
+
+	"gopkg.in/yaml.v2"
 )
 
 type codec interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
+	ssz.HashRoot
 }
 
 type testCallback func() codec
@@ -102,7 +104,7 @@ func TestFuzzMarshalWithWrongSizes(t *testing.T) {
 			failed := f.Fuzz(obj)
 			if failed {
 				if _, err := obj.MarshalSSZTo(nil); err == nil {
-					t.Fatal("it should have failed")
+					t.Fatalf("%s it should have failed", name)
 				}
 			}
 		}
@@ -228,6 +230,7 @@ func TestSpecMinimal(t *testing.T) {
 			t.Fatalf("name %s not found", name)
 		}
 
+		t.Log(f)
 		for _, f := range walkPath(t, f) {
 			checkSSZEncoding(t, f, base)
 		}
@@ -248,6 +251,7 @@ func TestSpecMainnet(t *testing.T) {
 			t.Fatalf("name %s not found", name)
 		}
 
+		t.Log(f)
 		files := readDir(t, filepath.Join(f, "ssz_random"))
 		for _, f := range files {
 			checkSSZEncoding(t, f, base)
@@ -257,40 +261,37 @@ func TestSpecMainnet(t *testing.T) {
 
 func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 	obj := base()
-	expected := readValidGenericSSZ(t, f, &obj)
+	output := readValidGenericSSZ(t, f, &obj)
 
 	// Marshal
 	res, err := obj.MarshalSSZTo(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(res, expected) {
-		t.Fatal("bad")
+	if !bytes.Equal(res, output.ssz) {
+		t.Fatal("bad marshalling")
 	}
 
 	// Unmarshal
 	obj2 := base()
-	if err := obj2.UnmarshalSSZ(expected); err != nil {
+	if err := obj2.UnmarshalSSZ(res); err != nil {
 		panic(err)
 	}
 	if !deepEqual(obj, obj2) {
-		t.Fatal("bad")
+		t.Fatal("bad unmarshalling")
+	}
+
+	// Root
+	root, err := obj.HashTreeRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(root[:], output.root) {
+		fmt.Printf("%s bad root\n", f)
 	}
 }
 
 const benchmarkTestCase = "../eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/BeaconBlock/ssz_random/case_4"
-
-func BenchmarkMarshalGoSSZ(b *testing.B) {
-	obj := new(BeaconBlock)
-	readValidGenericSSZ(nil, benchmarkTestCase, obj)
-
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		baseSSZ.Marshal(obj)
-	}
-}
 
 func BenchmarkMarshalFast(b *testing.B) {
 	obj := new(BeaconBlock)
@@ -318,26 +319,6 @@ func BenchmarkMarshalSuperFast(b *testing.B) {
 	}
 }
 
-func BenchmarkUnMarshalGoSSZ(b *testing.B) {
-	obj := new(BeaconBlock)
-	readValidGenericSSZ(nil, benchmarkTestCase, obj)
-
-	dst, err := baseSSZ.Marshal(obj)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		var obj2 BeaconBlock
-		if err := baseSSZ.Unmarshal(dst, &obj2); err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
 func BenchmarkUnMarshalFast(b *testing.B) {
 	obj := new(BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
@@ -355,6 +336,20 @@ func BenchmarkUnMarshalFast(b *testing.B) {
 		if err := obj2.UnmarshalSSZ(dst); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func BenchmarkHashTreeRootFast(b *testing.B) {
+	obj := new(BeaconBlock)
+	readValidGenericSSZ(nil, benchmarkTestCase, obj)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	hh := ssz.DefaultHasherPool.Get()
+	for i := 0; i < b.N; i++ {
+		obj.HashTreeRootWith(hh)
+		hh.Reset()
 	}
 }
 
@@ -393,7 +388,12 @@ func readDir(t *testing.T, path string) []string {
 	return res
 }
 
-func readValidGenericSSZ(t *testing.T, path string, obj interface{}) []byte {
+type output struct {
+	root []byte
+	ssz  []byte
+}
+
+func readValidGenericSSZ(t *testing.T, path string, obj interface{}) *output {
 	serialized, err := ioutil.ReadFile(filepath.Join(path, serializedFile))
 	if err != nil {
 		t.Fatal(err)
@@ -402,23 +402,83 @@ func readValidGenericSSZ(t *testing.T, path string, obj interface{}) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := unmarshalYaml(raw, obj); err != nil {
+	raw2, err := ioutil.ReadFile(filepath.Join(path, rootsFile))
+	if err != nil {
 		t.Fatal(err)
 	}
-	return serialized
+
+	// Decode ssz root
+	var out map[string]string
+	if err := yaml.Unmarshal(raw2, &out); err != nil {
+		t.Fatal(err)
+	}
+	root, err := hex.DecodeString(out["root"][2:])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := UnmarshalSSZTest(raw, obj); err != nil {
+		t.Fatal(err)
+	}
+	return &output{root: root, ssz: serialized}
 }
 
-var hexMatch = regexp.MustCompile("('0[xX][0-9a-fA-F]+')")
+func isByteSlice(t reflect.Type) bool {
+	return t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8
+}
 
-func unmarshalYaml(content []byte, obj interface{}) error {
-	input := []byte(content)
-	for _, match := range hexMatch.FindAllSubmatch(input, -1) {
-		res, err := hex.DecodeString(strings.Trim(string(match[1]), "'")[2:])
-		if err != nil {
-			panic(err)
-		}
-		resb64 := base64.StdEncoding.EncodeToString(res)
-		input = bytes.Replace(input, match[1], []byte(resb64), -1)
+func isByteArray(t reflect.Type) bool {
+	return t.Kind() == reflect.Array && t.Elem().Kind() == reflect.Uint8
+}
+
+func customHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+	if f.Kind() != reflect.String {
+		return data, nil
 	}
-	return yaml.Unmarshal(input, &obj)
+
+	raw := data.(string)
+	if !strings.HasPrefix(raw, "0x") {
+		return nil, fmt.Errorf("0x prefix not found")
+	}
+	elem, err := hex.DecodeString(raw[2:])
+	if err != nil {
+		return nil, err
+	}
+	if isByteSlice(t) {
+		// []byte
+		return elem, nil
+	}
+	if isByteArray(t) {
+		// [n]byte
+		if t.Len() != len(elem) {
+			return nil, fmt.Errorf("incorrect array length: %d %d", t.Len(), len(elem))
+		}
+
+		v := reflect.New(t)
+		reflect.Copy(v.Elem(), reflect.ValueOf(elem))
+		return v.Interface(), nil
+	}
+
+	return nil, fmt.Errorf("type not found")
+}
+
+func UnmarshalSSZTest(content []byte, result interface{}) error {
+	var source map[string]interface{}
+	if err := yaml.Unmarshal(content, &source); err != nil {
+		return err
+	}
+
+	dc := &mapstructure.DecoderConfig{
+		Result:     result,
+		DecodeHook: customHook,
+		TagName:    "json",
+	}
+	ms, err := mapstructure.NewDecoder(dc)
+	if err != nil {
+		return err
+	}
+	if err = ms.Decode(source); err != nil {
+		return err
+	}
+	return nil
 }
