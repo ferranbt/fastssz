@@ -142,6 +142,9 @@ func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
 	c.Epoch = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'Root'
+	if cap(c.Root) == 0 {
+		c.Root = make([]byte, 0, len(buf[8:40]))
+	}
 	c.Root = append(c.Root, buf[8:40]...)
 
 	return err
@@ -355,6 +358,9 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
 			return err
 		}
+		if cap(a.AggregationBits) == 0 {
+			a.AggregationBits = make([]byte, 0, len(buf))
+		}
 		a.AggregationBits = append(a.AggregationBits, buf...)
 	}
 	return err
@@ -440,6 +446,9 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 	d.Amount = ssz.UnmarshallUint64(buf[80:88])
 
 	// Field (3) 'Signature'
+	if cap(d.Signature) == 0 {
+		d.Signature = make([]byte, 0, len(buf[88:184]))
+	}
 	d.Signature = append(d.Signature, buf[88:184]...)
 
 	return err
@@ -524,6 +533,9 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Proof'
 	d.Proof = make([][]byte, 33)
 	for ii := 0; ii < 33; ii++ {
+		if cap(d.Proof[ii]) == 0 {
+			d.Proof[ii] = make([]byte, 0, len(buf[0:1056][ii*32:(ii+1)*32]))
+		}
 		d.Proof[ii] = append(d.Proof[ii], buf[0:1056][ii*32:(ii+1)*32]...)
 	}
 
@@ -617,9 +629,15 @@ func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Pubkey'
+	if cap(d.Pubkey) == 0 {
+		d.Pubkey = make([]byte, 0, len(buf[0:48]))
+	}
 	d.Pubkey = append(d.Pubkey, buf[0:48]...)
 
 	// Field (1) 'WithdrawalCredentials'
+	if cap(d.WithdrawalCredentials) == 0 {
+		d.WithdrawalCredentials = make([]byte, 0, len(buf[48:80]))
+	}
 	d.WithdrawalCredentials = append(d.WithdrawalCredentials, buf[48:80]...)
 
 	// Field (2) 'Amount'
@@ -730,6 +748,9 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Signature'
+	if cap(i.Signature) == 0 {
+		i.Signature = make([]byte, 0, len(buf[132:228]))
+	}
 	i.Signature = append(i.Signature, buf[132:228]...)
 
 	// Field (0) 'AttestationIndices'
@@ -871,6 +892,9 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
 			return err
 		}
+		if cap(p.AggregationBits) == 0 {
+			p.AggregationBits = make([]byte, 0, len(buf))
+		}
 		p.AggregationBits = append(p.AggregationBits, buf...)
 	}
 	return err
@@ -951,9 +975,15 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'PreviousVersion'
+	if cap(f.PreviousVersion) == 0 {
+		f.PreviousVersion = make([]byte, 0, len(buf[0:4]))
+	}
 	f.PreviousVersion = append(f.PreviousVersion, buf[0:4]...)
 
 	// Field (1) 'CurrentVersion'
+	if cap(f.CurrentVersion) == 0 {
+		f.CurrentVersion = make([]byte, 0, len(buf[4:8]))
+	}
 	f.CurrentVersion = append(f.CurrentVersion, buf[4:8]...)
 
 	// Field (2) 'Epoch'
@@ -1051,9 +1081,15 @@ func (v *Validator) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Pubkey'
+	if cap(v.Pubkey) == 0 {
+		v.Pubkey = make([]byte, 0, len(buf[0:48]))
+	}
 	v.Pubkey = append(v.Pubkey, buf[0:48]...)
 
 	// Field (1) 'WithdrawalCredentials'
+	if cap(v.WithdrawalCredentials) == 0 {
+		v.WithdrawalCredentials = make([]byte, 0, len(buf[48:80]))
+	}
 	v.WithdrawalCredentials = append(v.WithdrawalCredentials, buf[48:80]...)
 
 	// Field (2) 'EffectiveBalance'
@@ -1232,6 +1268,9 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
+	if cap(s.Signature) == 0 {
+		s.Signature = make([]byte, 0, len(buf[16:112]))
+	}
 	s.Signature = append(s.Signature, buf[16:112]...)
 
 	return err
@@ -1357,12 +1396,18 @@ func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'DepositRoot'
+	if cap(e.DepositRoot) == 0 {
+		e.DepositRoot = make([]byte, 0, len(buf[0:32]))
+	}
 	e.DepositRoot = append(e.DepositRoot, buf[0:32]...)
 
 	// Field (1) 'DepositCount'
 	e.DepositCount = ssz.UnmarshallUint64(buf[32:40])
 
 	// Field (2) 'BlockHash'
+	if cap(e.BlockHash) == 0 {
+		e.BlockHash = make([]byte, 0, len(buf[40:72]))
+	}
 	e.BlockHash = append(e.BlockHash, buf[40:72]...)
 
 	return err
@@ -1439,9 +1484,15 @@ func (s *SigningRoot) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'ObjectRoot'
+	if cap(s.ObjectRoot) == 0 {
+		s.ObjectRoot = make([]byte, 0, len(buf[0:32]))
+	}
 	s.ObjectRoot = append(s.ObjectRoot, buf[0:32]...)
 
 	// Field (1) 'Domain'
+	if cap(s.Domain) == 0 {
+		s.Domain = make([]byte, 0, len(buf[32:40]))
+	}
 	s.Domain = append(s.Domain, buf[32:40]...)
 
 	return err
@@ -1527,6 +1578,9 @@ func (h *HistoricalBatch) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'StateRoots'
 	h.StateRoots = make([][]byte, 64)
 	for ii := 0; ii < 64; ii++ {
+		if cap(h.StateRoots[ii]) == 0 {
+			h.StateRoots[ii] = make([]byte, 0, len(buf[2048:4096][ii*32:(ii+1)*32]))
+		}
 		h.StateRoots[ii] = append(h.StateRoots[ii], buf[2048:4096][ii*32:(ii+1)*32]...)
 	}
 
@@ -2093,6 +2147,9 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// Field (12) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 64)
 	for ii := 0; ii < 64; ii++ {
+		if cap(b.RandaoMixes[ii]) == 0 {
+			b.RandaoMixes[ii] = make([]byte, 0, len(buf[4328:6376][ii*32:(ii+1)*32]))
+		}
 		b.RandaoMixes[ii] = append(b.RandaoMixes[ii], buf[4328:6376][ii*32:(ii+1)*32]...)
 	}
 
@@ -2113,6 +2170,9 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (16) 'JustificationBits'
+	if cap(b.JustificationBits) == 0 {
+		b.JustificationBits = make([]byte, 0, len(buf[6896:6897]))
+	}
 	b.JustificationBits = append(b.JustificationBits, buf[6896:6897]...)
 
 	// Field (17) 'PreviousJustifiedCheckpoint'
@@ -2539,9 +2599,15 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	b.Slot = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'ParentRoot'
+	if cap(b.ParentRoot) == 0 {
+		b.ParentRoot = make([]byte, 0, len(buf[8:40]))
+	}
 	b.ParentRoot = append(b.ParentRoot, buf[8:40]...)
 
 	// Field (2) 'StateRoot'
+	if cap(b.StateRoot) == 0 {
+		b.StateRoot = make([]byte, 0, len(buf[40:72]))
+	}
 	b.StateRoot = append(b.StateRoot, buf[40:72]...)
 
 	// Offset (3) 'Body'
@@ -2659,6 +2725,9 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
+	if cap(s.Signature) == 0 {
+		s.Signature = make([]byte, 0, len(buf[4:100]))
+	}
 	s.Signature = append(s.Signature, buf[4:100]...)
 
 	// Field (0) 'Block'
@@ -2777,9 +2846,15 @@ func (t *Transfer) UnmarshalSSZ(buf []byte) error {
 	t.Slot = ssz.UnmarshallUint64(buf[32:40])
 
 	// Field (5) 'Pubkey'
+	if cap(t.Pubkey) == 0 {
+		t.Pubkey = make([]byte, 0, len(buf[40:88]))
+	}
 	t.Pubkey = append(t.Pubkey, buf[40:88]...)
 
 	// Field (6) 'Signature'
+	if cap(t.Signature) == 0 {
+		t.Signature = make([]byte, 0, len(buf[88:184]))
+	}
 	t.Signature = append(t.Signature, buf[88:184]...)
 
 	return err
@@ -2971,6 +3046,9 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	var o3, o4, o5, o6, o7 uint64
 
 	// Field (0) 'RandaoReveal'
+	if cap(b.RandaoReveal) == 0 {
+		b.RandaoReveal = make([]byte, 0, len(buf[0:96]))
+	}
 	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
 
 	// Field (1) 'Eth1Data'
@@ -3289,6 +3367,9 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
+	if cap(s.Signature) == 0 {
+		s.Signature = make([]byte, 0, len(buf[104:200]))
+	}
 	s.Signature = append(s.Signature, buf[104:200]...)
 
 	return err
@@ -3373,12 +3454,21 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	b.Slot = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'ParentRoot'
+	if cap(b.ParentRoot) == 0 {
+		b.ParentRoot = make([]byte, 0, len(buf[8:40]))
+	}
 	b.ParentRoot = append(b.ParentRoot, buf[8:40]...)
 
 	// Field (2) 'StateRoot'
+	if cap(b.StateRoot) == 0 {
+		b.StateRoot = make([]byte, 0, len(buf[40:72]))
+	}
 	b.StateRoot = append(b.StateRoot, buf[40:72]...)
 
 	// Field (3) 'BodyRoot'
+	if cap(b.BodyRoot) == 0 {
+		b.BodyRoot = make([]byte, 0, len(buf[72:104]))
+	}
 	b.BodyRoot = append(b.BodyRoot, buf[72:104]...)
 
 	return err

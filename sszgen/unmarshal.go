@@ -33,8 +33,8 @@ func (v *Value) unmarshal(dst string) string {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
 		// both fixed and dynamic are decoded equally
-		tmpl := `if cap(::{{.name}}) == 0 {
-			::{{.name}} = make([]byte, 0, len({{.dst}}))
+		tmpl := `if cap(::.{{.name}}) == 0 {
+			::.{{.name}} = make([]byte, 0, len({{.dst}}))
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
@@ -50,8 +50,8 @@ func (v *Value) unmarshal(dst string) string {
 		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
 			return err
 		}
-		if cap(::{{.name}}) == 0 {
-			::{{.name}} = make([]byte, 0, len({{.dst}}))
+		if cap(::.{{.name}}) == 0 {
+			::.{{.name}} = make([]byte, 0, len({{.dst}}))
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
