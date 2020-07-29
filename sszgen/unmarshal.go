@@ -28,25 +28,13 @@ func (v *Value) unmarshal(dst string) string {
 	case TypeContainer:
 		return v.umarshalContainer(false, dst)
 
-<<<<<<< HEAD
-	case TypeBitList, TypeBytes:
-=======
 	case TypeBytes:
 		if v.c {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
->>>>>>> 0b6e349af87af8ea2eb2bb5ce05fe4249530f571
 		// both fixed and dynamic are decoded equally
-		return fmt.Sprintf("if cap(::.%s) == 0 {\n::.%s = make([]byte, 0, len(%s))\n}\n::.%s = append(::.%s, %s...)",  v.name, v.name, dst, v.name, v.name, dst)
-
-	case TypeUint:
-		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
-
-<<<<<<< HEAD
-=======
-	case TypeBitList:
-		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
-			return err
+		tmpl := `if cap(::{{.name}}) == 0 {
+			::{{.name}} = make([]byte, 0, len({{.dst}}))
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
@@ -54,7 +42,23 @@ func (v *Value) unmarshal(dst string) string {
 			"dst":  dst,
 			"size": v.m,
 		})
->>>>>>> 0b6e349af87af8ea2eb2bb5ce05fe4249530f571
+
+	case TypeUint:
+		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
+
+	case TypeBitList:
+		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
+			return err
+		}
+		if cap(::{{.name}}) == 0 {
+			::{{.name}} = make([]byte, 0, len({{.dst}}))
+		}
+		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": v.name,
+			"dst":  dst,
+			"size": v.m,
+		})
 
 	case TypeVector:
 		if v.e.isFixed() {
