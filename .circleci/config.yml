@@ -15,4 +15,4 @@ jobs:
           command: |
             go test -v ./spectests/... -run TestSpec
             go test -v ./spectests/... -run TestErrorResponse
-            go test -v ./spectests/... -run TestFuzzUnmarshalAppend
+            FUZZ_TESTS=true go test -v ./spectests/... -run TestFuzzUnmarshalAppend
