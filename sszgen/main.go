@@ -261,7 +261,7 @@ type env struct {
 	// name of the package
 	packName string
 	// map of structs with their Go AST format
-	raw map[string]*ast.StructType
+	raw map[string]*astStruct
 	// map of structs with their IR format
 	objs map[string]*Value
 	// map of files with their structs in order
@@ -441,6 +441,7 @@ func appendObjSignature(str string, v *Value) string {
 type astStruct struct {
 	name string
 	obj  *ast.StructType
+	typ  ast.Expr
 }
 
 func decodeASTStruct(file *ast.File) []*astStruct {
@@ -449,12 +450,16 @@ func decodeASTStruct(file *ast.File) []*astStruct {
 		if genDecl, ok := dec.(*ast.GenDecl); ok {
 			for _, spec := range genDecl.Specs {
 				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
-					if structType, ok := typeSpec.Type.(*ast.StructType); ok {
-						structs = append(structs, &astStruct{
-							name: typeSpec.Name.Name,
-							obj:  structType,
-						})
+					obj := &astStruct{
+						name: typeSpec.Name.Name,
 					}
+					structType, ok := typeSpec.Type.(*ast.StructType)
+					if ok {
+						obj.obj = structType
+					} else {
+						obj.typ = typeSpec.Type
+					}
+					structs = append(structs, obj)
 				}
 			}
 		}
@@ -502,7 +507,7 @@ func decodeASTImports(file *ast.File) []*astImport {
 }
 
 func (e *env) generateIR() error {
-	e.raw = map[string]*ast.StructType{}
+	e.raw = map[string]*astStruct{}
 	e.order = map[string][]string{}
 	e.imports = []*astImport{}
 
@@ -513,7 +518,7 @@ func (e *env) generateIR() error {
 			if _, ok := e.raw[i.name]; ok {
 				return fmt.Errorf("two structs share the same name %s", i.name)
 			}
-			e.raw[i.name] = i.obj
+			e.raw[i.name] = i
 		}
 		return nil
 	}
@@ -572,7 +577,7 @@ func (e *env) generateIR() error {
 		}
 	}
 
-	for name := range e.raw {
+	for name, obj := range e.raw {
 		var valid bool
 		if e.targets == nil || len(e.targets) == 0 {
 			valid = true
@@ -580,7 +585,11 @@ func (e *env) generateIR() error {
 			valid = contains(name, e.targets)
 		}
 		if valid {
-			if _, err := e.encodeItem(name); err != nil {
+			if obj.obj == nil {
+				// do not process raw elements that are just type wrappers
+				continue
+			}
+			if _, err := e.encodeItem(name, ""); err != nil {
 				return err
 			}
 		}
@@ -597,7 +606,7 @@ func contains(i string, j []string) bool {
 	return false
 }
 
-func (e *env) encodeItem(name string) (*Value, error) {
+func (e *env) encodeItem(name, tags string) (*Value, error) {
 	v, ok := e.objs[name]
 	if !ok {
 		var err error
@@ -605,9 +614,13 @@ func (e *env) encodeItem(name string) (*Value, error) {
 		if !ok {
 			return nil, fmt.Errorf("could not find struct with name '%s'", name)
 		}
-		v, err = e.parseASTStructType(name, raw)
+		if raw.obj != nil {
+			v, err = e.parseASTStructType(name, raw.obj)
+		} else {
+			v, err = e.parseASTFieldType(name, tags, raw.typ)
+		}
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to encode %s: %v", name, err)
 		}
 		v.name = name
 		v.obj = name
@@ -679,13 +692,13 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		switch elem := obj.X.(type) {
 		case *ast.Ident:
 			// reference to a local package
-			return e.encodeItem(elem.Name)
+			return e.encodeItem(elem.Name, tags)
 
 		case *ast.SelectorExpr:
 			// reference of the external package
 			ref := elem.X.(*ast.Ident).Name
 			// reference to a struct from another package
-			v, err := e.encodeItem(elem.Sel.Name)
+			v, err := e.encodeItem(elem.Sel.Name, tags)
 			if err != nil {
 				return nil, err
 			}
@@ -796,7 +809,8 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			}
 			return &Value{t: TypeBytes, s: size, n: size}, nil
 		}
-		return nil, fmt.Errorf("select for %s.%s not found", name, sel)
+		// external reference
+		return e.encodeItem(sel, tags)
 
 	default:
 		panic(fmt.Errorf("ast type '%s' not expected", reflect.TypeOf(expr)))
