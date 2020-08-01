@@ -1,0 +1,14 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14
+    
+    steps:
+      - checkout
+      - run:
+          command: |
+            make ef-tests
+      - run:
+          command: |
+            go test -v ./spectests/... -run TestSpec
