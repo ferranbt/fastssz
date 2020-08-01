@@ -7,6 +7,12 @@ Clone:
 $ git clone git@github.com:ferranbt/fastssz.git --recursive
 ```
 
+Download the eth2.0 spec tests
+
+```
+$ make ef-tests
+```
+
 Regenerate the test spec encodings:
 
 ```
