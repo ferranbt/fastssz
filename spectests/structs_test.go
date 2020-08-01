@@ -54,6 +54,7 @@ var codecs = map[string]testCallback{
 	"SigningRoot":             func() codec { return new(SigningRoot) },
 	"Validator":               func() codec { return new(Validator) },
 	"VoluntaryExit":           func() codec { return new(VoluntaryExit) },
+	"ErrorResponse":           func() codec { return new(ErrorResponse) },
 }
 
 func randomInt(min, max int) int {
@@ -111,6 +112,35 @@ func TestFuzzMarshalWithWrongSizes(t *testing.T) {
 	}
 }
 
+func TestErrorResponse(t *testing.T) {
+	// TODO: Move to fuzzer
+	codec := codecs["ErrorResponse"]
+
+	for i := 0; i < 1000; i++ {
+		obj := codec()
+		f := fuzz.New()
+		f.SetFailureRatio(.1)
+		failed := f.Fuzz(obj)
+
+		dst, err := obj.MarshalSSZTo(nil)
+		if err != nil {
+			if !failed {
+				t.Fatal(err)
+			} else {
+				continue
+			}
+		}
+
+		obj2 := codec()
+		if err := obj2.UnmarshalSSZ(dst); err != nil {
+			t.Fatal(err)
+		}
+		if !deepEqual(obj, obj2) {
+			t.Fatal("bad")
+		}
+	}
+}
+
 func TestFuzzEncoding(t *testing.T) {
 	checkIsFuzzEnabled(t)
 
@@ -141,7 +171,9 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 	checkIsFuzzEnabled(t)
 
 	// Fuzz with append values between the fields
-	for _, codec := range codecs {
+	for name, codec := range codecs {
+		t.Log(name)
+
 		for j := 0; j < 5; j++ {
 			obj := codec()
 			f := fuzz.New()

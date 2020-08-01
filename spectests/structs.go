@@ -183,3 +183,7 @@ type BeaconBlockHeader struct {
 	StateRoot  []byte `json:"state_root" ssz-size:"32"`
 	BodyRoot   []byte `json:"body_root" ssz-size:"32"`
 }
+
+type ErrorResponse struct {
+	Message []byte `ssz-max:"256"`
+}

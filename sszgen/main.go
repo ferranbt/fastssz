@@ -721,7 +721,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				return nil, fmt.Errorf("[]byte expects either ssz-max or ssz-size")
 			}
 			// dynamic bytes
-			return &Value{t: TypeBytes, s: max, m: max}, nil
+			return &Value{t: TypeBytes, m: max}, nil
 		}
 		if isArray(obj.Elt) && isByte(obj.Elt.(*ast.ArrayType).Elt) {
 			f, fCheck, s, sCheck, t, err := getRootSizes(obj, tags)

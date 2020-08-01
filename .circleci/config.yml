@@ -10,5 +10,9 @@ jobs:
           command: |
             make ef-tests
       - run:
+          environment:
+            FUZZ_TESTS: true
           command: |
             go test -v ./spectests/... -run TestSpec
+            go test -v ./spectests/... -run TestErrorResponse
+            go test -v ./spectests/... -run TestFuzzUnmarshalAppend
