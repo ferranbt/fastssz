@@ -10,8 +10,14 @@ func (v *Value) validate() string {
 		if v.c {
 			return ""
 		}
-		// []byte are always fixed
+		// fixed []byte
 		size := v.s
+		if size == 0 {
+			// dynamic []byte
+			size = v.m
+			cmp = ">"
+		}
+
 		tmpl := `if len(::.{{.name}}) {{.cmp}} {{.size}} {
 			err = ssz.ErrBytesLength
 			return

@@ -3,7 +3,8 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.14
-    
+    environment:
+      FUZZ_TESTS: true
     steps:
       - checkout
       - run:
@@ -12,3 +13,5 @@ jobs:
       - run:
           command: |
             go test -v ./spectests/... -run TestSpec
+            go test -v ./spectests/... -run TestErrorResponse
+            go test -v ./spectests/... -run TestFuzzUnmarshalAppend

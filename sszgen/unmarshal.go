@@ -33,7 +33,12 @@ func (v *Value) unmarshal(dst string) string {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
 		// both fixed and dynamic are decoded equally
-		return fmt.Sprintf("::.%s = append(::.%s, %s...)", v.name, v.name, dst)
+		validate := ""
+		if v.s == 0 {
+			// dynamic bytes, we need to validate the size of the buffer
+			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
+		}
+		return fmt.Sprintf("%s::.%s = append(::.%s, %s...)", validate, v.name, v.name, dst)
 
 	case TypeUint:
 		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
