@@ -1,9 +1,11 @@
 package spectests
 
+import "github.com/ferranbt/fastssz/spectests/external"
+
 type AggregateAndProof struct {
-	Index          uint64       `json:"aggregator_index"`
-	Aggregate      *Attestation `json:"aggregate"`
-	SelectionProof [96]byte     `json:"selection_proof" ssz-size:"96"`
+	Index          uint64             `json:"aggregator_index"`
+	Aggregate      *Attestation       `json:"aggregate"`
+	SelectionProof external.Signature `json:"selection_proof" ssz-size:"96"`
 }
 
 type Checkpoint struct {
@@ -26,10 +28,10 @@ type Attestation struct {
 }
 
 type DepositData struct {
-	Pubkey                [48]byte `json:"pubkey" ssz-size:"48"`
-	WithdrawalCredentials [32]byte `json:"withdrawal_credentials" ssz-size:"32"`
-	Amount                uint64   `json:"amount"`
-	Signature             []byte   `json:"signature" ssz-size:"96"`
+	Pubkey                [48]byte       `json:"pubkey" ssz-size:"48"`
+	WithdrawalCredentials [32]byte       `json:"withdrawal_credentials" ssz-size:"32"`
+	Amount                uint64         `json:"amount"`
+	Signature             external.Bytes `json:"signature" ssz-size:"96"`
 }
 
 type Deposit struct {
@@ -185,5 +187,5 @@ type BeaconBlockHeader struct {
 }
 
 type ErrorResponse struct {
-	Message []byte `ssz-max:"256"`
+	Message external.DynamicBytes `ssz-max:"256"`
 }

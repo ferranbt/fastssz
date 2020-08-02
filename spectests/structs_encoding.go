@@ -3439,14 +3439,12 @@ func (e *ErrorResponse) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'Message'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.Message)
+	offset += e.Message.SizeSSZ()
 
 	// Field (0) 'Message'
-	if len(e.Message) > 256 {
-		err = ssz.ErrBytesLength
+	if dst, err = e.Message.MarshalSSZTo(dst); err != nil {
 		return
 	}
-	dst = append(dst, e.Message...)
 
 	return
 }
@@ -3470,10 +3468,9 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Message'
 	{
 		buf = tail[o0:]
-		if len(buf) > 256 {
-			return ssz.ErrBytesLength
+		if err = e.Message.UnmarshalSSZ(buf); err != nil {
+			return err
 		}
-		e.Message = append(e.Message, buf...)
 	}
 	return err
 }
@@ -3483,7 +3480,7 @@ func (e *ErrorResponse) SizeSSZ() (size int) {
 	size = 4
 
 	// Field (0) 'Message'
-	size += len(e.Message)
+	size += e.Message.SizeSSZ()
 
 	return
 }
@@ -3498,11 +3495,9 @@ func (e *ErrorResponse) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Message'
-	if len(e.Message) > 256 {
-		err = ssz.ErrBytesLength
+	if err = e.Message.HashTreeRootWith(hh); err != nil {
 		return
 	}
-	hh.PutBytes(e.Message)
 
 	hh.Merkleize(indx)
 	return

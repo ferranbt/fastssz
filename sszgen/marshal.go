@@ -37,7 +37,7 @@ func (e *env) marshal(name string, v *Value) string {
 
 func (v *Value) marshal() string {
 	switch v.t {
-	case TypeContainer:
+	case TypeContainer, TypeReference:
 		return v.marshalContainer(false)
 
 	case TypeBytes:
@@ -140,6 +140,9 @@ func (v *Value) marshalContainer(start bool) string {
 		// validate only for fixed structs
 		check := v.isFixed()
 		if v.isListElem() {
+			check = false
+		}
+		if v.t == TypeReference && v.c {
 			check = false
 		}
 		return execTmpl(tmpl, map[string]interface{}{

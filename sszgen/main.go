@@ -227,6 +227,8 @@ const (
 	TypeList
 	// TypeContainer is a SSZ container
 	TypeContainer
+	// TypeReference is a SSZ reference
+	TypeReference
 )
 
 func (t Type) String() string {
@@ -247,6 +249,8 @@ func (t Type) String() string {
 		return "list"
 	case TypeContainer:
 		return "container"
+	case TypeReference:
+		return "reference"
 	default:
 		panic("not found")
 	}
@@ -261,7 +265,7 @@ type env struct {
 	// name of the package
 	packName string
 	// map of structs with their Go AST format
-	raw map[string]*ast.StructType
+	raw map[string]*astStruct
 	// map of structs with their IR format
 	objs map[string]*Value
 	// map of files with their structs in order
@@ -417,6 +421,11 @@ func detectImports(v *Value) []string {
 	for _, i := range v.o {
 		var ref string
 		switch i.t {
+		case TypeReference:
+			if !i.c {
+				// it is not a typed reference
+				ref = i.ref
+			}
 		case TypeContainer:
 			ref = i.ref
 		case TypeList, TypeVector:
@@ -439,27 +448,109 @@ func appendObjSignature(str string, v *Value) string {
 }
 
 type astStruct struct {
-	name string
-	obj  *ast.StructType
+	name     string
+	obj      *ast.StructType
+	typ      ast.Expr
+	implFunc bool
 }
 
-func decodeASTStruct(file *ast.File) []*astStruct {
-	structs := []*astStruct{}
+type astResult struct {
+	objs  []*astStruct
+	funcs []string
+}
+
+func decodeASTStruct(file *ast.File) *astResult {
+	res := &astResult{
+		objs:  []*astStruct{},
+		funcs: []string{},
+	}
+
+	funcRefs := map[string]int{}
 	for _, dec := range file.Decls {
 		if genDecl, ok := dec.(*ast.GenDecl); ok {
 			for _, spec := range genDecl.Specs {
 				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
-					if structType, ok := typeSpec.Type.(*ast.StructType); ok {
-						structs = append(structs, &astStruct{
-							name: typeSpec.Name.Name,
-							obj:  structType,
-						})
+					obj := &astStruct{
+						name: typeSpec.Name.Name,
+					}
+					structType, ok := typeSpec.Type.(*ast.StructType)
+					if ok {
+						obj.obj = structType
+					} else {
+						obj.typ = typeSpec.Type
+					}
+					res.objs = append(res.objs, obj)
+				}
+			}
+		}
+		if funcDecl, ok := dec.(*ast.FuncDecl); ok {
+			if expr, ok := funcDecl.Recv.List[0].Type.(*ast.StarExpr); ok {
+				// only allow pointer functions
+				if i, ok := expr.X.(*ast.Ident); ok {
+					objName := i.Name
+					if ok := isFuncDecl(funcDecl); ok {
+						funcRefs[objName]++
 					}
 				}
 			}
 		}
 	}
-	return structs
+	for name, count := range funcRefs {
+		if count == 4 {
+			// it implements all the interface functions
+			res.funcs = append(res.funcs, name)
+		}
+	}
+	return res
+}
+
+func isSpecificFunc(funcDecl *ast.FuncDecl, in, out []string) bool {
+	check := func(types *ast.FieldList, args []string) bool {
+		list := types.List
+		if len(list) != len(args) {
+			return false
+		}
+
+		for i := 0; i < len(list); i++ {
+			typ := list[i].Type
+			arg := args[i]
+
+			var buf bytes.Buffer
+			fset := token.NewFileSet()
+			if err := format.Node(&buf, fset, typ); err != nil {
+				panic(err)
+			}
+			if string(buf.Bytes()) != arg {
+				return false
+			}
+		}
+
+		return true
+	}
+	if !check(funcDecl.Type.Params, in) {
+		return false
+	}
+	if !check(funcDecl.Type.Results, out) {
+		return false
+	}
+	return true
+}
+
+func isFuncDecl(funcDecl *ast.FuncDecl) bool {
+	name := funcDecl.Name.Name
+	if name == "SizeSSZ" {
+		return isSpecificFunc(funcDecl, []string{}, []string{"int"})
+	}
+	if name == "MarshalSSZTo" {
+		return isSpecificFunc(funcDecl, []string{"[]byte"}, []string{"[]byte", "error"})
+	}
+	if name == "UnmarshalSSZ" {
+		return isSpecificFunc(funcDecl, []string{"[]byte"}, []string{"error"})
+	}
+	if name == "HashTreeRootWith" {
+		return isSpecificFunc(funcDecl, []string{"*ssz.Hasher"}, []string{"error"})
+	}
+	return false
 }
 
 type astImport struct {
@@ -502,18 +593,26 @@ func decodeASTImports(file *ast.File) []*astImport {
 }
 
 func (e *env) generateIR() error {
-	e.raw = map[string]*ast.StructType{}
+	e.raw = map[string]*astStruct{}
 	e.order = map[string][]string{}
 	e.imports = []*astImport{}
 
 	// we want to make sure we only include one reference for each struct name
 	// among the source and include paths.
-	addStructs := func(structs []*astStruct) error {
-		for _, i := range structs {
+	addStructs := func(res *astResult) error {
+		for _, i := range res.objs {
 			if _, ok := e.raw[i.name]; ok {
 				return fmt.Errorf("two structs share the same name %s", i.name)
 			}
-			e.raw[i.name] = i.obj
+			e.raw[i.name] = i
+		}
+		// include all the functions that implement the interfaces
+		for _, name := range res.funcs {
+			v, ok := e.raw[name]
+			if !ok {
+				return fmt.Errorf("badxx")
+			}
+			v.implFunc = true
 		}
 		return nil
 	}
@@ -548,15 +647,15 @@ func (e *env) generateIR() error {
 
 	// decode the structs from the input path
 	for name, file := range e.files {
-		structs := decodeASTStruct(file)
-		if err := addStructs(structs); err != nil {
+		res := decodeASTStruct(file)
+		if err := addStructs(res); err != nil {
 			return err
 		}
 
 		// keep the ordering in which the structs appear so that we always generate them in
 		// the same predictable order
 		structOrdering := []string{}
-		for _, i := range structs {
+		for _, i := range res.objs {
 			structOrdering = append(structOrdering, i.name)
 		}
 		e.order[name] = structOrdering
@@ -566,13 +665,13 @@ func (e *env) generateIR() error {
 	// If the structs are in raw they can be used as a reference at compilation time and since they are
 	// not in 'order' they cannot be used to marshal/unmarshal encodings
 	for _, file := range e.include {
-		structs := decodeASTStruct(file)
-		if err := addStructs(structs); err != nil {
+		res := decodeASTStruct(file)
+		if err := addStructs(res); err != nil {
 			return err
 		}
 	}
 
-	for name := range e.raw {
+	for name, obj := range e.raw {
 		var valid bool
 		if e.targets == nil || len(e.targets) == 0 {
 			valid = true
@@ -580,7 +679,11 @@ func (e *env) generateIR() error {
 			valid = contains(name, e.targets)
 		}
 		if valid {
-			if _, err := e.encodeItem(name); err != nil {
+			if obj.obj == nil {
+				// do not process raw elements that are just type wrappers
+				continue
+			}
+			if _, err := e.encodeItem(name, ""); err != nil {
 				return err
 			}
 		}
@@ -597,7 +700,7 @@ func contains(i string, j []string) bool {
 	return false
 }
 
-func (e *env) encodeItem(name string) (*Value, error) {
+func (e *env) encodeItem(name, tags string) (*Value, error) {
 	v, ok := e.objs[name]
 	if !ok {
 		var err error
@@ -605,9 +708,15 @@ func (e *env) encodeItem(name string) (*Value, error) {
 		if !ok {
 			return nil, fmt.Errorf("could not find struct with name '%s'", name)
 		}
-		v, err = e.parseASTStructType(name, raw)
+		if raw.implFunc {
+			v = &Value{t: TypeReference, ref: "external", c: raw.obj == nil}
+		} else if raw.obj != nil {
+			v, err = e.parseASTStructType(name, raw.obj)
+		} else {
+			v, err = e.parseASTFieldType(name, tags, raw.typ)
+		}
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to encode %s: %v", name, err)
 		}
 		v.name = name
 		v.obj = name
@@ -679,13 +788,13 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		switch elem := obj.X.(type) {
 		case *ast.Ident:
 			// reference to a local package
-			return e.encodeItem(elem.Name)
+			return e.encodeItem(elem.Name, tags)
 
 		case *ast.SelectorExpr:
 			// reference of the external package
 			ref := elem.X.(*ast.Ident).Name
 			// reference to a struct from another package
-			v, err := e.encodeItem(elem.Sel.Name)
+			v, err := e.encodeItem(elem.Sel.Name, tags)
 			if err != nil {
 				return nil, err
 			}
@@ -796,7 +905,8 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			}
 			return &Value{t: TypeBytes, s: size, n: size}, nil
 		}
-		return nil, fmt.Errorf("select for %s.%s not found", name, sel)
+		// external reference
+		return e.encodeItem(sel, tags)
 
 	default:
 		panic(fmt.Errorf("ast type '%s' not expected", reflect.TypeOf(expr)))
@@ -982,6 +1092,10 @@ func (v *Value) isFixed() bool {
 		fallthrough
 	case TypeBool:
 		return true
+
+	case TypeReference:
+		// references are always dynamic
+		return false
 
 	default:
 		panic(fmt.Errorf("is fixed not implemented for type %s", v.t.String()))
