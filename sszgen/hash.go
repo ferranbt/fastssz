@@ -91,7 +91,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 
 func (v *Value) hashTreeRoot() string {
 	switch v.t {
-	case TypeContainer:
+	case TypeContainer, TypeReference:
 		return v.hashTreeRootContainer(false)
 
 	case TypeBytes:

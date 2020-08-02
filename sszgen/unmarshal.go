@@ -25,7 +25,7 @@ func (e *env) unmarshal(name string, v *Value) string {
 func (v *Value) unmarshal(dst string) string {
 	// we use dst as the input buffer where the SSZ data to decode the value is.
 	switch v.t {
-	case TypeContainer:
+	case TypeContainer, TypeReference:
 		return v.umarshalContainer(false, dst)
 
 	case TypeBytes:
@@ -140,16 +140,21 @@ func (v *Value) unmarshalList() string {
 
 func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	if !start {
-		tmpl := `if ::.{{.name}} == nil {
+		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
 			::.{{.name}} = new({{.obj}})
 		}
-		if err = ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
+		{{ end }}if err = ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
 			return err
 		}`
+		check := true
+		if v.t == TypeReference && v.c {
+			check = false
+		}
 		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
-			"obj":  v.objRef(),
-			"dst":  dst,
+			"name":  v.name,
+			"obj":   v.objRef(),
+			"dst":   dst,
+			"check": check,
 		})
 	}
 
