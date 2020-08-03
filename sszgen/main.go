@@ -487,6 +487,9 @@ func decodeASTStruct(file *ast.File) *astResult {
 			}
 		}
 		if funcDecl, ok := dec.(*ast.FuncDecl); ok {
+			if funcDecl.Recv == nil {
+				continue
+			}
 			if expr, ok := funcDecl.Recv.List[0].Type.(*ast.StarExpr); ok {
 				// only allow pointer functions
 				if i, ok := expr.X.(*ast.Ident); ok {
@@ -739,6 +742,9 @@ func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, erro
 	}
 
 	for _, f := range typ.Fields.List {
+		if len(f.Names) != 1 {
+			continue
+		}
 		name := f.Names[0].Name
 		if !isExportedField(name) {
 			continue
