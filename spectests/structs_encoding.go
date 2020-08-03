@@ -3,6 +3,7 @@ package spectests
 
 import (
 	ssz "github.com/ferranbt/fastssz"
+	"github.com/ferranbt/fastssz/spectests/external"
 )
 
 // MarshalSSZ ssz marshals the AggregateAndProof object
@@ -26,7 +27,9 @@ func (a *AggregateAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset += a.Aggregate.SizeSSZ()
 
 	// Field (2) 'SelectionProof'
-	dst = append(dst, a.SelectionProof[:]...)
+	if dst, err = a.SelectionProof.MarshalSSZTo(dst); err != nil {
+		return
+	}
 
 	// Field (1) 'Aggregate'
 	if dst, err = a.Aggregate.MarshalSSZTo(dst); err != nil {
@@ -56,7 +59,9 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'SelectionProof'
-	copy(a.SelectionProof[:], buf[12:108])
+	if err = a.SelectionProof.UnmarshalSSZ(buf[12:108]); err != nil {
+		return err
+	}
 
 	// Field (1) 'Aggregate'
 	{
@@ -102,7 +107,9 @@ func (a *AggregateAndProof) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (2) 'SelectionProof'
-	hh.PutBytes(a.SelectionProof[:])
+	if err = a.SelectionProof.HashTreeRootWith(hh); err != nil {
+		return
+	}
 
 	hh.Merkleize(indx)
 	return
@@ -310,7 +317,12 @@ func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (2) 'Signature'
-	dst = append(dst, a.Signature[:]...)
+	if a.Signature == nil {
+		a.Signature = new(external.Signature)
+	}
+	if dst, err = a.Signature.MarshalSSZTo(dst); err != nil {
+		return
+	}
 
 	// Field (0) 'AggregationBits'
 	if len(a.AggregationBits) > 2048 {
@@ -347,7 +359,12 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Signature'
-	copy(a.Signature[:], buf[132:228])
+	if a.Signature == nil {
+		a.Signature = new(external.Signature)
+	}
+	if err = a.Signature.UnmarshalSSZ(buf[132:228]); err != nil {
+		return err
+	}
 
 	// Field (0) 'AggregationBits'
 	{
@@ -388,7 +405,9 @@ func (a *Attestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (2) 'Signature'
-	hh.PutBytes(a.Signature[:])
+	if err = a.Signature.HashTreeRootWith(hh); err != nil {
+		return
+	}
 
 	hh.Merkleize(indx)
 	return
@@ -1206,11 +1225,7 @@ func (s *SignedVoluntaryExit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (1) 'Signature'
-	if len(s.Signature) != 96 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, s.Signature...)
+	dst = append(dst, s.Signature[:]...)
 
 	return
 }
@@ -1232,7 +1247,7 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	s.Signature = append(s.Signature, buf[16:112]...)
+	copy(s.Signature[:], buf[16:112])
 
 	return err
 }
@@ -1258,11 +1273,7 @@ func (s *SignedVoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (1) 'Signature'
-	if len(s.Signature) != 96 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(s.Signature)
+	hh.PutBytes(s.Signature[:])
 
 	hh.Merkleize(indx)
 	return
