@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run:
           command: |
-            make ef-tests
+            make get-spec-tests
       - run:
           command: |
             go test -v ./spectests/... -run TestSpec
