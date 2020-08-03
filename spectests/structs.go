@@ -22,9 +22,9 @@ type AttestationData struct {
 }
 
 type Attestation struct {
-	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
-	Data            *AttestationData `json:"data"`
-	Signature       [96]byte         `json:"signature" ssz-size:"96"`
+	AggregationBits []byte              `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
+	Data            *AttestationData    `json:"data"`
+	Signature       *external.Signature `json:"signature" ssz-size:"96"`
 }
 
 type DepositData struct {
@@ -81,8 +81,8 @@ type VoluntaryExit struct {
 }
 
 type SignedVoluntaryExit struct {
-	Exit      *VoluntaryExit `json:"message"`
-	Signature []byte         `json:"signature" ssz-size:"96"`
+	Exit      *VoluntaryExit          `json:"message"`
+	Signature external.FixedSignature `json:"signature" ssz-size:"96"`
 }
 
 type Eth1Block struct {

@@ -10,7 +10,7 @@ $ git clone git@github.com:ferranbt/fastssz.git
 Download the eth2.0 spec tests
 
 ```
-$ make ef-tests
+$ make get-spec-tests
 ```
 
 Regenerate the test spec encodings:

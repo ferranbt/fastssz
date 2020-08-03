@@ -147,7 +147,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			return err
 		}`
 		check := true
-		if v.t == TypeReference && v.c {
+		if v.noPtr {
 			check = false
 		}
 		return execTmpl(tmpl, map[string]interface{}{

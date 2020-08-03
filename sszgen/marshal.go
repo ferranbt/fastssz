@@ -142,7 +142,7 @@ func (v *Value) marshalContainer(start bool) string {
 		if v.isListElem() {
 			check = false
 		}
-		if v.t == TypeReference && v.c {
+		if v.noPtr {
 			check = false
 		}
 		return execTmpl(tmpl, map[string]interface{}{
