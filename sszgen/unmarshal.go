@@ -25,19 +25,25 @@ func (e *env) unmarshal(name string, v *Value) string {
 func (v *Value) unmarshal(dst string) string {
 	// we use dst as the input buffer where the SSZ data to decode the value is.
 	switch v.t {
-	case TypeContainer:
+	case TypeContainer, TypeReference:
 		return v.umarshalContainer(false, dst)
 
 	case TypeBytes:
 		if v.c {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
+		validate := ""
+		if v.s == 0 {
+			// dynamic bytes, we need to validate the size of the buffer
+			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
+		}
 		// both fixed and dynamic are decoded equally
-		tmpl := `if cap(::.{{.name}}) == 0 {
+		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
 			::.{{.name}} = make([]byte, 0, len({{.dst}}))
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
+			"validate": validate,
 			"name": v.name,
 			"dst":  dst,
 			"size": v.m,
@@ -146,16 +152,21 @@ func (v *Value) unmarshalList() string {
 
 func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	if !start {
-		tmpl := `if ::.{{.name}} == nil {
+		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
 			::.{{.name}} = new({{.obj}})
 		}
-		if err = ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
+		{{ end }}if err = ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
 			return err
 		}`
+		check := true
+		if v.noPtr {
+			check = false
+		}
 		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
-			"obj":  v.objRef(),
-			"dst":  dst,
+			"name":  v.name,
+			"obj":   v.objRef(),
+			"dst":   dst,
+			"check": check,
 		})
 	}
 

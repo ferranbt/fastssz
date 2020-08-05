@@ -31,16 +31,23 @@ func (e *env) size(name string, v *Value) string {
 
 func (v *Value) sizeContainer(name string, start bool) string {
 	if !start {
-		tmpl := `{{if not .isList}} if ::.{{.name}} == nil {
+		tmpl := `{{if .check}} if ::.{{.name}} == nil {
 			::.{{.name}} = new({{.obj}})
 		}
 		{{end}} {{ .dst }} += ::.{{.name}}.SizeSSZ()`
 
+		check := true
+		if v.isListElem() {
+			check = false
+		}
+		if v.noPtr {
+			check = false
+		}
 		return execTmpl(tmpl, map[string]interface{}{
-			"name":   v.name,
-			"dst":    name,
-			"obj":    v.objRef(),
-			"isList": v.isListElem(),
+			"name":  v.name,
+			"dst":   name,
+			"obj":   v.objRef(),
+			"check": check,
 		})
 	}
 	out := []string{}
@@ -66,7 +73,7 @@ func (v *Value) size(name string) string {
 	}
 
 	switch v.t {
-	case TypeContainer:
+	case TypeContainer, TypeReference:
 		return v.sizeContainer(name, false)
 
 	case TypeBitList:

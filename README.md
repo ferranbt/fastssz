@@ -4,7 +4,13 @@
 Clone:
 
 ```
-$ git clone git@github.com:ferranbt/fastssz.git --recursive
+$ git clone git@github.com:ferranbt/fastssz.git
+```
+
+Download the eth2.0 spec tests
+
+```
+$ make get-spec-tests
 ```
 
 Regenerate the test spec encodings:

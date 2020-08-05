@@ -3,6 +3,7 @@ package spectests
 
 import (
 	ssz "github.com/ferranbt/fastssz"
+	"github.com/ferranbt/fastssz/spectests/external"
 )
 
 // MarshalSSZ ssz marshals the AggregateAndProof object
@@ -26,7 +27,9 @@ func (a *AggregateAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset += a.Aggregate.SizeSSZ()
 
 	// Field (2) 'SelectionProof'
-	dst = append(dst, a.SelectionProof[:]...)
+	if dst, err = a.SelectionProof.MarshalSSZTo(dst); err != nil {
+		return
+	}
 
 	// Field (1) 'Aggregate'
 	if dst, err = a.Aggregate.MarshalSSZTo(dst); err != nil {
@@ -56,7 +59,9 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'SelectionProof'
-	copy(a.SelectionProof[:], buf[12:108])
+	if err = a.SelectionProof.UnmarshalSSZ(buf[12:108]); err != nil {
+		return err
+	}
 
 	// Field (1) 'Aggregate'
 	{
@@ -102,7 +107,9 @@ func (a *AggregateAndProof) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (2) 'SelectionProof'
-	hh.PutBytes(a.SelectionProof[:])
+	if err = a.SelectionProof.HashTreeRootWith(hh); err != nil {
+		return
+	}
 
 	hh.Merkleize(indx)
 	return
@@ -313,7 +320,12 @@ func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (2) 'Signature'
-	dst = append(dst, a.Signature[:]...)
+	if a.Signature == nil {
+		a.Signature = new(external.Signature)
+	}
+	if dst, err = a.Signature.MarshalSSZTo(dst); err != nil {
+		return
+	}
 
 	// Field (0) 'AggregationBits'
 	if len(a.AggregationBits) > 2048 {
@@ -350,7 +362,12 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Signature'
-	copy(a.Signature[:], buf[132:228])
+	if a.Signature == nil {
+		a.Signature = new(external.Signature)
+	}
+	if err = a.Signature.UnmarshalSSZ(buf[132:228]); err != nil {
+		return err
+	}
 
 	// Field (0) 'AggregationBits'
 	{
@@ -394,7 +411,9 @@ func (a *Attestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (2) 'Signature'
-	hh.PutBytes(a.Signature[:])
+	if err = a.Signature.HashTreeRootWith(hh); err != nil {
+		return
+	}
 
 	hh.Merkleize(indx)
 	return
@@ -1242,11 +1261,7 @@ func (s *SignedVoluntaryExit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (1) 'Signature'
-	if len(s.Signature) != 96 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, s.Signature...)
+	dst = append(dst, s.Signature[:]...)
 
 	return
 }
@@ -1268,10 +1283,7 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	if cap(s.Signature) == 0 {
-		s.Signature = make([]byte, 0, len(buf[16:112]))
-	}
-	s.Signature = append(s.Signature, buf[16:112]...)
+	copy(s.Signature[:], buf[16:112])
 
 	return err
 }
@@ -1297,11 +1309,7 @@ func (s *SignedVoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (1) 'Signature'
-	if len(s.Signature) != 96 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(s.Signature)
+	hh.PutBytes(s.Signature[:])
 
 	hh.Merkleize(indx)
 	return
@@ -3512,6 +3520,82 @@ func (b *BeaconBlockHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 	hh.PutBytes(b.BodyRoot)
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the ErrorResponse object
+func (e *ErrorResponse) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(e)
+}
+
+// MarshalSSZTo ssz marshals the ErrorResponse object to a target array
+func (e *ErrorResponse) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(4)
+
+	// Offset (0) 'Message'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += e.Message.SizeSSZ()
+
+	// Field (0) 'Message'
+	if dst, err = e.Message.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the ErrorResponse object
+func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 4 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0 uint64
+
+	// Offset (0) 'Message'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'Message'
+	{
+		buf = tail[o0:]
+		if err = e.Message.UnmarshalSSZ(buf); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the ErrorResponse object
+func (e *ErrorResponse) SizeSSZ() (size int) {
+	size = 4
+
+	// Field (0) 'Message'
+	size += e.Message.SizeSSZ()
+
+	return
+}
+
+// HashTreeRoot ssz hashes the ErrorResponse object
+func (e *ErrorResponse) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(e)
+}
+
+// HashTreeRootWith ssz hashes the ErrorResponse object with a hasher
+func (e *ErrorResponse) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Message'
+	if err = e.Message.HashTreeRootWith(hh); err != nil {
+		return
+	}
 
 	hh.Merkleize(indx)
 	return

@@ -1,9 +1,11 @@
 package spectests
 
+import "github.com/ferranbt/fastssz/spectests/external"
+
 type AggregateAndProof struct {
-	Index          uint64       `json:"aggregator_index"`
-	Aggregate      *Attestation `json:"aggregate"`
-	SelectionProof [96]byte     `json:"selection_proof" ssz-size:"96"`
+	Index          uint64             `json:"aggregator_index"`
+	Aggregate      *Attestation       `json:"aggregate"`
+	SelectionProof external.Signature `json:"selection_proof" ssz-size:"96"`
 }
 
 type Checkpoint struct {
@@ -20,16 +22,16 @@ type AttestationData struct {
 }
 
 type Attestation struct {
-	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
-	Data            *AttestationData `json:"data"`
-	Signature       [96]byte         `json:"signature" ssz-size:"96"`
+	AggregationBits []byte              `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
+	Data            *AttestationData    `json:"data"`
+	Signature       *external.Signature `json:"signature" ssz-size:"96"`
 }
 
 type DepositData struct {
-	Pubkey                [48]byte `json:"pubkey" ssz-size:"48"`
-	WithdrawalCredentials [32]byte `json:"withdrawal_credentials" ssz-size:"32"`
-	Amount                uint64   `json:"amount"`
-	Signature             []byte   `json:"signature" ssz-size:"96"`
+	Pubkey                [48]byte       `json:"pubkey" ssz-size:"48"`
+	WithdrawalCredentials [32]byte       `json:"withdrawal_credentials" ssz-size:"32"`
+	Amount                uint64         `json:"amount"`
+	Signature             external.Bytes `json:"signature" ssz-size:"96"`
 }
 
 type Deposit struct {
@@ -79,8 +81,8 @@ type VoluntaryExit struct {
 }
 
 type SignedVoluntaryExit struct {
-	Exit      *VoluntaryExit `json:"message"`
-	Signature []byte         `json:"signature" ssz-size:"96"`
+	Exit      *VoluntaryExit          `json:"message"`
+	Signature external.FixedSignature `json:"signature" ssz-size:"96"`
 }
 
 type Eth1Block struct {
@@ -182,4 +184,8 @@ type BeaconBlockHeader struct {
 	ParentRoot []byte `json:"parent_root" ssz-size:"32"`
 	StateRoot  []byte `json:"state_root" ssz-size:"32"`
 	BodyRoot   []byte `json:"body_root" ssz-size:"32"`
+}
+
+type ErrorResponse struct {
+	Message external.DynamicBytes `ssz-max:"256"`
 }
