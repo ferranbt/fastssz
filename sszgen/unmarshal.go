@@ -32,13 +32,22 @@ func (v *Value) unmarshal(dst string) string {
 		if v.c {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
-		// both fixed and dynamic are decoded equally
 		validate := ""
 		if v.s == 0 {
 			// dynamic bytes, we need to validate the size of the buffer
 			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
 		}
-		return fmt.Sprintf("%s::.%s = append(::.%s, %s...)", validate, v.name, v.name, dst)
+		// both fixed and dynamic are decoded equally
+		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
+			::.{{.name}} = make([]byte, 0, len({{.dst}}))
+		}
+		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		return execTmpl(tmpl, map[string]interface{}{
+			"validate": validate,
+			"name": v.name,
+			"dst":  dst,
+			"size": v.m,
+		})
 
 	case TypeUint:
 		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
@@ -46,6 +55,9 @@ func (v *Value) unmarshal(dst string) string {
 	case TypeBitList:
 		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
 			return err
+		}
+		if cap(::.{{.name}}) == 0 {
+			::.{{.name}} = make([]byte, 0, len({{.dst}}))
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
