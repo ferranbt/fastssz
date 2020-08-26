@@ -112,7 +112,16 @@ func (v *Value) hashTreeRoot() string {
 		return fmt.Sprintf("hh.PutUint64(::.%s)", v.name)
 
 	case TypeBitList:
-		return fmt.Sprintf("hh.PutBitlist(::.%s, %d)", v.name, v.m)
+		tmpl := `if len(::.{{.name}}) == 0 {
+			err = ssz.ErrEmptyBitlist
+			return
+		}
+		hh.PutBitlist(::.{{.name}}, {{.size}})
+		`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": v.name,
+			"size": v.m,
+		})
 
 	case TypeBool:
 		return fmt.Sprintf("hh.PutBool(::.%s)", v.name)

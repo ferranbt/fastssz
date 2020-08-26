@@ -19,6 +19,7 @@ var (
 	ErrBytesLength  = fmt.Errorf("bytes array does not have the correct length")
 	ErrVectorLength = fmt.Errorf("vector does not have the correct length")
 	ErrListTooBig   = fmt.Errorf("list length is higher than max value")
+	ErrEmptyBitlist = fmt.Errorf("bitlist is empty")
 )
 
 // ---- Unmarshal functions ----
