@@ -32,6 +32,7 @@ type DepositData struct {
 	WithdrawalCredentials [32]byte       `json:"withdrawal_credentials" ssz-size:"32"`
 	Amount                uint64         `json:"amount"`
 	Signature             external.Bytes `json:"signature" ssz-size:"96"`
+	Root                  [32]byte       `ssz:"-"`
 }
 
 type Deposit struct {
