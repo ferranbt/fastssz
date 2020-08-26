@@ -762,6 +762,9 @@ func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, erro
 		if err != nil {
 			return nil, err
 		}
+		if elem == nil {
+			continue
+		}
 		elem.name = name
 		v.o = append(v.o, elem)
 	}
@@ -793,6 +796,11 @@ func getObjLen(obj *ast.ArrayType) uint64 {
 
 // parse the Go AST field
 func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error) {
+	if tag, ok := getTags(tags, "ssz"); ok && tag == "-" {
+		// omit value
+		return nil, nil
+	}
+
 	switch obj := expr.(type) {
 	case *ast.StarExpr:
 		// *Struct
