@@ -142,7 +142,9 @@ func parseInput(source string) (map[string]*ast.File, error) {
 			return nil, err
 		}
 		for _, v := range astFiles {
-			files = v.Files
+			if !strings.HasSuffix(v.Name, "_test") {
+				files = v.Files
+			}
 		}
 	} else {
 		// single file
