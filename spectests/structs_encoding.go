@@ -403,6 +403,10 @@ func (a *Attestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'AggregationBits'
+	if len(a.AggregationBits) == 0 {
+		err = ssz.ErrEmptyBitlist
+		return
+	}
 	hh.PutBitlist(a.AggregationBits, 2048)
 
 	// Field (1) 'Data'
@@ -939,6 +943,10 @@ func (p *PendingAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'AggregationBits'
+	if len(p.AggregationBits) == 0 {
+		err = ssz.ErrEmptyBitlist
+		return
+	}
 	hh.PutBitlist(p.AggregationBits, 2048)
 
 	// Field (1) 'Data'
