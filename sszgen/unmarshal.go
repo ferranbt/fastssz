@@ -44,12 +44,16 @@ func (v *Value) unmarshal(dst string) string {
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
 			"validate": validate,
-			"name": v.name,
-			"dst":  dst,
-			"size": v.m,
+			"name":     v.name,
+			"dst":      dst,
+			"size":     v.m,
 		})
 
 	case TypeUint:
+		if v.ref != "" {
+			// alias, we need to cast the value
+			return fmt.Sprintf("::.%s = %s.%s(ssz.Unmarshall%s(%s))", v.name, v.ref, v.obj, uintVToName(v), dst)
+		}
 		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
 
 	case TypeBitList:
