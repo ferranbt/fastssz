@@ -125,7 +125,7 @@ func (c *Checkpoint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Epoch'
-	dst = ssz.MarshalUint64(dst, c.Epoch)
+	dst = ssz.MarshalUint64(dst, uint64(c.Epoch))
 
 	// Field (1) 'Root'
 	if len(c.Root) != 32 {
@@ -146,7 +146,7 @@ func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Epoch'
-	c.Epoch = ssz.UnmarshallUint64(buf[0:8])
+	c.Epoch = external.EpochAlias(ssz.UnmarshallUint64(buf[0:8]))
 
 	// Field (1) 'Root'
 	if cap(c.Root) == 0 {
@@ -173,7 +173,7 @@ func (c *Checkpoint) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Epoch'
-	hh.PutUint64(c.Epoch)
+	hh.PutUint64(uint64(c.Epoch))
 
 	// Field (1) 'Root'
 	if len(c.Root) != 32 {

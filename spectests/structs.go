@@ -9,8 +9,8 @@ type AggregateAndProof struct {
 }
 
 type Checkpoint struct {
-	Epoch uint64 `json:"epoch"`
-	Root  []byte `json:"root" ssz-size:"32"`
+	Epoch external.EpochAlias `json:"epoch"`
+	Root  []byte              `json:"root" ssz-size:"32"`
 }
 
 type AttestationData struct {

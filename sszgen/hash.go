@@ -109,7 +109,14 @@ func (v *Value) hashTreeRoot() string {
 		})
 
 	case TypeUint:
-		return fmt.Sprintf("hh.PutUint64(::.%s)", v.name)
+		var name string
+		if v.ref != "" {
+			// alias to Uint64
+			name = fmt.Sprintf("uint64(::.%s)", v.name)
+		} else {
+			name = "::." + v.name
+		}
+		return fmt.Sprintf("hh.PutUint64(%s)", name)
 
 	case TypeBitList:
 		tmpl := `if len(::.{{.name}}) == 0 {
