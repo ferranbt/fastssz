@@ -434,6 +434,8 @@ func detectImports(v *Value) []string {
 			ref = i.ref
 		case TypeList, TypeVector:
 			ref = i.e.ref
+		default:
+			ref = i.ref
 		}
 		if ref != "" {
 			refs = append(refs, ref)

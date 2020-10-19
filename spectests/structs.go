@@ -1,6 +1,9 @@
 package spectests
 
-import "github.com/ferranbt/fastssz/spectests/external"
+import (
+	"github.com/ferranbt/fastssz/spectests/external"
+	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
+)
 
 type AggregateAndProof struct {
 	Index          uint64             `json:"aggregator_index"`
@@ -9,8 +12,8 @@ type AggregateAndProof struct {
 }
 
 type Checkpoint struct {
-	Epoch external.EpochAlias `json:"epoch"`
-	Root  []byte              `json:"root" ssz-size:"32"`
+	Epoch external2Alias.EpochAlias `json:"epoch"`
+	Root  []byte                    `json:"root" ssz-size:"32"`
 }
 
 type AttestationData struct {
