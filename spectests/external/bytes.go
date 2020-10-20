@@ -4,9 +4,6 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// EpochAlias is an alias to a uint64 value
-type EpochAlias uint64
-
 // Signature is a 96 bytes array external reference
 type Signature struct {
 	Data [96]byte
