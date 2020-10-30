@@ -395,7 +395,7 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 }
 
 func isBasicType(v *Value) bool {
-	return v.t == TypeUint || v.t == TypeBool
+	return v.t == TypeUint || v.t == TypeBool || v.t == TypeBytes
 }
 
 func (e *env) buildImports(imports []string) ([]string, error) {
