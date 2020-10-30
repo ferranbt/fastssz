@@ -363,6 +363,12 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 		refs := detectImports(obj)
 		imports = appendWithoutRepeated(imports, refs)
 
+		if obj.isFixed() && isBasicType(obj) {
+			// we have an alias of a basic type (uint, bool). These objects
+			// will be encoded/decoded inside their parent container and do not
+			// require the sszgen functions.
+			continue
+		}
 		objs = append(objs, &Obj{
 			HashTreeRoot: e.hashTreeRoot(name, obj),
 			Marshal:      e.marshal(name, obj),
@@ -388,25 +394,28 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 	return execTmpl(tmpl, data), true, nil
 }
 
+func isBasicType(v *Value) bool {
+	return v.t == TypeUint || v.t == TypeBool || v.t == TypeBytes
+}
+
 func (e *env) buildImports(imports []string) ([]string, error) {
 	res := []string{}
 	for _, i := range imports {
-		imp, err := e.findImport(i)
-		if err != nil {
-			return nil, err
+		imp := e.findImport(i)
+		if imp != "" {
+			res = append(res, imp)
 		}
-		res = append(res, imp)
 	}
 	return res, nil
 }
 
-func (e *env) findImport(name string) (string, error) {
+func (e *env) findImport(name string) string {
 	for _, i := range e.imports {
 		if i.match(name) {
-			return i.getFullName(), nil
+			return i.getFullName()
 		}
 	}
-	return "", fmt.Errorf("could not find import for target '%s'", name)
+	return ""
 }
 
 func appendWithoutRepeated(s []string, i []string) []string {
@@ -905,7 +914,12 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		case "bool":
 			v = &Value{t: TypeBool, n: 1}
 		default:
-			panic(fmt.Errorf("basic type %s not found", obj.Name))
+			// try to resolve as an alias
+			vv, err := e.encodeItem(obj.Name, tags)
+			if err != nil {
+				return nil, fmt.Errorf("type %s not found", obj.Name)
+			}
+			return vv, nil
 		}
 		return v, nil
 

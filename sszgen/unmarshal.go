@@ -54,6 +54,10 @@ func (v *Value) unmarshal(dst string) string {
 			// alias, we need to cast the value
 			return fmt.Sprintf("::.%s = %s.%s(ssz.Unmarshall%s(%s))", v.name, v.ref, v.obj, uintVToName(v), dst)
 		}
+		if v.obj != "" {
+			// alias to a type on the same package
+			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.obj, uintVToName(v), dst)
+		}
 		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
 
 	case TypeBitList:
