@@ -54,7 +54,7 @@ func (v *Value) marshal() string {
 
 	case TypeUint:
 		var name string
-		if v.ref != "" {
+		if v.ref != "" || v.obj != "" {
 			// alias to Uint64
 			name = fmt.Sprintf("uint64(::.%s)", v.name)
 		} else {

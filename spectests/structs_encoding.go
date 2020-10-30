@@ -197,7 +197,7 @@ func (a *AttestationData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Slot'
-	dst = ssz.MarshalUint64(dst, a.Slot)
+	dst = ssz.MarshalUint64(dst, uint64(a.Slot))
 
 	// Field (1) 'Index'
 	dst = ssz.MarshalUint64(dst, a.Index)
@@ -233,7 +233,7 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Slot'
-	a.Slot = ssz.UnmarshallUint64(buf[0:8])
+	a.Slot = Slot(ssz.UnmarshallUint64(buf[0:8]))
 
 	// Field (1) 'Index'
 	a.Index = ssz.UnmarshallUint64(buf[8:16])
@@ -276,7 +276,7 @@ func (a *AttestationData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
-	hh.PutUint64(a.Slot)
+	hh.PutUint64(uint64(a.Slot))
 
 	// Field (1) 'Index'
 	hh.PutUint64(a.Index)
