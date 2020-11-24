@@ -281,6 +281,14 @@ func (hh *HasherPool) Get() *Hasher {
 	return h.(*Hasher)
 }
 
+func (hp *HasherPool) GetWithHash(hh hash.Hash) *Hasher {
+	h := hp.pool.Get()
+	if h == nil {
+		return NewHasherWithHash(hh)
+	}
+	return h.(*Hasher)
+}
+
 // Put releases the Hasher to the pool.
 func (hh *HasherPool) Put(h *Hasher) {
 	h.Reset()
