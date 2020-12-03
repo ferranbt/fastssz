@@ -76,6 +76,14 @@ func NewHasher() *Hasher {
 	}
 }
 
+// NewHasher creates a new Hasher object with a custom hash function
+func NewHasherWithHash(hh hash.Hash) *Hasher {
+	return &Hasher{
+		hash: hh,
+		tmp:  make([]byte, 32),
+	}
+}
+
 // Reset resets the Hasher obj
 func (h *Hasher) Reset() {
 	h.buf = h.buf[:0]
