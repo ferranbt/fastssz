@@ -76,7 +76,7 @@ func NewHasher() *Hasher {
 	}
 }
 
-// NewHasher creates a new Hasher object
+// NewHasher creates a new Hasher object with a custom hash function
 func NewHasherWithHash(hh hash.Hash) *Hasher {
 	return &Hasher{
 		hash: hh,
@@ -277,14 +277,6 @@ func (hh *HasherPool) Get() *Hasher {
 	h := hh.pool.Get()
 	if h == nil {
 		return NewHasher()
-	}
-	return h.(*Hasher)
-}
-
-func (hp *HasherPool) GetWithHash(hh hash.Hash) *Hasher {
-	h := hp.pool.Get()
-	if h == nil {
-		return NewHasherWithHash(hh)
 	}
 	return h.(*Hasher)
 }
