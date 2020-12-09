@@ -3,6 +3,8 @@ package tests
 import (
 	"encoding/hex"
 	"testing"
+
+	ssz "github.com/ferranbt/fastssz"
 )
 
 func TestVerifyMetadataProof(t *testing.T) {
@@ -65,7 +67,7 @@ func TestVerifyMetadataProof(t *testing.T) {
 		}
 
 		// Verify proof
-		ok, err := VerifyProof(root, proof, leaf, c.index)
+		ok, err := ssz.VerifyProof(root, proof, leaf, c.index)
 		if err != nil {
 			t.Errorf("Failed to verify proof: %v\n", err)
 		}
@@ -128,7 +130,7 @@ func TestVerifyCodeTrieProof(t *testing.T) {
 		}
 
 		// Verify proof
-		ok, err := VerifyProof(root, proof, leaf, c.index)
+		ok, err := ssz.VerifyProof(root, proof, leaf, c.index)
 		if err != nil {
 			t.Errorf("Failed to verify proof: %v\n", err)
 		}
@@ -189,7 +191,7 @@ func TestVerifyCodeTrieMultiProof(t *testing.T) {
 		}
 
 		// Verify proof
-		ok, err := VerifyMultiproof(root, proof, leaves, c.indices)
+		ok, err := ssz.VerifyMultiproof(root, proof, leaves, c.indices)
 		if err != nil {
 			t.Errorf("Failed to verify proof: %v\n", err)
 		}
