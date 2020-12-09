@@ -742,6 +742,16 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		v.name = name
 		v.obj = name
 		e.objs[name] = v
+	} else {
+		raw, _ := e.raw[name]
+		expr := raw.typ
+		switch obj := expr.(type) {
+		case *ast.ArrayType:
+			arrayLength := getObjLen(obj)
+			if arrayLength != e.objs[name].s {
+				return nil, fmt.Errorf("failed to encode %s: Length does not match the one defined in struct's field tag", name)
+			}
+		}
 	}
 	return v.copy(), nil
 }
