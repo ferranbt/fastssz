@@ -21,13 +21,13 @@ type Chunk struct {
 	Code []byte `ssz-size:"32"` // Last chunk is right-padded with zeros
 }
 
-type CodeTrie struct {
+type CodeTrieSmall struct {
 	Metadata *Metadata
-	Chunks   []*Chunk `ssz-max:"1024"`
+	Chunks   []*Chunk `ssz-max:"4"`
 }
 
 // Verifies a single merkle branch for the Metadata schema
-func VerifyMetadataProof(root []byte, proof [][]byte, leaf []byte, index int) (bool, error) {
+func VerifyProof(root []byte, proof [][]byte, leaf []byte, index int) (bool, error) {
 	if len(proof) != getPathLength(index) {
 		return false, errors.New("Invalid proof length")
 	}
