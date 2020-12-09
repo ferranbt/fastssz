@@ -137,3 +137,64 @@ func TestVerifyCodeTrieProof(t *testing.T) {
 		}
 	}
 }
+
+func TestVerifyCodeTrieMultiProof(t *testing.T) {
+	testCases := []struct {
+		root    string
+		proof   []string
+		leaves  []string
+		indices []int
+		valid   bool
+	}{
+		{
+			root: "f1824b0084956084591ff4c91c11bcc94a40be82da280e5171932b967dd146e9",
+			proof: []string{
+				"0000000000000000000000000000000000000000000000000000000000000000",
+				"0000000000000000000000000000000000000000000000000000000000000000",
+				"f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b",
+				"0000000000000000000000000000000000000000000000000000000000000000",
+				"0100000000000000000000000000000000000000000000000000000000000000",
+				"f58f76419d9235451a8290a88ba380d852350a1843f8f26b8257a421633042b4",
+			},
+			leaves: []string{
+				"0200000000000000000000000000000000000000000000000000000000000000",
+				"6001000000000000000000000000000000000000000000000000000000000000",
+			},
+			indices: []int{10, 49},
+			valid:   true,
+		},
+	}
+
+	for _, c := range testCases {
+		// Decode values from string to []byte
+		root, err := hex.DecodeString(c.root)
+		if err != nil {
+			t.Errorf("Failed to decode root: %s\n", c.root)
+		}
+		proof := make([][]byte, len(c.proof))
+		for i, p := range c.proof {
+			b, err := hex.DecodeString(p)
+			if err != nil {
+				t.Errorf("Failed to decode proof element: %s\n", p)
+			}
+			proof[i] = b
+		}
+		leaves := make([][]byte, len(c.leaves))
+		for i, l := range c.leaves {
+			b, err := hex.DecodeString(l)
+			if err != nil {
+				t.Errorf("Failed to decode leaf: %s\n", l)
+			}
+			leaves[i] = b
+		}
+
+		// Verify proof
+		ok, err := VerifyMultiproof(root, proof, leaves, c.indices)
+		if err != nil {
+			t.Errorf("Failed to verify proof: %v\n", err)
+		}
+		if ok != c.valid {
+			t.Errorf("Incorrect proof verification: expected %v, got %v\n", c.valid, ok)
+		}
+	}
+}
