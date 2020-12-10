@@ -116,7 +116,8 @@ func (v *Value) hashTreeRoot() string {
 		} else {
 			name = "::." + v.name
 		}
-		return fmt.Sprintf("hh.PutUint64(%s)", name)
+		bitLen := v.n * 8
+		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
 
 	case TypeBitList:
 		tmpl := `if len(::.{{.name}}) == 0 {

@@ -76,6 +76,14 @@ func NewHasher() *Hasher {
 	}
 }
 
+// NewHasher creates a new Hasher object with a custom hash function
+func NewHasherWithHash(hh hash.Hash) *Hasher {
+	return &Hasher{
+		hash: hh,
+		tmp:  make([]byte, 32),
+	}
+}
+
 // Reset resets the Hasher obj
 func (h *Hasher) Reset() {
 	h.buf = h.buf[:0]
@@ -95,6 +103,25 @@ func (h *Hasher) PutUint64(i uint64) {
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, i)
 	h.appendBytes32(buf)
+}
+
+// PutUint32 appends a uint32 in 32 bytes
+func (h *Hasher) PutUint32(i uint32) {
+	buf := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf, i)
+	h.appendBytes32(buf)
+}
+
+// PutUint16 appends a uint16 in 32 bytes
+func (h *Hasher) PutUint16(i uint16) {
+	buf := make([]byte, 2)
+	binary.LittleEndian.PutUint16(buf, i)
+	h.appendBytes32(buf)
+}
+
+// PutUint16 appends a uint16 in 32 bytes
+func (h *Hasher) PutUint8(i uint8) {
+	h.appendBytes32([]byte{byte(i)})
 }
 
 func CalculateLimit(maxCapacity, numItems, size uint64) uint64 {

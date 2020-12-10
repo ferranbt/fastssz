@@ -156,13 +156,13 @@ func (c *Chunk) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
-// MarshalSSZ ssz marshals the CodeTrie object
-func (c *CodeTrie) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ ssz marshals the CodeTrieSmall object
+func (c *CodeTrieSmall) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(c)
 }
 
-// MarshalSSZTo ssz marshals the CodeTrie object to a target array
-func (c *CodeTrie) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+// MarshalSSZTo ssz marshals the CodeTrieSmall object to a target array
+func (c *CodeTrieSmall) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(39)
 
@@ -179,7 +179,7 @@ func (c *CodeTrie) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset += len(c.Chunks) * 33
 
 	// Field (1) 'Chunks'
-	if len(c.Chunks) > 1024 {
+	if len(c.Chunks) > 4 {
 		err = ssz.ErrListTooBig
 		return
 	}
@@ -192,8 +192,8 @@ func (c *CodeTrie) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the CodeTrie object
-func (c *CodeTrie) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the CodeTrieSmall object
+func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
 	if size < 39 {
@@ -219,7 +219,7 @@ func (c *CodeTrie) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'Chunks'
 	{
 		buf = tail[o1:]
-		num, err := ssz.DivideInt2(len(buf), 33, 1024)
+		num, err := ssz.DivideInt2(len(buf), 33, 4)
 		if err != nil {
 			return err
 		}
@@ -236,8 +236,8 @@ func (c *CodeTrie) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the CodeTrie object
-func (c *CodeTrie) SizeSSZ() (size int) {
+// SizeSSZ returns the ssz encoded size in bytes for the CodeTrieSmall object
+func (c *CodeTrieSmall) SizeSSZ() (size int) {
 	size = 39
 
 	// Field (1) 'Chunks'
@@ -246,13 +246,13 @@ func (c *CodeTrie) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the CodeTrie object
-func (c *CodeTrie) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot ssz hashes the CodeTrieSmall object
+func (c *CodeTrieSmall) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(c)
 }
 
-// HashTreeRootWith ssz hashes the CodeTrie object with a hasher
-func (c *CodeTrie) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+// HashTreeRootWith ssz hashes the CodeTrieSmall object with a hasher
+func (c *CodeTrieSmall) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Metadata'
@@ -264,7 +264,7 @@ func (c *CodeTrie) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	{
 		subIndx := hh.Index()
 		num := uint64(len(c.Chunks))
-		if num > 1024 {
+		if num > 4 {
 			err = ssz.ErrIncorrectListSize
 			return
 		}
@@ -273,7 +273,7 @@ func (c *CodeTrie) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 				return
 			}
 		}
-		hh.MerkleizeWithMixin(subIndx, num, 1024)
+		hh.MerkleizeWithMixin(subIndx, num, 4)
 	}
 
 	hh.Merkleize(indx)
