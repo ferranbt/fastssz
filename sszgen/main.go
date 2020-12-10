@@ -600,6 +600,9 @@ func decodeASTImports(file *ast.File) []*astImport {
 	for _, i := range file.Imports {
 		var alias string
 		if i.Name != nil {
+			if i.Name.Name == "_" {
+				continue
+			}
 			alias = i.Name.Name
 		}
 		path := trimQuotes(i.Path.Value)
