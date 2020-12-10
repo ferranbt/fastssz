@@ -749,7 +749,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		case *ast.ArrayType:
 			arrayLength := getObjLen(obj)
 			if arrayLength != e.objs[name].s {
-				return nil, fmt.Errorf("failed to encode %s: Length does not match the one defined in struct's field tag", name)
+				return nil, fmt.Errorf("failed to encode %s: Size in type declaration does not match the size defined a structure's field tag", name)
 			}
 		}
 	}
@@ -869,7 +869,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			}
 			max, ok := getTagsInt(tags, "ssz-max")
 			if !ok {
-				return nil, fmt.Errorf("[]byte expects either ssz-max or ssz-size")
+				return nil, fmt.Errorf("[]byte expects either ssz-max or ssz-size or an explicit size in type definition")
 			}
 			// dynamic bytes
 			return &Value{t: TypeBytes, m: max}, nil
