@@ -71,6 +71,29 @@ func hashNode(n *Node) []byte {
 	return hashFn(append(hashNode(n.left), hashNode(n.right)...))
 }
 
+func (n *Node) Prove(index int) ([][]byte, error) {
+	pathLen := getPathLength(index)
+	proof := make([][]byte, 0, pathLen)
+
+	cur := n
+	for i := pathLen - 1; i >= 0; i-- {
+		var siblingHash []byte
+		if isRight := getPosAtLevel(index, i); isRight {
+			siblingHash = hashNode(cur.left)
+			cur = cur.right
+		} else {
+			siblingHash = hashNode(cur.right)
+			cur = cur.left
+		}
+		proof = append([][]byte{siblingHash}, proof...)
+		if cur == nil {
+			return nil, errors.New("Node not found in tree")
+		}
+	}
+
+	return proof, nil
+}
+
 func isPowerOfTwo(n int) bool {
 	return (n & (n - 1)) == 0
 }

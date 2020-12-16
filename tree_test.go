@@ -53,3 +53,39 @@ func TestHashTree(t *testing.T) {
 		t.Errorf("Computed hash is incorrect. Expected %s, got %s\n", expectedRootHex, hex.EncodeToString(h))
 	}
 }
+
+func TestProve(t *testing.T) {
+	expectedProofHex := []string{
+		"0000",
+		"5db57a86b859d1c286b5f1f585048bf8f6b5e626573a8dc728ed5080f6f43e2c",
+	}
+	chunks := [][]byte{
+		{0x01, 0x01},
+		{0x02, 0x02},
+		{0x03, 0x03},
+		{0x00, 0x00},
+	}
+
+	r, err := TreeFromChunks(chunks)
+	if err != nil {
+		t.Errorf("Failed to construct tree: %v\n", err)
+	}
+
+	p, err := r.Prove(6)
+	if err != nil {
+		t.Errorf("Failed to generate proof: %v\n", err)
+	}
+
+	if len(p) != len(expectedProofHex) {
+		t.Errorf("Proof has invalid length. Expected %d, got %d\n", len(expectedProofHex), len(p))
+	}
+	for i, n := range p {
+		e, err := hex.DecodeString(expectedProofHex[i])
+		if err != nil {
+			t.Errorf("Failed to decode hex string: %v\n", err)
+		}
+		if !bytes.Equal(e, n) {
+			t.Errorf("Invalid proof item. Expected %s, got %s\n", expectedProofHex[i], hex.EncodeToString(n))
+		}
+	}
+}
