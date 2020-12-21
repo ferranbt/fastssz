@@ -330,6 +330,53 @@ func TestProveSmallCodeTrie(t *testing.T) {
 	}
 }
 
+func TestProveMultiSmallCodeTrie(t *testing.T) {
+	expectedProofHex := []string{
+		"0000000000000000000000000000000000000000000000000000000000000000",
+		"0000000000000000000000000000000000000000000000000000000000000000",
+		"f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b",
+		"0000000000000000000000000000000000000000000000000000000000000000",
+		"0100000000000000000000000000000000000000000000000000000000000000",
+		"f58f76419d9235451a8290a88ba380d852350a1843f8f26b8257a421633042b4",
+	}
+	expectedProof, err := parseStringSlice(expectedProofHex)
+	if err != nil {
+		t.Errorf("Failed to decode expected proof: %v\n", err)
+	}
+
+	code := []byte{0x60, 0x01}
+	codeHash := sha256.Sum256(code)
+
+	codePadded := make([]byte, 32)
+	copy(codePadded[:2], code[:])
+
+	md := &Metadata{Version: 1, CodeLength: uint16(len(code)), CodeHash: codeHash[:]}
+	chunks := []*Chunk{
+		{FIO: 0, Code: codePadded[:]},
+	}
+	codeTrie := &CodeTrieSmall{Metadata: md, Chunks: chunks}
+
+	tree, err := codeTrie.GetTree()
+	if err != nil {
+		t.Errorf("Failed to construct tree for codeTrie: %v\n", err)
+	}
+
+	proof, err := tree.ProveMulti([]int{10, 49})
+	if err != nil {
+		t.Errorf("Failed to generate proof for codeTrie: %v\n", err)
+	}
+
+	if len(proof.Hashes) != len(expectedProof) {
+		t.Errorf("Generated proof has invalid length\n")
+	}
+
+	for i, p := range proof.Hashes {
+		if !bytes.Equal(p, expectedProof[i]) {
+			t.Errorf("Proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(expectedProof[i]), hex.EncodeToString(p))
+		}
+	}
+}
+
 func parseStringSlice(slice []string) ([][]byte, error) {
 	res := make([][]byte, len(slice))
 	for i, s := range slice {

@@ -11,6 +11,13 @@ type Proof struct {
 	Hashes [][]byte
 }
 
+// Multiproof represents a merkle proof of several leaves.
+type Multiproof struct {
+	Indices []int
+	Leaves  [][]byte
+	Hashes  [][]byte
+}
+
 // Node represents a node in the tree
 // backing of a SSZ object.
 type Node struct {
@@ -131,6 +138,29 @@ func (n *Node) Prove(index int) (*Proof, error) {
 
 	proof.Hashes = hashes
 	proof.Leaf = cur.value
+
+	return proof, nil
+}
+
+func (n *Node) ProveMulti(indices []int) (*Multiproof, error) {
+	reqIndices := getRequiredIndices(indices)
+	proof := &Multiproof{Indices: indices, Leaves: make([][]byte, len(indices)), Hashes: make([][]byte, len(reqIndices))}
+
+	for i, gi := range indices {
+		node, err := n.Get(gi)
+		if err != nil {
+			return nil, err
+		}
+		proof.Leaves[i] = node.value
+	}
+
+	for i, gi := range reqIndices {
+		cur, err := n.Get(gi)
+		if err != nil {
+			return nil, err
+		}
+		proof.Hashes[i] = hashNode(cur)
+	}
 
 	return proof, nil
 }
