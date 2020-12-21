@@ -1,10 +1,12 @@
 package tests
 
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 
 	ssz "github.com/ferranbt/fastssz"
+	"github.com/minio/sha256-simd"
 )
 
 func TestVerifyMetadataProof(t *testing.T) {
@@ -199,4 +201,135 @@ func TestVerifyCodeTrieMultiProof(t *testing.T) {
 			t.Errorf("Incorrect proof verification: expected %v, got %v\n", c.valid, ok)
 		}
 	}
+}
+
+func TestMetadataTree(t *testing.T) {
+	code := []byte{0x60, 0x01}
+	codeHash := sha256.Sum256(code)
+
+	codePadded := make([]byte, 32)
+	copy(codePadded[:2], code[:])
+
+	md := &Metadata{Version: 1, CodeLength: uint16(len(code)), CodeHash: codeHash[:]}
+	mdRoot, err := md.HashTreeRoot()
+	if err != nil {
+		t.Errorf("failed to hash metadata tree root: %v\n", err)
+	}
+
+	mdTree, err := md.GetTree()
+	if err != nil {
+		t.Errorf("Failed to construct tree for metadata: %v\n", err)
+	}
+
+	r := mdTree.Hash()
+	if !bytes.Equal(r, mdRoot[:]) {
+		t.Errorf("Computed incorrect root. Expected %s, got %s\n", hex.EncodeToString(mdRoot[:]), hex.EncodeToString(r))
+	}
+}
+
+func TestChunkTree(t *testing.T) {
+	code := []byte{0x60, 0x01}
+	codePadded := make([]byte, 32)
+	copy(codePadded[:2], code[:])
+	chunk := &Chunk{FIO: 0, Code: codePadded[:]}
+	chunkRoot, err := chunk.HashTreeRoot()
+	if err != nil {
+		t.Errorf("Failed to hash chunk to root: %v\n", err)
+	}
+
+	tree, err := chunk.GetTree()
+	if err != nil {
+		t.Errorf("Failed to construct tree for chunk: %v\n", err)
+	}
+
+	r := tree.Hash()
+	if !bytes.Equal(r, chunkRoot[:]) {
+		t.Errorf("Computed incorrect root. Expected %s, got %s\n", hex.EncodeToString(chunkRoot[:]), hex.EncodeToString(r))
+	}
+}
+
+func TestSmallCodeTrieTree(t *testing.T) {
+	code := []byte{0x60, 0x01}
+	codeHash := sha256.Sum256(code)
+
+	codePadded := make([]byte, 32)
+	copy(codePadded[:2], code[:])
+
+	md := &Metadata{Version: 1, CodeLength: uint16(len(code)), CodeHash: codeHash[:]}
+	chunks := []*Chunk{
+		{FIO: 0, Code: codePadded[:]},
+	}
+	codeTrie := &CodeTrieSmall{Metadata: md, Chunks: chunks}
+	codeRoot, err := codeTrie.HashTreeRoot()
+	if err != nil {
+		t.Errorf("failed to hash tree root: %v\n", err)
+	}
+
+	tree, err := codeTrie.GetTree()
+	if err != nil {
+		t.Errorf("Failed to construct tree for codeTrie: %v\n", err)
+	}
+
+	r := tree.Hash()
+	if !bytes.Equal(r, codeRoot[:]) {
+		t.Errorf("Computed incorrect root. Expected %s, got %s\n", hex.EncodeToString(codeRoot[:]), hex.EncodeToString(r))
+	}
+}
+
+func TestProveSmallCodeTrie(t *testing.T) {
+	expectedProofHex := []string{
+		"0000000000000000000000000000000000000000000000000000000000000000",
+		"0000000000000000000000000000000000000000000000000000000000000000",
+		"f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b",
+		"0100000000000000000000000000000000000000000000000000000000000000",
+		"f38a181470ef1eee90a29f0af0a9dba6b7e5d48af3c93c29b4f91fa11b777582",
+	}
+	expectedProof, err := parseStringSlice(expectedProofHex)
+	if err != nil {
+		t.Errorf("Failed to decode expected proof: %v\n", err)
+	}
+
+	code := []byte{0x60, 0x01}
+	codeHash := sha256.Sum256(code)
+
+	codePadded := make([]byte, 32)
+	copy(codePadded[:2], code[:])
+
+	md := &Metadata{Version: 1, CodeLength: uint16(len(code)), CodeHash: codeHash[:]}
+	chunks := []*Chunk{
+		{FIO: 0, Code: codePadded[:]},
+	}
+	codeTrie := &CodeTrieSmall{Metadata: md, Chunks: chunks}
+
+	tree, err := codeTrie.GetTree()
+	if err != nil {
+		t.Errorf("Failed to construct tree for codeTrie: %v\n", err)
+	}
+
+	proof, err := tree.Prove(49)
+	if err != nil {
+		t.Errorf("Failed to generate proof for codeTrie: %v\n", err)
+	}
+
+	if len(proof) != len(expectedProof) {
+		t.Errorf("Generated proof has invalid length")
+	}
+
+	for i, p := range proof {
+		if !bytes.Equal(p, expectedProof[i]) {
+			t.Errorf("Proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(expectedProof[i]), hex.EncodeToString(p))
+		}
+	}
+}
+
+func parseStringSlice(slice []string) ([][]byte, error) {
+	res := make([][]byte, len(slice))
+	for i, s := range slice {
+		b, err := hex.DecodeString(s)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = b
+	}
+	return res, nil
 }
