@@ -76,10 +76,17 @@ func TestProve(t *testing.T) {
 		t.Errorf("Failed to generate proof: %v\n", err)
 	}
 
-	if len(p) != len(expectedProofHex) {
-		t.Errorf("Proof has invalid length. Expected %d, got %d\n", len(expectedProofHex), len(p))
+	if p.Index != 6 {
+		t.Errorf("Proof has invalid index. Expected %d, got %d\n", 6, p.Index)
 	}
-	for i, n := range p {
+	if !bytes.Equal(p.Leaf, chunks[2]) {
+		t.Errorf("Proof has invalid leaf. Expected %v, got %v\n", chunks[2], p.Leaf)
+	}
+	if len(p.Hashes) != len(expectedProofHex) {
+		t.Errorf("Proof has invalid length. Expected %d, got %d\n", len(expectedProofHex), len(p.Hashes))
+	}
+
+	for i, n := range p.Hashes {
 		e, err := hex.DecodeString(expectedProofHex[i])
 		if err != nil {
 			t.Errorf("Failed to decode hex string: %v\n", err)

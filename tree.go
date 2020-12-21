@@ -4,6 +4,13 @@ import (
 	"errors"
 )
 
+// Proof represents a merkle proof against a general index.
+type Proof struct {
+	Index  int
+	Leaf   []byte
+	Hashes [][]byte
+}
+
 // Node represents a node in the tree
 // backing of a SSZ object.
 type Node struct {
@@ -101,9 +108,10 @@ func hashNode(n *Node) []byte {
 
 // Prove returns a list of sibling values and hashes needed
 // to compute the root hash for a given general index.
-func (n *Node) Prove(index int) ([][]byte, error) {
+func (n *Node) Prove(index int) (*Proof, error) {
 	pathLen := getPathLength(index)
-	proof := make([][]byte, 0, pathLen)
+	proof := &Proof{Index: index}
+	hashes := make([][]byte, 0, pathLen)
 
 	cur := n
 	for i := pathLen - 1; i >= 0; i-- {
@@ -115,11 +123,14 @@ func (n *Node) Prove(index int) ([][]byte, error) {
 			siblingHash = hashNode(cur.right)
 			cur = cur.left
 		}
-		proof = append([][]byte{siblingHash}, proof...)
+		hashes = append([][]byte{siblingHash}, hashes...)
 		if cur == nil {
 			return nil, errors.New("Node not found in tree")
 		}
 	}
+
+	proof.Hashes = hashes
+	proof.Leaf = cur.value
 
 	return proof, nil
 }

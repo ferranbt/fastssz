@@ -12,15 +12,15 @@ import (
 
 // VerifyProof verifies a single merkle branch. It's more
 // efficient than VerifyMultiproof for proving one leaf.
-func VerifyProof(root []byte, proof [][]byte, leaf []byte, index int) (bool, error) {
-	if len(proof) != getPathLength(index) {
+func VerifyProof(root []byte, proof *Proof) (bool, error) {
+	if len(proof.Hashes) != getPathLength(proof.Index) {
 		return false, errors.New("Invalid proof length")
 	}
 
-	node := leaf[:]
+	node := proof.Leaf[:]
 	tmp := make([]byte, 64)
-	for i, h := range proof {
-		if getPosAtLevel(index, i) {
+	for i, h := range proof.Hashes {
+		if getPosAtLevel(proof.Index, i) {
 			copy(tmp[:32], h[:])
 			copy(tmp[32:], node[:])
 			node = hashFn(tmp)
