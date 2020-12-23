@@ -18,6 +18,60 @@ type Multiproof struct {
 	Hashes  [][]byte
 }
 
+// Compress returns a new proof with zero hashes omitted.
+// See `CompressedMultiproof` for more info.
+func (p *Multiproof) Compress() *CompressedMultiproof {
+	compressed := &CompressedMultiproof{
+		Indices:    p.Indices,
+		Leaves:     p.Leaves,
+		Hashes:     make([][]byte, 0, len(p.Hashes)),
+		ZeroLevels: make([]int, 0, len(p.Hashes)),
+	}
+
+	for _, h := range p.Hashes {
+		if l, ok := zeroHashLevels[string(h)]; ok {
+			compressed.ZeroLevels = append(compressed.ZeroLevels, l)
+			compressed.Hashes = append(compressed.Hashes, nil)
+		} else {
+			compressed.Hashes = append(compressed.Hashes, h)
+		}
+	}
+
+	return compressed
+}
+
+// CompressedMultiproof represents a compressed merkle proof of several leaves.
+// Compression is achieved by omitting zero hashes (and their hashes). `ZeroLevels`
+// contains information which helps the verifier fill in those hashes.
+type CompressedMultiproof struct {
+	Indices    []int
+	Leaves     [][]byte
+	Hashes     [][]byte
+	ZeroLevels []int // Stores the level for every omitted zero hash in the proof
+}
+
+// Decompress returns a new multiproof, filling in the omitted
+// zero hashes. See `CompressedMultiProof` for more info.
+func (c *CompressedMultiproof) Decompress() *Multiproof {
+	p := &Multiproof{
+		Indices: c.Indices,
+		Leaves:  c.Leaves,
+		Hashes:  make([][]byte, len(c.Hashes)),
+	}
+
+	zc := 0
+	for i, h := range c.Hashes {
+		if h == nil {
+			p.Hashes[i] = zeroHashes[c.ZeroLevels[zc]][:]
+			zc++
+		} else {
+			p.Hashes[i] = c.Hashes[i]
+		}
+	}
+
+	return p
+}
+
 // Node represents a node in the tree
 // backing of a SSZ object.
 type Node struct {

@@ -339,9 +339,21 @@ func TestProveMultiSmallCodeTrie(t *testing.T) {
 		"0100000000000000000000000000000000000000000000000000000000000000",
 		"f58f76419d9235451a8290a88ba380d852350a1843f8f26b8257a421633042b4",
 	}
+	expectedCProofHex := []string{
+		"",
+		"",
+		"",
+		"",
+		"0100000000000000000000000000000000000000000000000000000000000000",
+		"f58f76419d9235451a8290a88ba380d852350a1843f8f26b8257a421633042b4",
+	}
 	expectedProof, err := parseStringSlice(expectedProofHex)
 	if err != nil {
 		t.Errorf("Failed to decode expected proof: %v\n", err)
+	}
+	expectedCProof, err := parseStringSlice(expectedCProofHex)
+	if err != nil {
+		t.Errorf("Failed to decode expected compressed proof: %v\n", err)
 	}
 
 	code := []byte{0x60, 0x01}
@@ -375,11 +387,44 @@ func TestProveMultiSmallCodeTrie(t *testing.T) {
 			t.Errorf("Proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(expectedProof[i]), hex.EncodeToString(p))
 		}
 	}
+
+	cproof := proof.Compress()
+	if len(cproof.Hashes) != len(expectedCProof) {
+		t.Errorf("Generated compressed proof has invalid length\n")
+	}
+
+	for i, p := range cproof.Hashes {
+		e := expectedCProof[i]
+		if (p == nil && e != nil) || (p != nil && e == nil) {
+			t.Errorf("Proof element at pos %d was unexpectedly empty\n", i)
+		}
+		if !bytes.Equal(p, e) {
+			t.Errorf("Proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(e), hex.EncodeToString(p))
+		}
+	}
+
+	// Test uncompression
+	uncompressed := cproof.Decompress()
+	if len(uncompressed.Hashes) != len(expectedProof) {
+		t.Errorf("Uncompressed proof has invalid length. Expected %d, got %d\n", len(expectedProof), len(uncompressed.Hashes))
+	}
+
+	for i, p := range uncompressed.Hashes {
+		e := expectedProof[i]
+		if !bytes.Equal(p, e) {
+			t.Errorf("Uncompressed proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(e), hex.EncodeToString(p))
+		}
+	}
 }
 
 func parseStringSlice(slice []string) ([][]byte, error) {
 	res := make([][]byte, len(slice))
 	for i, s := range slice {
+		if len(s) == 0 {
+			res[i] = nil
+			continue
+		}
+
 		b, err := hex.DecodeString(s)
 		if err != nil {
 			return nil, err

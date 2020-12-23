@@ -20,18 +20,22 @@ var (
 )
 
 var zeroHashes [65][32]byte
+var zeroHashLevels map[string]int
 var trueBytes, falseBytes []byte
 
 func init() {
 	falseBytes = make([]byte, 32)
 	trueBytes = make([]byte, 32)
 	trueBytes[0] = 1
+	zeroHashLevels = make(map[string]int)
+	zeroHashLevels[string(falseBytes)] = 0
 
 	tmp := [64]byte{}
 	for i := 0; i < 64; i++ {
 		copy(tmp[:32], zeroHashes[i][:])
 		copy(tmp[32:], zeroHashes[i][:])
 		zeroHashes[i+1] = sha256.Sum256(tmp[:])
+		zeroHashLevels[string(zeroHashes[i+1][:])] = i + 1
 	}
 }
 
