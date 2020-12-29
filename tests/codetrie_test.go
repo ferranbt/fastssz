@@ -3,7 +3,9 @@ package tests
 import (
 	"bytes"
 	"encoding/hex"
+	"math/rand"
 	"testing"
+	"time"
 
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/minio/sha256-simd"
@@ -415,6 +417,52 @@ func TestProveMultiSmallCodeTrie(t *testing.T) {
 			t.Errorf("Uncompressed proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(e), hex.EncodeToString(p))
 		}
 	}
+}
+
+func BenchmarkHashTreeRootVsNode(b *testing.B) {
+	rand.Seed(time.Now().UnixNano())
+	codeSize := 24 * 1024
+	code := make([]byte, codeSize) // 24Kb
+	rand.Read(code)
+	codeHash := sha256.Sum256(code)
+
+	md := &Metadata{Version: 1, CodeLength: uint16(codeSize), CodeHash: codeHash[:]}
+	chunks := make([]*Chunk, codeSize/32)
+	for i := 0; i < len(chunks); i++ {
+		chunks[i] = &Chunk{FIO: uint8(i % 256), Code: code[i*32 : (i+1)*32]}
+	}
+
+	codeTrie := &CodeTrieBig{Metadata: md, Chunks: chunks}
+
+	tree, err := codeTrie.GetTree()
+	if err != nil {
+		b.Errorf("Failed to construct tree for codeTrie: %v\n", err)
+	}
+
+	// First make sure outputs match
+	treeHash := tree.Hash()
+	expectedHash, err := codeTrie.HashTreeRoot()
+	if err != nil {
+		b.Errorf("Failed to hash tree root: %v\n", err)
+	}
+	if !bytes.Equal(treeHash, expectedHash[:]) {
+		b.Errorf("Tree root hashes mismatch\n")
+	}
+
+	b.Run("HashTreeRoot", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			codeTrie.HashTreeRoot()
+		}
+	})
+	b.Run("NodeHash", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			tree.Hash()
+		}
+	})
 }
 
 func parseStringSlice(slice []string) ([][]byte, error) {

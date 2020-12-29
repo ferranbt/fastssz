@@ -279,3 +279,127 @@ func (c *CodeTrieSmall) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.Merkleize(indx)
 	return
 }
+
+// MarshalSSZ ssz marshals the CodeTrieBig object
+func (c *CodeTrieBig) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(c)
+}
+
+// MarshalSSZTo ssz marshals the CodeTrieBig object to a target array
+func (c *CodeTrieBig) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(39)
+
+	// Field (0) 'Metadata'
+	if c.Metadata == nil {
+		c.Metadata = new(Metadata)
+	}
+	if dst, err = c.Metadata.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	// Offset (1) 'Chunks'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(c.Chunks) * 33
+
+	// Field (1) 'Chunks'
+	if len(c.Chunks) > 1024 {
+		err = ssz.ErrListTooBig
+		return
+	}
+	for ii := 0; ii < len(c.Chunks); ii++ {
+		if dst, err = c.Chunks[ii].MarshalSSZTo(dst); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the CodeTrieBig object
+func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 39 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o1 uint64
+
+	// Field (0) 'Metadata'
+	if c.Metadata == nil {
+		c.Metadata = new(Metadata)
+	}
+	if err = c.Metadata.UnmarshalSSZ(buf[0:35]); err != nil {
+		return err
+	}
+
+	// Offset (1) 'Chunks'
+	if o1 = ssz.ReadOffset(buf[35:39]); o1 > size {
+		return ssz.ErrOffset
+	}
+
+	// Field (1) 'Chunks'
+	{
+		buf = tail[o1:]
+		num, err := ssz.DivideInt2(len(buf), 33, 1024)
+		if err != nil {
+			return err
+		}
+		c.Chunks = make([]*Chunk, num)
+		for ii := 0; ii < num; ii++ {
+			if c.Chunks[ii] == nil {
+				c.Chunks[ii] = new(Chunk)
+			}
+			if err = c.Chunks[ii].UnmarshalSSZ(buf[ii*33 : (ii+1)*33]); err != nil {
+				return err
+			}
+		}
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the CodeTrieBig object
+func (c *CodeTrieBig) SizeSSZ() (size int) {
+	size = 39
+
+	// Field (1) 'Chunks'
+	size += len(c.Chunks) * 33
+
+	return
+}
+
+// HashTreeRoot ssz hashes the CodeTrieBig object
+func (c *CodeTrieBig) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(c)
+}
+
+// HashTreeRootWith ssz hashes the CodeTrieBig object with a hasher
+func (c *CodeTrieBig) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Metadata'
+	if err = c.Metadata.HashTreeRootWith(hh); err != nil {
+		return
+	}
+
+	// Field (1) 'Chunks'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(c.Chunks))
+		if num > 1024 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		for i := uint64(0); i < num; i++ {
+			if err = c.Chunks[i].HashTreeRootWith(hh); err != nil {
+				return
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 1024)
+	}
+
+	hh.Merkleize(indx)
+	return
+}
