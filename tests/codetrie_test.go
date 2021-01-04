@@ -434,21 +434,6 @@ func BenchmarkHashTreeRootVsNode(b *testing.B) {
 
 	codeTrie := &CodeTrieBig{Metadata: md, Chunks: chunks}
 
-	tree, err := codeTrie.GetTree()
-	if err != nil {
-		b.Errorf("Failed to construct tree for codeTrie: %v\n", err)
-	}
-
-	// First make sure outputs match
-	treeHash := tree.Hash()
-	expectedHash, err := codeTrie.HashTreeRoot()
-	if err != nil {
-		b.Errorf("Failed to hash tree root: %v\n", err)
-	}
-	if !bytes.Equal(treeHash, expectedHash[:]) {
-		b.Errorf("Tree root hashes mismatch\n")
-	}
-
 	b.Run("HashTreeRoot", func(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
@@ -460,6 +445,11 @@ func BenchmarkHashTreeRootVsNode(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
+			tree, err := codeTrie.GetTree()
+			if err != nil {
+				b.Errorf("Failed to construct tree for codeTrie: %v\n", err)
+			}
+
 			tree.Hash()
 		}
 	})
