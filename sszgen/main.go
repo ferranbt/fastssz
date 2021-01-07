@@ -650,7 +650,7 @@ func (e *env) generateIR() error {
 				if j.path == i.path {
 					found = true
 					if i.alias != j.alias {
-						return fmt.Errorf("the same package is imported twice by different files of path %s and %s with different aliases: %s and %s", j.path, i.path, j.alias, i .alias)
+						return fmt.Errorf("the same package is imported twice by different files of path %s and %s with different aliases: %s and %s", j.path, i.path, j.alias, i.alias)
 					}
 				}
 			}
