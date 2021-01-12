@@ -1,6 +1,7 @@
 package ssz
 
 import (
+	"encoding/binary"
 	"errors"
 )
 
@@ -217,6 +218,55 @@ func (n *Node) ProveMulti(indices []int) (*Multiproof, error) {
 	}
 
 	return proof, nil
+}
+
+func LeafFromUint64(i uint64) []byte {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint64(buf[:8], i)
+	return buf
+}
+
+func LeafFromUint32(i uint32) []byte {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint32(buf[:4], i)
+	return buf
+}
+
+func LeafFromUint16(i uint16) []byte {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint16(buf[:2], i)
+	return buf
+}
+
+func LeafFromUint8(i uint8) []byte {
+	buf := make([]byte, 32)
+	buf[0] = byte(i)
+	return buf
+}
+
+func LeafFromBool(b bool) []byte {
+	buf := make([]byte, 32)
+	if b {
+		buf[0] = 1
+	}
+	return buf
+}
+
+func LeafFromBytes(b []byte) []byte {
+	l := len(b)
+	if l > 32 {
+		panic("Unimplemented")
+	}
+
+	if l == 32 {
+		return b
+	}
+
+	return append(b, zeroBytes[:32-l]...)
+}
+
+func EmptyLeaf() []byte {
+	return zeroBytes[:32]
 }
 
 func isPowerOfTwo(n int) bool {

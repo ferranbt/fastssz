@@ -36,14 +36,12 @@ func (md *Metadata) GetTree() (*ssz.Node, error) {
 }
 
 func (md *Metadata) getLeaves() [][]byte {
-	chunks := make([][]byte, 4)
-	chunks[0] = make([]byte, 32) // Version
-	chunks[0][0] = md.Version
-	chunks[1] = md.CodeHash[:]
-	chunks[2] = make([]byte, 32)
-	binary.LittleEndian.PutUint16(chunks[2][:2], md.CodeLength)
-	chunks[3] = make([]byte, 32)
-	return chunks
+	leaves := make([][]byte, 4)
+	leaves[0] = ssz.LeafFromUint8(md.Version)
+	leaves[1] = ssz.LeafFromBytes(md.CodeHash)
+	leaves[2] = ssz.LeafFromUint16(md.CodeLength)
+	leaves[3] = ssz.EmptyLeaf()
+	return leaves
 }
 
 func (t *CodeTrieSmall) GetTree() (*ssz.Node, error) {
@@ -123,9 +121,8 @@ func (c *Chunk) GetTree() (*ssz.Node, error) {
 }
 
 func (c *Chunk) getLeaves() [][]byte {
-	chunks := make([][]byte, 2)
-	chunks[0] = make([]byte, 32)
-	chunks[0][0] = c.FIO
-	chunks[1] = c.Code[:]
-	return chunks
+	leaves := make([][]byte, 2)
+	leaves[0] = ssz.LeafFromUint8(c.FIO)
+	leaves[1] = ssz.LeafFromBytes(c.Code)
+	return leaves
 }
