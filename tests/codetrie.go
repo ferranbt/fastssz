@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/binary"
 	"errors"
 
 	ssz "github.com/ferranbt/fastssz"
@@ -68,33 +67,16 @@ func getChunkListTree(size int, chunks []*Chunk) (*ssz.Node, error) {
 		return nil, errors.New("Number of chunks exceeds capacity")
 	}
 
-	chunkTrees := make([]*ssz.Node, size)
-	emptyLeaf := ssz.NewNodeWithValue(make([]byte, 32))
-	for i := 0; i < size; i++ {
-		chunkTrees[i] = emptyLeaf
-		if i < len(chunks) {
-			c := chunks[i]
-			t, err := c.GetTree()
-			if err != nil {
-				return nil, err
-			}
-			chunkTrees[i] = t
+	chunkTrees := make([]*ssz.Node, len(chunks))
+	for i, c := range chunks {
+		t, err := c.GetTree()
+		if err != nil {
+			return nil, err
 		}
+		chunkTrees[i] = t
 	}
 
-	// Construct a tree out of all chunk subtrees
-	chunksTree, err := ssz.TreeFromNodes(chunkTrees)
-	if err != nil {
-		return nil, err
-	}
-
-	// Mixin chunks len
-	chunkCountLeafValue := make([]byte, 32)
-	binary.LittleEndian.PutUint64(chunkCountLeafValue[:], uint64(len(chunks)))
-	chunkCountLeaf := ssz.NewNodeWithValue(chunkCountLeafValue)
-
-	chunkMixinTree := ssz.NewNodeWithLR(chunksTree, chunkCountLeaf)
-	return chunkMixinTree, nil
+	return ssz.TreeFromNodesWithMixin(chunkTrees, size)
 }
 
 func (t *CodeTrieBig) GetTree() (*ssz.Node, error) {

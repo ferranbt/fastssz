@@ -112,6 +112,14 @@ func TreeFromChunks(chunks [][]byte) (*Node, error) {
 // The number of leaves should be a power of 2.
 func TreeFromNodes(leaves []*Node) (*Node, error) {
 	numLeaves := len(leaves)
+
+	if numLeaves == 1 {
+		return leaves[0], nil
+	}
+	if numLeaves == 2 {
+		return NewNodeWithLR(leaves[0], leaves[1]), nil
+	}
+
 	if !isPowerOfTwo(numLeaves) {
 		return nil, errors.New("Number of leaves should be a power of 2")
 	}
@@ -129,6 +137,34 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 	}
 
 	return nodes[0], nil
+}
+
+func TreeFromNodesWithMixin(leaves []*Node, size int) (*Node, error) {
+	numLeaves := len(leaves)
+	if !isPowerOfTwo(size) {
+		return nil, errors.New("Size of tree should be a power of 2")
+	}
+
+	allLeaves := make([]*Node, size)
+	emptyLeaf := NewNodeWithValue(make([]byte, 32))
+	for i := 0; i < size; i++ {
+		if i < numLeaves {
+			allLeaves[i] = leaves[i]
+		} else {
+			allLeaves[i] = emptyLeaf
+		}
+	}
+
+	mainTree, err := TreeFromNodes(allLeaves)
+	if err != nil {
+		return nil, err
+	}
+
+	// Mixin len
+	countLeafValue := LeafFromUint64(uint64(len(leaves)))
+	countLeaf := NewNodeWithValue(countLeafValue)
+
+	return NewNodeWithLR(mainTree, countLeaf), nil
 }
 
 // Get fetches a node with the given general index.
