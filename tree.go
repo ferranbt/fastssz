@@ -161,9 +161,7 @@ func TreeFromNodesWithMixin(leaves []*Node, size int) (*Node, error) {
 	}
 
 	// Mixin len
-	countLeafValue := LeafFromUint64(uint64(len(leaves)))
-	countLeaf := NewNodeWithValue(countLeafValue)
-
+	countLeaf := LeafFromUint64(uint64(len(leaves)))
 	return NewNodeWithLR(mainTree, countLeaf), nil
 }
 
@@ -256,53 +254,53 @@ func (n *Node) ProveMulti(indices []int) (*Multiproof, error) {
 	return proof, nil
 }
 
-func LeafFromUint64(i uint64) []byte {
+func LeafFromUint64(i uint64) *Node {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint64(buf[:8], i)
-	return buf
+	return NewNodeWithValue(buf)
 }
 
-func LeafFromUint32(i uint32) []byte {
+func LeafFromUint32(i uint32) *Node {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint32(buf[:4], i)
-	return buf
+	return NewNodeWithValue(buf)
 }
 
-func LeafFromUint16(i uint16) []byte {
+func LeafFromUint16(i uint16) *Node {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint16(buf[:2], i)
-	return buf
+	return NewNodeWithValue(buf)
 }
 
-func LeafFromUint8(i uint8) []byte {
+func LeafFromUint8(i uint8) *Node {
 	buf := make([]byte, 32)
 	buf[0] = byte(i)
-	return buf
+	return NewNodeWithValue(buf)
 }
 
-func LeafFromBool(b bool) []byte {
+func LeafFromBool(b bool) *Node {
 	buf := make([]byte, 32)
 	if b {
 		buf[0] = 1
 	}
-	return buf
+	return NewNodeWithValue(buf)
 }
 
-func LeafFromBytes(b []byte) []byte {
+func LeafFromBytes(b []byte) *Node {
 	l := len(b)
 	if l > 32 {
 		panic("Unimplemented")
 	}
 
 	if l == 32 {
-		return b
+		return NewNodeWithValue(b[:])
 	}
 
-	return append(b, zeroBytes[:32-l]...)
+	return NewNodeWithValue(append(b, zeroBytes[:32-l]...))
 }
 
-func EmptyLeaf() []byte {
-	return zeroBytes[:32]
+func EmptyLeaf() *Node {
+	return NewNodeWithValue(zeroBytes[:32])
 }
 
 func isPowerOfTwo(n int) bool {

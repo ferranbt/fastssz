@@ -31,11 +31,11 @@ type CodeTrieBig struct {
 
 func (md *Metadata) GetTree() (*ssz.Node, error) {
 	leaves := md.getLeaves()
-	return ssz.TreeFromChunks(leaves)
+	return ssz.TreeFromNodes(leaves)
 }
 
-func (md *Metadata) getLeaves() [][]byte {
-	leaves := make([][]byte, 4)
+func (md *Metadata) getLeaves() []*ssz.Node {
+	leaves := make([]*ssz.Node, 4)
 	leaves[0] = ssz.LeafFromUint8(md.Version)
 	leaves[1] = ssz.LeafFromBytes(md.CodeHash)
 	leaves[2] = ssz.LeafFromUint16(md.CodeLength)
@@ -44,17 +44,20 @@ func (md *Metadata) getLeaves() [][]byte {
 }
 
 func (t *CodeTrieSmall) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 2)
 	// Metadata tree
 	mdTree, err := t.Metadata.GetTree()
 	if err != nil {
 		return nil, err
 	}
+	leaves[0] = mdTree
 	chunkMixinTree, err := t.getChunkListTree()
 	if err != nil {
 		return nil, err
 	}
+	leaves[1] = chunkMixinTree
 	// Tree with metadata and chunks subtrees
-	return ssz.NewNodeWithLR(mdTree, chunkMixinTree), nil
+	return ssz.TreeFromNodes(leaves)
 }
 
 func (t *CodeTrieSmall) getChunkListTree() (*ssz.Node, error) {
@@ -80,17 +83,20 @@ func getChunkListTree(size int, chunks []*Chunk) (*ssz.Node, error) {
 }
 
 func (t *CodeTrieBig) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 2)
 	// Metadata tree
 	mdTree, err := t.Metadata.GetTree()
 	if err != nil {
 		return nil, err
 	}
+	leaves[0] = mdTree
 	chunkMixinTree, err := t.getChunkListTree()
 	if err != nil {
 		return nil, err
 	}
+	leaves[1] = chunkMixinTree
 	// Tree with metadata and chunks subtrees
-	return ssz.NewNodeWithLR(mdTree, chunkMixinTree), nil
+	return ssz.TreeFromNodes(leaves)
 }
 
 func (t *CodeTrieBig) getChunkListTree() (*ssz.Node, error) {
@@ -99,11 +105,11 @@ func (t *CodeTrieBig) getChunkListTree() (*ssz.Node, error) {
 
 func (c *Chunk) GetTree() (*ssz.Node, error) {
 	leaves := c.getLeaves()
-	return ssz.TreeFromChunks(leaves)
+	return ssz.TreeFromNodes(leaves)
 }
 
-func (c *Chunk) getLeaves() [][]byte {
-	leaves := make([][]byte, 2)
+func (c *Chunk) getLeaves() []*ssz.Node {
+	leaves := make([]*ssz.Node, 2)
 	leaves[0] = ssz.LeafFromUint8(c.FIO)
 	leaves[1] = ssz.LeafFromBytes(c.Code)
 	return leaves
