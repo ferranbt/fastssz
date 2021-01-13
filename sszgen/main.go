@@ -338,6 +338,7 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 		{{ .Unmarshal }}
 		{{ .Size }}
 		{{ .HashTreeRoot }}
+		{{ .GetTree }}
 	{{ end }}
 	`
 
@@ -346,7 +347,7 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 	}
 
 	type Obj struct {
-		Size, Marshal, Unmarshal, HashTreeRoot string
+		Size, Marshal, Unmarshal, HashTreeRoot, GetTree string
 	}
 
 	objs := []*Obj{}
@@ -374,6 +375,7 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 			Marshal:      e.marshal(name, obj),
 			Unmarshal:    e.unmarshal(name, obj),
 			Size:         e.size(name, obj),
+			GetTree:      e.getTree(name, obj),
 		})
 	}
 	if len(objs) == 0 {

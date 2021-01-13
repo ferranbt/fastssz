@@ -85,6 +85,35 @@ func (m *Metadata) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
+// GetTree returns tree-backing for the Metadata object
+func (m *Metadata) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 4)
+	var tmp *ssz.Node
+	var err error
+
+	// Field (0) 'Version'
+	tmp = ssz.LeafFromUint8(m.Version)
+	leaves[0] = tmp
+
+	// Field (1) 'CodeHash'
+	if len(m.CodeHash) != 32 {
+		err = ssz.ErrBytesLength
+		return nil, err
+	}
+	tmp = ssz.LeafFromBytes(m.CodeHash)
+	leaves[1] = tmp
+
+	// Field (2) 'CodeLength'
+	tmp = ssz.LeafFromUint16(m.CodeLength)
+	leaves[2] = tmp
+
+	for i := 0; i < 1; i++ {
+		leaves[i+3] = ssz.EmptyLeaf()
+	}
+
+	return ssz.TreeFromNodes(leaves)
+}
+
 // MarshalSSZ ssz marshals the Chunk object
 func (c *Chunk) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(c)
@@ -154,6 +183,27 @@ func (c *Chunk) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree returns tree-backing for the Chunk object
+func (c *Chunk) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 2)
+	var tmp *ssz.Node
+	var err error
+
+	// Field (0) 'FIO'
+	tmp = ssz.LeafFromUint8(c.FIO)
+	leaves[0] = tmp
+
+	// Field (1) 'Code'
+	if len(c.Code) != 32 {
+		err = ssz.ErrBytesLength
+		return nil, err
+	}
+	tmp = ssz.LeafFromBytes(c.Code)
+	leaves[1] = tmp
+
+	return ssz.TreeFromNodes(leaves)
 }
 
 // MarshalSSZ ssz marshals the CodeTrieSmall object
@@ -280,6 +330,44 @@ func (c *CodeTrieSmall) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
+// GetTree returns tree-backing for the CodeTrieSmall object
+func (c *CodeTrieSmall) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 2)
+	var tmp *ssz.Node
+	var err error
+
+	// Field (0) 'Metadata'
+	tmp, err = c.Metadata.GetTree()
+	if err != nil {
+		return nil, err
+	}
+	leaves[0] = tmp
+
+	// Field (1) 'Chunks'
+	{
+		num := uint64(len(c.Chunks))
+		subLeaves := make([]*ssz.Node, num)
+		if num > 4 {
+			err = ssz.ErrIncorrectListSize
+			return nil, err
+		}
+		for i := uint64(0); i < num; i++ {
+			n, err := c.Chunks[i].GetTree()
+			if err != nil {
+				return nil, err
+			}
+			subLeaves[i] = n
+		}
+		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, 4)
+		if err != nil {
+			return nil, err
+		}
+	}
+	leaves[1] = tmp
+
+	return ssz.TreeFromNodes(leaves)
+}
+
 // MarshalSSZ ssz marshals the CodeTrieBig object
 func (c *CodeTrieBig) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(c)
@@ -402,4 +490,42 @@ func (c *CodeTrieBig) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree returns tree-backing for the CodeTrieBig object
+func (c *CodeTrieBig) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 2)
+	var tmp *ssz.Node
+	var err error
+
+	// Field (0) 'Metadata'
+	tmp, err = c.Metadata.GetTree()
+	if err != nil {
+		return nil, err
+	}
+	leaves[0] = tmp
+
+	// Field (1) 'Chunks'
+	{
+		num := uint64(len(c.Chunks))
+		subLeaves := make([]*ssz.Node, num)
+		if num > 1024 {
+			err = ssz.ErrIncorrectListSize
+			return nil, err
+		}
+		for i := uint64(0); i < num; i++ {
+			n, err := c.Chunks[i].GetTree()
+			if err != nil {
+				return nil, err
+			}
+			subLeaves[i] = n
+		}
+		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, 1024)
+		if err != nil {
+			return nil, err
+		}
+	}
+	leaves[1] = tmp
+
+	return ssz.TreeFromNodes(leaves)
 }
