@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -285,9 +286,15 @@ const encodingPrefix = "_encoding.go"
 func (e *env) generateOutputEncodings(output string) (map[string]string, error) {
 	out := map[string]string{}
 
+	keys := make([]string, 0, len(e.order))
+	for k := range e.order {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	orders := []string{}
-	for _, order := range e.order {
-		orders = append(orders, order...)
+	for _, k := range keys {
+		orders = append(orders, e.order[k]...)
 	}
 
 	res, ok, err := e.print(true, orders)
