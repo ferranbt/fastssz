@@ -139,15 +139,15 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 	return nodes[0], nil
 }
 
-func TreeFromNodesWithMixin(leaves []*Node, size int) (*Node, error) {
+func TreeFromNodesWithMixin(leaves []*Node, num, limit int) (*Node, error) {
 	numLeaves := len(leaves)
-	if !isPowerOfTwo(size) {
+	if !isPowerOfTwo(limit) {
 		return nil, errors.New("Size of tree should be a power of 2")
 	}
 
-	allLeaves := make([]*Node, size)
+	allLeaves := make([]*Node, limit)
 	emptyLeaf := NewNodeWithValue(make([]byte, 32))
-	for i := 0; i < size; i++ {
+	for i := 0; i < limit; i++ {
 		if i < numLeaves {
 			allLeaves[i] = leaves[i]
 		} else {
@@ -161,7 +161,7 @@ func TreeFromNodesWithMixin(leaves []*Node, size int) (*Node, error) {
 	}
 
 	// Mixin len
-	countLeaf := LeafFromUint64(uint64(len(leaves)))
+	countLeaf := LeafFromUint64(uint64(num))
 	return NewNodeWithLR(mainTree, countLeaf), nil
 }
 
@@ -301,6 +301,26 @@ func LeafFromBytes(b []byte) *Node {
 
 func EmptyLeaf() *Node {
 	return NewNodeWithValue(zeroBytes[:32])
+}
+
+func LeavesFromUint64(items []uint64) []*Node {
+	if len(items) == 0 {
+		return []*Node{}
+	}
+
+	numLeaves := (len(items)*8 + 31) / 32
+	buf := make([]byte, numLeaves*32)
+	for i, v := range items {
+		binary.LittleEndian.PutUint64(buf[i*8:(i+1)*8], v)
+	}
+
+	leaves := make([]*Node, numLeaves)
+	for i := 0; i < numLeaves; i++ {
+		v := buf[i*32 : (i+1)*32]
+		leaves[i] = NewNodeWithValue(v)
+	}
+
+	return leaves
 }
 
 func isPowerOfTwo(n int) bool {

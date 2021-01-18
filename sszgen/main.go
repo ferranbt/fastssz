@@ -372,10 +372,10 @@ func (e *env) print(first bool, order []string) (string, bool, error) {
 		}
 		objs = append(objs, &Obj{
 			HashTreeRoot: e.hashTreeRoot(name, obj),
+			GetTree:      e.getTree(name, obj),
 			Marshal:      e.marshal(name, obj),
 			Unmarshal:    e.unmarshal(name, obj),
 			Size:         e.size(name, obj),
-			GetTree:      e.getTree(name, obj),
 		})
 	}
 	if len(objs) == 0 {

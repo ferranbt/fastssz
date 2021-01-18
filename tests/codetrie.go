@@ -1,10 +1,8 @@
 package tests
 
-type Hash []byte
-
 type Metadata struct {
 	Version    uint8
-	CodeHash   Hash `ssz-size:"32"`
+	CodeHash   []byte `ssz-size:"32"`
 	CodeLength uint16
 }
 
@@ -21,4 +19,8 @@ type CodeTrieSmall struct {
 type CodeTrieBig struct {
 	Metadata *Metadata
 	Chunks   []*Chunk `ssz-max:"1024"`
+}
+
+type Tester struct {
+	Lister []uint64 `ssz-max:"32"`
 }

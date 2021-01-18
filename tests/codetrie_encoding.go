@@ -358,7 +358,7 @@ func (c *CodeTrieSmall) GetTree() (*ssz.Node, error) {
 			}
 			subLeaves[i] = n
 		}
-		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, 4)
+		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, len(subLeaves), 4)
 		if err != nil {
 			return nil, err
 		}
@@ -520,12 +520,127 @@ func (c *CodeTrieBig) GetTree() (*ssz.Node, error) {
 			}
 			subLeaves[i] = n
 		}
-		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, 1024)
+		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, len(subLeaves), 1024)
 		if err != nil {
 			return nil, err
 		}
 	}
 	leaves[1] = tmp
+
+	return ssz.TreeFromNodes(leaves)
+}
+
+// MarshalSSZ ssz marshals the Tester object
+func (t *Tester) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(t)
+}
+
+// MarshalSSZTo ssz marshals the Tester object to a target array
+func (t *Tester) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(4)
+
+	// Offset (0) 'Lister'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.Lister) * 8
+
+	// Field (0) 'Lister'
+	if len(t.Lister) > 32 {
+		err = ssz.ErrListTooBig
+		return
+	}
+	for ii := 0; ii < len(t.Lister); ii++ {
+		dst = ssz.MarshalUint64(dst, t.Lister[ii])
+	}
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the Tester object
+func (t *Tester) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 4 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0 uint64
+
+	// Offset (0) 'Lister'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'Lister'
+	{
+		buf = tail[o0:]
+		num, err := ssz.DivideInt2(len(buf), 8, 32)
+		if err != nil {
+			return err
+		}
+		t.Lister = ssz.ExtendUint64(t.Lister, num)
+		for ii := 0; ii < num; ii++ {
+			t.Lister[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
+		}
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the Tester object
+func (t *Tester) SizeSSZ() (size int) {
+	size = 4
+
+	// Field (0) 'Lister'
+	size += len(t.Lister) * 8
+
+	return
+}
+
+// HashTreeRoot ssz hashes the Tester object
+func (t *Tester) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(t)
+}
+
+// HashTreeRootWith ssz hashes the Tester object with a hasher
+func (t *Tester) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Lister'
+	{
+		if len(t.Lister) > 32 {
+			err = ssz.ErrListTooBig
+			return
+		}
+		subIndx := hh.Index()
+		for _, i := range t.Lister {
+			hh.AppendUint64(i)
+		}
+		hh.FillUpTo32()
+		numItems := uint64(len(t.Lister))
+		hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit(32, numItems, 8))
+	}
+
+	hh.Merkleize(indx)
+	return
+}
+
+// GetTree returns tree-backing for the Tester object
+func (t *Tester) GetTree() (*ssz.Node, error) {
+	leaves := make([]*ssz.Node, 1)
+	var tmp *ssz.Node
+	var err error
+
+	// Field (0) 'Lister'
+	{
+		subLeaves := ssz.LeavesFromUint64(t.Lister)
+		numItems := len(t.Lister)
+		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, numItems, int(ssz.CalculateLimit(32, uint64(numItems), 8)))
+		if err != nil {
+			return nil, err
+		}
+	}
+	leaves[0] = tmp
 
 	return ssz.TreeFromNodes(leaves)
 }

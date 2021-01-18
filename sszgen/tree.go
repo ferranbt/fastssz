@@ -21,64 +21,38 @@ func (e *env) getTree(name string, v *Value) string {
 }
 
 func (v *Value) getTrees(isList bool, elem Type) string {
-	subName := "i"
-	if v.e.c {
-		subName += "[:]"
-	}
-	inner := ""
-	if !v.e.c && elem == TypeBytes {
-		inner = `if len(i) != %d {
-			err = ssz.ErrBytesLength
-			return nil, err
-		}
-		`
-		inner = fmt.Sprintf(inner, v.e.s)
-	}
-
-	var appendFn string
-	var elemSize uint64
-	if elem == TypeBytes {
-		// [][]byte
-		appendFn = "Append"
-		elemSize = 32
-	} else {
-		// []uint64
-		appendFn = "AppendUint64"
-		elemSize = 8
+	if elem != TypeUint {
+		panic("unimplemented")
 	}
 
 	var merkleize string
+	subLeavesTmpl := `subLeaves := ssz.LeavesFromUint64(::.{{.name}})`
+	subLeaves := execTmpl(subLeavesTmpl, map[string]interface{}{
+		"name": v.name,
+	})
+
 	if isList {
-		tmpl := `numItems := uint64(len(::.{{.name}}))
-		hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit({{.listSize}}, numItems, {{.elemSize}}))`
+		tmpl := `numItems := len(::.{{.name}})
+		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, numItems, int(ssz.CalculateLimit({{.listSize}}, uint64(numItems), {{.elemSize}})))
+		if err != nil {
+			return nil, err
+		}`
 
 		merkleize = execTmpl(tmpl, map[string]interface{}{
 			"name":     v.name,
 			"listSize": v.s,
-			"elemSize": elemSize,
+			"elemSize": 8,
 		})
-
-		// when doing []uint64 we need to round up the Hasher bytes to 32
-		if elem == TypeUint {
-			merkleize = "hh.FillUpTo32()\n" + merkleize
-		}
 	} else {
-		merkleize = "hh.Merkleize(subIndx)"
+		merkleize = "tmp = ssz.TreeFromNodes(subLeaves)"
 	}
 
 	tmpl := `{
-		{{.outer}}subIndx := hh.Index()
-		for _, i := range ::.{{.name}} {
-			{{.inner}}hh.{{.appendFn}}({{.subName}})
-		}
+		{{.subLeaves}}
 		{{.merkleize}}
 	}`
 	return execTmpl(tmpl, map[string]interface{}{
-		"outer":     v.validate("return nil, err"),
-		"inner":     inner,
-		"name":      v.name,
-		"subName":   subName,
-		"appendFn":  appendFn,
+		"subLeaves": subLeaves,
 		"merkleize": merkleize,
 	})
 }
@@ -114,16 +88,7 @@ func (v *Value) getTree() string {
 		return fmt.Sprintf("tmp = ssz.LeafFromUint%d(%s)", bitLen, name)
 
 	case TypeBitList:
-		tmpl := `if len(::.{{.name}}) == 0 {
-			err = ssz.ErrEmptyBitlist
-			return
-		}
-		hh.PutBitlist(::.{{.name}}, {{.size}})
-		`
-		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
-			"size": v.m,
-		})
+		panic("unimplemented")
 
 	case TypeBool:
 		return fmt.Sprintf("tmp = ssz.LeafFromBool(::.%s)", v.name)
@@ -134,7 +99,6 @@ func (v *Value) getTree() string {
 	case TypeList:
 		if v.e.isFixed() {
 			if v.e.t == TypeUint || v.e.t == TypeBytes {
-				// return hashBasicSlice(v)
 				return v.getTrees(true, v.e.t)
 			}
 		}
@@ -152,7 +116,7 @@ func (v *Value) getTree() string {
 				}
 				subLeaves[i] = n
 			}
-			tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, {{.num}})
+			tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, len(subLeaves), {{.num}})
 			if err != nil {
 				return nil, err
 			}
