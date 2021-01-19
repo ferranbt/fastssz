@@ -20,7 +20,3 @@ type CodeTrieBig struct {
 	Metadata *Metadata
 	Chunks   []*Chunk `ssz-max:"1024"`
 }
-
-type Tester struct {
-	Lister []uint64 `ssz-max:"32"`
-}
