@@ -8,8 +8,17 @@ import (
 // getTree creates a function that SSZ hashes the structs,
 func (e *env) getTree(name string, v *Value) string {
 	tmpl := `// GetTree returns tree-backing for the {{.name}} object
-	func (:: *{{.name}}) GetTree() (*ssz.Node, error) {
+	func (:: *{{.name}}) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
 		{{.getTree}}
+		return nil
+	}
+
+	func (:: *{{.name}}) GetTree() (*ssz.Node, error) {
+		w := &ssz.Wrapper{}
+		if err := ::.GetTreeWithWrapper(w); err != nil {
+			return nil, err
+		}
+		return w.Node(), nil
 	}`
 
 	data := map[string]interface{}{
@@ -69,9 +78,9 @@ func (v *Value) getTree() string {
 			name += "[:]"
 		}
 
-		tmpl := `{{.validate}}tmp = ssz.LeafFromBytes(::.{{.name}})`
+		tmpl := `{{.validate}}w.AddBytes(::.{{.name}})`
 		return execTmpl(tmpl, map[string]interface{}{
-			"validate": v.validate("return nil, err"),
+			"validate": v.validate("return err"),
 			"name":     name,
 			"size":     v.s,
 		})
@@ -84,8 +93,12 @@ func (v *Value) getTree() string {
 		} else {
 			name = "::." + v.name
 		}
-		bitLen := v.n * 8
-		return fmt.Sprintf("tmp = ssz.LeafFromUint%d(%s)", bitLen, name)
+
+		return "w.AddUint64(" + name + ")"
+		/*
+			bitLen := v.n * 8
+			return fmt.Sprintf("tmp = ssz.LeafFromUint%d(%s)", bitLen, name)
+		*/
 
 	case TypeBitList:
 		panic("unimplemented")
@@ -133,29 +146,28 @@ func (v *Value) getTree() string {
 
 func (v *Value) getTreeContainer(start bool) string {
 	if !start {
-		return fmt.Sprintf("tmp, err = ::.%s.GetTree()\n if err != nil {\n return nil, err\n}", v.name)
+		return fmt.Sprintf("if err := ::.%s.GetTreeWithWrapper(w); err != nil {\n return err\n}", v.name)
 	}
 
 	numLeaves := nextPowerOfTwo(uint64(len(v.o)))
 	out := []string{}
 	for indx, i := range v.o {
-		str := fmt.Sprintf("// Field (%d) '%s'\n%s\nleaves[%d] = tmp\n", indx, i.name, i.getTree(), indx)
+		str := fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.getTree())
 		out = append(out, str)
 	}
+
 	// Empty leaves
 	emptyLeaves := ""
 	if numLeaves-uint(len(v.o)) > 0 {
-		emptyLeaves = fmt.Sprintf("for i := 0; i < %d; i++ {\nleaves[i+%d] = ssz.EmptyLeaf()\n}", numLeaves-uint(len(v.o)), len(v.o))
+		emptyLeaves = fmt.Sprintf("for i := 0; i < %d; i++ {\nw.AddEmpty()\n}", numLeaves-uint(len(v.o)))
 	}
 
-	tmpl := `leaves := make([]*ssz.Node, {{.numLeaves}})
-	var tmp *ssz.Node
-	var err error
+	tmpl := `indx := w.Indx()
 
 	{{.fields}}
 	{{.emptyLeaves}}
-
-	return ssz.TreeFromNodes(leaves)`
+	
+	w.Commit(indx)`
 
 	return execTmpl(tmpl, map[string]interface{}{
 		"numLeaves":   numLeaves,
