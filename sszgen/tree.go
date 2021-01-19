@@ -113,23 +113,20 @@ func (v *Value) getTree() string {
 			}
 		}
 		tmpl := `{
-			num := uint64(len(::.{{.name}}))
-			subLeaves := make([]*ssz.Node, num)
+			subIdx := w.Indx()
+			num := len(::.{{.name}})
 			if num > {{.num}} {
 				err = ssz.ErrIncorrectListSize
-				return nil, err
+				return err
 			}
-			for i := uint64(0); i < num; i++ {
+			for i := 0; i < num; i++ {
 				n, err := ::.{{.name}}[i].GetTree()
 				if err != nil {
-					return nil, err
+					return err
 				}
-				subLeaves[i] = n
+				w.AddNode(n)
 			}
-			tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, len(subLeaves), {{.num}})
-			if err != nil {
-				return nil, err
-			}
+			w.CommitWithMixin(subIdx, num, {{.num}})
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,

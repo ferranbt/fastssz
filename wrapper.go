@@ -11,26 +11,26 @@ func (w *Wrapper) Indx() int {
 }
 
 func (w *Wrapper) AddBytes(b []byte) {
-	w.addNode(LeafFromBytes(b))
+	w.AddNode(LeafFromBytes(b))
 }
 
 func (w *Wrapper) AddUint64(i uint64) {
-	w.addNode(LeafFromUint64(i))
+	w.AddNode(LeafFromUint64(i))
 }
 
 func (w *Wrapper) AddUint32(i uint32) {
-	w.addNode(LeafFromUint32(i))
+	w.AddNode(LeafFromUint32(i))
 }
 
 func (w *Wrapper) AddUint16(i uint16) {
-	w.addNode(LeafFromUint16(i))
+	w.AddNode(LeafFromUint16(i))
 }
 
 func (w *Wrapper) AddUint8(i uint8) {
-	w.addNode(LeafFromUint8(i))
+	w.AddNode(LeafFromUint8(i))
 }
 
-func (w *Wrapper) addNode(n *Node) {
+func (w *Wrapper) AddNode(n *Node) {
 	if w.nodes == nil {
 		w.nodes = []*Node{}
 	}
@@ -53,9 +53,20 @@ func (w *Wrapper) Commit(i int) {
 	// remove the old nodes
 	w.nodes = w.nodes[:i]
 	// add the new node
-	w.addNode(res)
+	w.AddNode(res)
+}
+
+func (w *Wrapper) CommitWithMixin(i, num, limit int) {
+	res, err := TreeFromNodesWithMixin(w.nodes[i:], num, limit)
+	if err != nil {
+		panic(err)
+	}
+	// remove the old nodes
+	w.nodes = w.nodes[:i]
+	// add the new node
+	w.AddNode(res)
 }
 
 func (w *Wrapper) AddEmpty() {
-	w.addNode(EmptyLeaf())
+	w.AddNode(EmptyLeaf())
 }
