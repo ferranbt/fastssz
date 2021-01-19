@@ -94,11 +94,8 @@ func (v *Value) getTree() string {
 			name = "::." + v.name
 		}
 
-		return "w.AddUint64(" + name + ")"
-		/*
-			bitLen := v.n * 8
-			return fmt.Sprintf("tmp = ssz.LeafFromUint%d(%s)", bitLen, name)
-		*/
+		bitLen := v.n * 8
+		return fmt.Sprintf("w.AddUint%d(%s)", bitLen, name)
 
 	case TypeBitList:
 		panic("unimplemented")

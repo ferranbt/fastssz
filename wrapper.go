@@ -18,6 +18,18 @@ func (w *Wrapper) AddUint64(i uint64) {
 	w.addNode(LeafFromUint64(i))
 }
 
+func (w *Wrapper) AddUint32(i uint32) {
+	w.addNode(LeafFromUint32(i))
+}
+
+func (w *Wrapper) AddUint16(i uint16) {
+	w.addNode(LeafFromUint16(i))
+}
+
+func (w *Wrapper) AddUint8(i uint8) {
+	w.addNode(LeafFromUint8(i))
+}
+
 func (w *Wrapper) addNode(n *Node) {
 	if w.nodes == nil {
 		w.nodes = []*Node{}
