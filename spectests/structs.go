@@ -2,6 +2,7 @@ package spectests
 
 import (
 	"github.com/ferranbt/fastssz/spectests/external"
+	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
 )
 
 type AggregateAndProof struct {
@@ -11,8 +12,8 @@ type AggregateAndProof struct {
 }
 
 type Checkpoint struct {
-	Epoch uint64 `json:"epoch"`
-	Root  []byte `json:"root" ssz-size:"32"`
+	Epoch external2Alias.EpochAlias `json:"epoch"`
+	Root  []byte                    `json:"root" ssz-size:"32"`
 }
 
 type Slot uint64 // alias from the same package
