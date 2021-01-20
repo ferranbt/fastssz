@@ -85,6 +85,39 @@ func (m *Metadata) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
+// GetTree returns tree-backing for the Metadata object
+func (m *Metadata) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
+	indx := w.Indx()
+
+	// Field (0) 'Version'
+	w.AddUint8(m.Version)
+
+	// Field (1) 'CodeHash'
+	if len(m.CodeHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	w.AddBytes(m.CodeHash)
+
+	// Field (2) 'CodeLength'
+	w.AddUint16(m.CodeLength)
+
+	for i := 0; i < 1; i++ {
+		w.AddEmpty()
+	}
+
+	w.Commit(indx)
+	return nil
+}
+
+func (m *Metadata) GetTree() (*ssz.Node, error) {
+	w := &ssz.Wrapper{}
+	if err := m.GetTreeWithWrapper(w); err != nil {
+		return nil, err
+	}
+	return w.Node(), nil
+}
+
 // MarshalSSZ ssz marshals the Chunk object
 func (c *Chunk) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(c)
@@ -154,6 +187,32 @@ func (c *Chunk) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree returns tree-backing for the Chunk object
+func (c *Chunk) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
+	indx := w.Indx()
+
+	// Field (0) 'FIO'
+	w.AddUint8(c.FIO)
+
+	// Field (1) 'Code'
+	if len(c.Code) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	w.AddBytes(c.Code)
+
+	w.Commit(indx)
+	return nil
+}
+
+func (c *Chunk) GetTree() (*ssz.Node, error) {
+	w := &ssz.Wrapper{}
+	if err := c.GetTreeWithWrapper(w); err != nil {
+		return nil, err
+	}
+	return w.Node(), nil
 }
 
 // MarshalSSZ ssz marshals the CodeTrieSmall object
@@ -280,6 +339,45 @@ func (c *CodeTrieSmall) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
+// GetTree returns tree-backing for the CodeTrieSmall object
+func (c *CodeTrieSmall) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
+	indx := w.Indx()
+
+	// Field (0) 'Metadata'
+	if err := c.Metadata.GetTreeWithWrapper(w); err != nil {
+		return err
+	}
+
+	// Field (1) 'Chunks'
+	{
+		subIdx := w.Indx()
+		num := len(c.Chunks)
+		if num > 4 {
+			err = ssz.ErrIncorrectListSize
+			return err
+		}
+		for i := 0; i < num; i++ {
+			n, err := c.Chunks[i].GetTree()
+			if err != nil {
+				return err
+			}
+			w.AddNode(n)
+		}
+		w.CommitWithMixin(subIdx, num, 4)
+	}
+
+	w.Commit(indx)
+	return nil
+}
+
+func (c *CodeTrieSmall) GetTree() (*ssz.Node, error) {
+	w := &ssz.Wrapper{}
+	if err := c.GetTreeWithWrapper(w); err != nil {
+		return nil, err
+	}
+	return w.Node(), nil
+}
+
 // MarshalSSZ ssz marshals the CodeTrieBig object
 func (c *CodeTrieBig) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(c)
@@ -402,4 +500,43 @@ func (c *CodeTrieBig) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree returns tree-backing for the CodeTrieBig object
+func (c *CodeTrieBig) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
+	indx := w.Indx()
+
+	// Field (0) 'Metadata'
+	if err := c.Metadata.GetTreeWithWrapper(w); err != nil {
+		return err
+	}
+
+	// Field (1) 'Chunks'
+	{
+		subIdx := w.Indx()
+		num := len(c.Chunks)
+		if num > 1024 {
+			err = ssz.ErrIncorrectListSize
+			return err
+		}
+		for i := 0; i < num; i++ {
+			n, err := c.Chunks[i].GetTree()
+			if err != nil {
+				return err
+			}
+			w.AddNode(n)
+		}
+		w.CommitWithMixin(subIdx, num, 1024)
+	}
+
+	w.Commit(indx)
+	return nil
+}
+
+func (c *CodeTrieBig) GetTree() (*ssz.Node, error) {
+	w := &ssz.Wrapper{}
+	if err := c.GetTreeWithWrapper(w); err != nil {
+		return nil, err
+	}
+	return w.Node(), nil
 }

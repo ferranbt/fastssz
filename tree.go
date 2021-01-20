@@ -1,6 +1,7 @@
 package ssz
 
 import (
+	"encoding/binary"
 	"errors"
 )
 
@@ -111,6 +112,14 @@ func TreeFromChunks(chunks [][]byte) (*Node, error) {
 // The number of leaves should be a power of 2.
 func TreeFromNodes(leaves []*Node) (*Node, error) {
 	numLeaves := len(leaves)
+
+	if numLeaves == 1 {
+		return leaves[0], nil
+	}
+	if numLeaves == 2 {
+		return NewNodeWithLR(leaves[0], leaves[1]), nil
+	}
+
 	if !isPowerOfTwo(numLeaves) {
 		return nil, errors.New("Number of leaves should be a power of 2")
 	}
@@ -128,6 +137,32 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 	}
 
 	return nodes[0], nil
+}
+
+func TreeFromNodesWithMixin(leaves []*Node, num, limit int) (*Node, error) {
+	numLeaves := len(leaves)
+	if !isPowerOfTwo(limit) {
+		return nil, errors.New("Size of tree should be a power of 2")
+	}
+
+	allLeaves := make([]*Node, limit)
+	emptyLeaf := NewNodeWithValue(make([]byte, 32))
+	for i := 0; i < limit; i++ {
+		if i < numLeaves {
+			allLeaves[i] = leaves[i]
+		} else {
+			allLeaves[i] = emptyLeaf
+		}
+	}
+
+	mainTree, err := TreeFromNodes(allLeaves)
+	if err != nil {
+		return nil, err
+	}
+
+	// Mixin len
+	countLeaf := LeafFromUint64(uint64(num))
+	return NewNodeWithLR(mainTree, countLeaf), nil
 }
 
 // Get fetches a node with the given general index.
@@ -217,6 +252,75 @@ func (n *Node) ProveMulti(indices []int) (*Multiproof, error) {
 	}
 
 	return proof, nil
+}
+
+func LeafFromUint64(i uint64) *Node {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint64(buf[:8], i)
+	return NewNodeWithValue(buf)
+}
+
+func LeafFromUint32(i uint32) *Node {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint32(buf[:4], i)
+	return NewNodeWithValue(buf)
+}
+
+func LeafFromUint16(i uint16) *Node {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint16(buf[:2], i)
+	return NewNodeWithValue(buf)
+}
+
+func LeafFromUint8(i uint8) *Node {
+	buf := make([]byte, 32)
+	buf[0] = byte(i)
+	return NewNodeWithValue(buf)
+}
+
+func LeafFromBool(b bool) *Node {
+	buf := make([]byte, 32)
+	if b {
+		buf[0] = 1
+	}
+	return NewNodeWithValue(buf)
+}
+
+func LeafFromBytes(b []byte) *Node {
+	l := len(b)
+	if l > 32 {
+		panic("Unimplemented")
+	}
+
+	if l == 32 {
+		return NewNodeWithValue(b[:])
+	}
+
+	return NewNodeWithValue(append(b, zeroBytes[:32-l]...))
+}
+
+func EmptyLeaf() *Node {
+	return NewNodeWithValue(zeroBytes[:32])
+}
+
+func LeavesFromUint64(items []uint64) []*Node {
+	if len(items) == 0 {
+		return []*Node{}
+	}
+
+	numLeaves := (len(items)*8 + 31) / 32
+	buf := make([]byte, numLeaves*32)
+	for i, v := range items {
+		binary.LittleEndian.PutUint64(buf[i*8:(i+1)*8], v)
+	}
+
+	leaves := make([]*Node, numLeaves)
+	for i := 0; i < numLeaves; i++ {
+		v := buf[i*32 : (i+1)*32]
+		leaves[i] = NewNodeWithValue(v)
+	}
+
+	return leaves
 }
 
 func isPowerOfTwo(n int) bool {

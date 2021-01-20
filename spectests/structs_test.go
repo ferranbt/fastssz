@@ -24,18 +24,23 @@ type codec interface {
 	ssz.HashRoot
 }
 
+type codecTree interface {
+	GetTreeWithWrapper(w *ssz.Wrapper) (err error)
+	GetTree() (*ssz.Node, error)
+}
+
 type testCallback func() codec
 
 var codecs = map[string]testCallback{
+	"AttestationData":         func() codec { return new(AttestationData) },
+	"Checkpoint":              func() codec { return new(Checkpoint) },
 	"AggregateAndProof":       func() codec { return new(AggregateAndProof) },
 	"Attestation":             func() codec { return new(Attestation) },
-	"AttestationData":         func() codec { return new(AttestationData) },
 	"AttesterSlashing":        func() codec { return new(AttesterSlashing) },
 	"BeaconBlock":             func() codec { return new(BeaconBlock) },
 	"BeaconBlockBody":         func() codec { return new(BeaconBlockBody) },
 	"BeaconBlockHeader":       func() codec { return new(BeaconBlockHeader) },
 	"BeaconState":             func() codec { return new(BeaconState) },
-	"Checkpoint":              func() codec { return new(Checkpoint) },
 	"Deposit":                 func() codec { return new(Deposit) },
 	"DepositData":             func() codec { return new(DepositData) },
 	"DepositMessage":          func() codec { return new(DepositMessage) },
@@ -318,6 +323,19 @@ func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 	}
 	if !bytes.Equal(root[:], output.root) {
 		fmt.Printf("%s bad root\n", f)
+	}
+
+	if objt, ok := obj.(codecTree); ok {
+		// node root
+		node, err := objt.GetTree()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		xx := node.Hash()
+		if !bytes.Equal(xx, root[:]) {
+			t.Fatal("bad node")
+		}
 	}
 }
 
