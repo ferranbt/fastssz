@@ -95,7 +95,7 @@ func (m *Metadata) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
 	// Field (1) 'CodeHash'
 	if len(m.CodeHash) != 32 {
 		err = ssz.ErrBytesLength
-		return err
+		return
 	}
 	w.AddBytes(m.CodeHash)
 
@@ -199,7 +199,7 @@ func (c *Chunk) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
 	// Field (1) 'Code'
 	if len(c.Code) != 32 {
 		err = ssz.ErrBytesLength
-		return err
+		return
 	}
 	w.AddBytes(c.Code)
 

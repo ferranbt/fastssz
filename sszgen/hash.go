@@ -80,7 +80,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 		{{.merkleize}}
 	}`
 	return execTmpl(tmpl, map[string]interface{}{
-		"outer":     v.validate("return"),
+		"outer":     v.validate(),
 		"inner":     inner,
 		"name":      v.name,
 		"subName":   subName,
@@ -103,7 +103,7 @@ func (v *Value) hashTreeRoot() string {
 
 		tmpl := `{{.validate}}hh.PutBytes(::.{{.name}})`
 		return execTmpl(tmpl, map[string]interface{}{
-			"validate": v.validate("return"),
+			"validate": v.validate(),
 			"name":     name,
 			"size":     v.s,
 		})

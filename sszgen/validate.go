@@ -1,6 +1,6 @@
 package main
 
-func (v *Value) validate(returnStatement string) string {
+func (v *Value) validate() string {
 	switch v.t {
 	case TypeBitList, TypeBytes:
 		cmp := "!="
@@ -20,14 +20,13 @@ func (v *Value) validate(returnStatement string) string {
 
 		tmpl := `if len(::.{{.name}}) {{.cmp}} {{.size}} {
 			err = ssz.ErrBytesLength
-			{{.return}}
+			return
 		}
 		`
 		return execTmpl(tmpl, map[string]interface{}{
-			"cmp":    cmp,
-			"name":   v.name,
-			"size":   size,
-			"return": returnStatement,
+			"cmp":  cmp,
+			"name": v.name,
+			"size": size,
 		})
 
 	case TypeVector:
@@ -37,25 +36,23 @@ func (v *Value) validate(returnStatement string) string {
 		// We only have vectors for [][]byte roots
 		tmpl := `if len(::.{{.name}}) != {{.size}} {
 			err = ssz.ErrVectorLength
-			{{.return}}
+			return
 		}
 		`
 		return execTmpl(tmpl, map[string]interface{}{
-			"name":   v.name,
-			"size":   v.s,
-			"return": returnStatement,
+			"name": v.name,
+			"size": v.s,
 		})
 
 	case TypeList:
 		tmpl := `if len(::.{{.name}}) > {{.size}} {
 			err = ssz.ErrListTooBig
-			{{.return}}
+			return
 		}
 		`
 		return execTmpl(tmpl, map[string]interface{}{
-			"name":   v.name,
-			"size":   v.s,
-			"return": returnStatement,
+			"name": v.name,
+			"size": v.s,
 		})
 
 	default:

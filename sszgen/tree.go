@@ -80,7 +80,7 @@ func (v *Value) getTree() string {
 
 		tmpl := `{{.validate}}w.AddBytes(::.{{.name}})`
 		return execTmpl(tmpl, map[string]interface{}{
-			"validate": v.validate("return err"),
+			"validate": v.validate(),
 			"name":     name,
 			"size":     v.s,
 		})

@@ -48,7 +48,7 @@ func (v *Value) marshal() string {
 		tmpl := `{{.validate}}dst = append(dst, ::.{{.name}}...)`
 
 		return execTmpl(tmpl, map[string]interface{}{
-			"validate": v.validate("return"),
+			"validate": v.validate(),
 			"name":     name,
 		})
 
@@ -63,7 +63,7 @@ func (v *Value) marshal() string {
 		return fmt.Sprintf("dst = ssz.Marshal%s(dst, %s)", uintVToName(v), name)
 
 	case TypeBitList:
-		return fmt.Sprintf("%sdst = append(dst, ::.%s...)", v.validate("return"), v.name)
+		return fmt.Sprintf("%sdst = append(dst, ::.%s...)", v.validate(), v.name)
 
 	case TypeBool:
 		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
@@ -86,7 +86,7 @@ func (v *Value) marshalList() string {
 	v.e.name = v.name + "[ii]"
 
 	// bound check
-	str := v.validate("return")
+	str := v.validate()
 
 	if v.e.isFixed() {
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
@@ -129,7 +129,7 @@ func (v *Value) marshalVector() (str string) {
 		{{.marshal}}
 	}`
 	return execTmpl(tmpl, map[string]interface{}{
-		"validate": v.validate("return"),
+		"validate": v.validate(),
 		"name":     v.name,
 		"size":     v.s,
 		"marshal":  v.e.marshal(),
