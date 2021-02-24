@@ -96,3 +96,40 @@ func TestProve(t *testing.T) {
 		}
 	}
 }
+
+func TestProveMulti(t *testing.T) {
+	chunks := [][]byte{
+		{0x01, 0x01},
+		{0x02, 0x02},
+		{0x03, 0x03},
+		{0x04, 0x04},
+	}
+
+	r, err := TreeFromChunks(chunks)
+	if err != nil {
+		t.Errorf("Failed to construct tree: %v\n", err)
+	}
+
+	p, err := r.ProveMulti([]int{6, 7})
+	if err != nil {
+		t.Errorf("Failed to generate proof: %v\n", err)
+	}
+
+	if len(p.Hashes) != 1 {
+		t.Errorf("Incorrect number of hashes in proof. Expected 1, got %d\n", len(p.Hashes))
+	}
+}
+
+func TestGetRequiredIndices(t *testing.T) {
+	indices := []int{10, 48, 49}
+	expected := []int{25, 13, 11, 7, 4}
+	req := getRequiredIndices(indices)
+	if len(expected) != len(req) {
+		t.Fatalf("Required indices has wrong length. Expected %d, got %d\n", len(expected), len(req))
+	}
+	for i, r := range req {
+		if r != expected[i] {
+			t.Errorf("Invalid required index. Expected %d, got %d\n", expected[i], r)
+		}
+	}
+}

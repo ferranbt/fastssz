@@ -132,8 +132,10 @@ func getRequiredIndices(leafIndices []int) []int {
 	// Set of hashes that will be computed
 	// on the path from leaf to root.
 	computed := make(map[int]struct{})
+	leaves := make(map[int]struct{})
 
 	for _, leaf := range leafIndices {
+		leaves[leaf] = exists
 		cur := leaf
 		for cur > 1 {
 			sibling := getSibling(cur)
@@ -147,7 +149,9 @@ func getRequiredIndices(leafIndices []int) []int {
 	requiredList := make([]int, 0, len(required))
 	// Remove computed indices from required ones
 	for r := range required {
-		if _, ok := computed[r]; !ok {
+		_, isComputed := computed[r]
+		_, isLeaf := leaves[r]
+		if !isComputed && !isLeaf {
 			requiredList = append(requiredList, r)
 		}
 	}
