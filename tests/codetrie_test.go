@@ -330,6 +330,15 @@ func TestProveSmallCodeTrie(t *testing.T) {
 			t.Errorf("Proof element mismatch. Expected %s, got %s\n", hex.EncodeToString(expectedProof[i]), hex.EncodeToString(p))
 		}
 	}
+
+	root := tree.Hash()
+	ok, err := ssz.VerifyProof(root, proof)
+	if err != nil {
+		t.Error(err)
+	}
+	if !ok {
+		t.Errorf("Could not verify generated proof")
+	}
 }
 
 func TestProveMultiSmallCodeTrie(t *testing.T) {
