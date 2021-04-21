@@ -5,6 +5,10 @@ import (
 	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
 )
 
+type ETHMergeTransactions struct {
+	OpaqueList [][]byte `json:"opaque_list" ssz-size:"?,?" ssz-max:"2048,2048"`
+}
+
 type AggregateAndProof struct {
 	Index          uint64             `json:"aggregator_index"`
 	Aggregate      *Attestation       `json:"aggregate"`

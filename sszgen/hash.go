@@ -143,6 +143,25 @@ func (v *Value) hashTreeRoot() string {
 				// return hashBasicSlice(v)
 				return v.hashRoots(true, v.e.t)
 			}
+		} else {
+			if v.e.t == TypeBytes {
+				tmpl := `{
+					subIndx := hh.Index()
+					num := uint64(len(::.{{.name}}))
+					if num > {{.num}} {
+						err = ssz.ErrIncorrectListSize
+						return
+					}
+					for i := uint64(0); i < num; i++ {
+						hh.PutBytes(::.{{.name}}[i])
+					}
+					hh.MerkleizeWithMixin(subIndx, num, {{.num}})
+				}`
+				return execTmpl(tmpl, map[string]interface{}{
+					"name": v.name,
+					"num":  v.m,
+				})
+			}
 		}
 		tmpl := `{
 			subIndx := hh.Index()

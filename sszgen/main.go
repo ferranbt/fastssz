@@ -899,15 +899,18 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			return &Value{t: TypeBytes, m: max}, nil
 		}
 		if isArray(obj.Elt) && isByte(obj.Elt.(*ast.ArrayType).Elt) {
-			f, fCheck, s, sCheck, t, err := getRootSizes(obj, tags)
+			f, fCheck, s, sCheck, hasTwoLists, t, err := getRootSizes(obj, tags)
 			if err != nil {
 				return nil, err
 			}
 			if t == TypeVector {
 				// vector
-				return &Value{t: TypeVector, c: fCheck, n: f * s, s: f, e: &Value{t: TypeBytes, c: sCheck, n: s, s: s}}, nil
+				return &Value{t: TypeVector, c: fCheck, n: f * s, s: f, e: &Value{t: TypeBytes, c: sCheck, n: s, s: 0}}, nil
 			}
 			// list
+			if hasTwoLists {
+				return &Value{t: TypeList, s: f, e: &Value{t: TypeBytes, c: sCheck, m: s}}, nil
+			}
 			return &Value{t: TypeList, s: f, e: &Value{t: TypeBytes, c: sCheck, n: s, s: s}}, nil
 		}
 
@@ -990,7 +993,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 	}
 }
 
-func getRootSizes(obj *ast.ArrayType, tags string) (f uint64, fCheck bool, s uint64, sCheck bool, t Type, err error) {
+func getRootSizes(obj *ast.ArrayType, tags string) (f uint64, fCheck bool, s uint64, sCheck bool, hasTwo bool, t Type, err error) {
 
 	// check if we are in an array and we get the sizes from there
 	f = getObjLen(obj)
@@ -1041,11 +1044,18 @@ func getRootSizes(obj *ast.ArrayType, tags string) (f uint64, fCheck bool, s uin
 	}
 	if f == 0 {
 		t = TypeList
-		f, ok = getTagsInt(tags, "ssz-max")
+		first, second, hasTwoTags, ok := getMaxTagsTuple(tags, "ssz-max")
 		if !ok {
 			err = fmt.Errorf("ssz-max not set after '?' field on ssz-size")
 			return
 		}
+		if !hasTwoTags {
+			f = first
+			return
+		}
+		hasTwo = hasTwoTags
+		f = first
+		s = second
 	}
 	return
 }
@@ -1093,11 +1103,50 @@ func getTagsTuple(str string, field string) (uint64, uint64, bool) {
 		first = uint64(tmp)
 	}
 
-	second, err := strconv.Atoi(spl[1])
-	if err != nil {
-		return 0, 0, false
+	// second can be either ? or a number
+	var second uint64
+	if spl[1] == "?" {
+		second = 0
+	} else {
+		tmp, err := strconv.Atoi(spl[1])
+		if err != nil {
+			return 0, 0, false
+		}
+		second = uint64(tmp)
 	}
-	return first, uint64(second), true
+	return first, second, true
+}
+
+func getMaxTagsTuple(str string, field string) (first, second uint64, hasTwo, ok bool) {
+	tupleStr, ok := getTags(str, field)
+	if !ok {
+		return
+	}
+
+	spl := strings.Split(tupleStr, ",")
+	if len(spl) == 1 {
+		hasTwo = false
+		num, err := strconv.Atoi(spl[0])
+		if err != nil {
+			return
+		}
+		first = uint64(num)
+		ok = true
+		return
+	}
+	hasTwo = true
+	firstRaw, err := strconv.Atoi(spl[0])
+	if err != nil {
+		return
+	}
+	secondRaw, err := strconv.Atoi(spl[1])
+	if err != nil {
+		return
+	}
+	first = uint64(firstRaw)
+	second = uint64(secondRaw)
+	ok = true
+	return
 }
 
 // getTagsInt returns tags of the format 'ssz-size:"32"'
@@ -1116,7 +1165,6 @@ func getTagsInt(str string, field string) (uint64, bool) {
 // getTags returns the tags from a given field
 func getTags(str string, field string) (string, bool) {
 	str = strings.Trim(str, "`")
-
 	for _, tag := range strings.Split(str, " ") {
 		if !strings.Contains(tag, ":") {
 			return "", false
