@@ -905,7 +905,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			}
 			if t == TypeVector {
 				// vector
-				return &Value{t: TypeVector, c: fCheck, n: f * s, s: f, e: &Value{t: TypeBytes, c: sCheck, n: s, s: 0}}, nil
+				return &Value{t: TypeVector, c: fCheck, n: f * s, s: f, e: &Value{t: TypeBytes, c: sCheck, n: s, s: s}}, nil
 			}
 			// list
 			if hasTwoLists {

@@ -7,6 +7,127 @@ import (
 	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
 )
 
+// MarshalSSZ ssz marshals the ETHMergeTransactions object
+func (e *ETHMergeTransactions) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(e)
+}
+
+// MarshalSSZTo ssz marshals the ETHMergeTransactions object to a target array
+func (e *ETHMergeTransactions) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(4)
+
+	// Offset (0) 'OpaqueList'
+	dst = ssz.WriteOffset(dst, offset)
+	for ii := 0; ii < len(e.OpaqueList); ii++ {
+		offset += 4
+		offset += len(e.OpaqueList[ii])
+	}
+
+	// Field (0) 'OpaqueList'
+	if len(e.OpaqueList) > 2048 {
+		err = ssz.ErrListTooBig
+		return
+	}
+	{
+		offset = 4 * len(e.OpaqueList)
+		for ii := 0; ii < len(e.OpaqueList); ii++ {
+			dst = ssz.WriteOffset(dst, offset)
+			offset += len(e.OpaqueList[ii])
+		}
+	}
+	for ii := 0; ii < len(e.OpaqueList); ii++ {
+		if len(e.OpaqueList[ii]) > 2048 {
+			err = ssz.ErrBytesLength
+			return
+		}
+		dst = append(dst, e.OpaqueList[ii]...)
+	}
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the ETHMergeTransactions object
+func (e *ETHMergeTransactions) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 4 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0 uint64
+
+	// Offset (0) 'OpaqueList'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'OpaqueList'
+	{
+		buf = tail[o0:]
+		num, err := ssz.DecodeDynamicLength(buf, 2048)
+		if err != nil {
+			return err
+		}
+		e.OpaqueList = make([][]byte, num)
+		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+			if len(buf) > 2048 {
+				return ssz.ErrBytesLength
+			}
+			if cap(e.OpaqueList[indx]) == 0 {
+				e.OpaqueList[indx] = make([]byte, 0, len(buf))
+			}
+			e.OpaqueList[indx] = append(e.OpaqueList[indx], buf...)
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the ETHMergeTransactions object
+func (e *ETHMergeTransactions) SizeSSZ() (size int) {
+	size = 4
+
+	// Field (0) 'OpaqueList'
+	for ii := 0; ii < len(e.OpaqueList); ii++ {
+		size += 4
+		size += len(e.OpaqueList[ii])
+	}
+
+	return
+}
+
+// HashTreeRoot ssz hashes the ETHMergeTransactions object
+func (e *ETHMergeTransactions) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(e)
+}
+
+// HashTreeRootWith ssz hashes the ETHMergeTransactions object with a hasher
+func (e *ETHMergeTransactions) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'OpaqueList'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(e.OpaqueList))
+		if num > 0 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		for i := uint64(0); i < num; i++ {
+			hh.PutBytes(e.OpaqueList[i])
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 0)
+	}
+
+	hh.Merkleize(indx)
+	return
+}
+
 // MarshalSSZ ssz marshals the AggregateAndProof object
 func (a *AggregateAndProof) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(a)
