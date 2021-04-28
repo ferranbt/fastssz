@@ -154,12 +154,14 @@ func (v *Value) hashTreeRoot() string {
 					}
 					for i := uint64(0); i < num; i++ {
 						hh.PutBytes(::.{{.name}}[i])
+						hh.MerkleizeWithMixin(subIndx, num, {{.numInner}})
 					}
 					hh.MerkleizeWithMixin(subIndx, num, {{.num}})
 				}`
 				return execTmpl(tmpl, map[string]interface{}{
-					"name": v.name,
-					"num":  v.m,
+					"name":     v.name,
+					"num":      v.m,
+					"numInner": v.e.m,
 				})
 			}
 		}

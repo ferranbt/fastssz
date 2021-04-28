@@ -25,7 +25,7 @@ func (e *ETHMergeTransactions) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	}
 
 	// Field (0) 'OpaqueList'
-	if len(e.OpaqueList) > 2048 {
+	if len(e.OpaqueList) > 16384 {
 		err = ssz.ErrListTooBig
 		return
 	}
@@ -37,7 +37,7 @@ func (e *ETHMergeTransactions) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 		}
 	}
 	for ii := 0; ii < len(e.OpaqueList); ii++ {
-		if len(e.OpaqueList[ii]) > 2048 {
+		if len(e.OpaqueList[ii]) > 1048576 {
 			err = ssz.ErrBytesLength
 			return
 		}
@@ -66,13 +66,13 @@ func (e *ETHMergeTransactions) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'OpaqueList'
 	{
 		buf = tail[o0:]
-		num, err := ssz.DecodeDynamicLength(buf, 2048)
+		num, err := ssz.DecodeDynamicLength(buf, 16384)
 		if err != nil {
 			return err
 		}
 		e.OpaqueList = make([][]byte, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if len(buf) > 2048 {
+			if len(buf) > 1048576 {
 				return ssz.ErrBytesLength
 			}
 			if cap(e.OpaqueList[indx]) == 0 {
@@ -114,14 +114,15 @@ func (e *ETHMergeTransactions) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	{
 		subIndx := hh.Index()
 		num := uint64(len(e.OpaqueList))
-		if num > 0 {
+		if num > 16384 {
 			err = ssz.ErrIncorrectListSize
 			return
 		}
 		for i := uint64(0); i < num; i++ {
 			hh.PutBytes(e.OpaqueList[i])
+			hh.MerkleizeWithMixin(subIndx, num, 1048576)
 		}
-		hh.MerkleizeWithMixin(subIndx, num, 0)
+		hh.MerkleizeWithMixin(subIndx, num, 16384)
 	}
 
 	hh.Merkleize(indx)

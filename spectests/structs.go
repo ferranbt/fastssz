@@ -6,7 +6,7 @@ import (
 )
 
 type ETHMergeTransactions struct {
-	OpaqueList [][]byte `json:"opaque_list" ssz-size:"?,?" ssz-max:"2048,2048"`
+	OpaqueList [][]byte `json:"opaque_list" ssz-size:"?,?" ssz-max:"16384,1048576"`
 }
 
 type AggregateAndProof struct {

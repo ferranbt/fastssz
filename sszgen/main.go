@@ -909,7 +909,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			}
 			// list
 			if hasTwoLists {
-				return &Value{t: TypeList, s: f, e: &Value{t: TypeBytes, c: sCheck, m: s}}, nil
+				return &Value{t: TypeList, s: f, m: f, e: &Value{t: TypeBytes, c: sCheck, m: s}}, nil
 			}
 			return &Value{t: TypeList, s: f, e: &Value{t: TypeBytes, c: sCheck, n: s, s: s}}, nil
 		}
