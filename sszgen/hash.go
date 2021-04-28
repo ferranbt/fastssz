@@ -153,8 +153,9 @@ func (v *Value) hashTreeRoot() string {
 						return
 					}
 					for i := uint64(0); i < num; i++ {
+						txSubIndx := hh.Index()
 						hh.PutBytes(::.{{.name}}[i])
-						hh.MerkleizeWithMixin(subIndx, num, {{.numInner}})
+						hh.MerkleizeWithMixin(txSubIndx, num, {{.numInner}})
 					}
 					hh.MerkleizeWithMixin(subIndx, num, {{.num}})
 				}`
