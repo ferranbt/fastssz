@@ -271,15 +271,6 @@ func (h *Hasher) Merkleize(indx int) {
 	h.buf = append(h.buf[:indx], input...)
 }
 
-// Merkleize is used to merkleize the last group of the hasher with a limit.
-func (h *Hasher) MerkleizeWithLimit(indx int, limit uint64) {
-	input := h.buf[indx:]
-
-	// merkleize the input
-	input = h.merkleizeImpl(input[:0], input, limit)
-	h.buf = append(h.buf[:indx], input...)
-}
-
 // MerkleizeWithMixin is used to merkleize the last group of the hasher
 func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 	input := h.buf[indx:]

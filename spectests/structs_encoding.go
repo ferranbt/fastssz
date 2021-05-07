@@ -120,8 +120,9 @@ func (e *ETHMergeTransactions) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		}
 		for i := uint64(0); i < num; i++ {
 			txSubIndx := hh.Index()
-			hh.PutBytes(e.OpaqueList[i])
-			hh.MerkleizeWithMixin(txSubIndx, uint64(len(e.OpaqueList[i])), 1048576)
+			hh.PutBytesNoMerkleize(e.OpaqueList[i])
+			maxLength := uint64((1048576 + 31) / 32)
+			hh.MerkleizeWithMixin(txSubIndx, uint64(len(e.OpaqueList[i])), maxLength)
 		}
 		hh.MerkleizeWithMixin(subIndx, num, 16384)
 	}
