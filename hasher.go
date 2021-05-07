@@ -248,6 +248,20 @@ func (h *Hasher) PutBytes(b []byte) {
 	h.Merkleize(indx)
 }
 
+// PutBytes append bytes but does not merkleize at the end
+func (h *Hasher) PutBytesNoMerkleize(b []byte) {
+	if len(b) <= 32 {
+		h.appendBytes32(b)
+		return
+	}
+
+	// if the bytes are longer than 32 we have to
+	// merkleize the content
+	indx := h.Index()
+	h.appendBytes32(b)
+	h.Merkleize(indx)
+}
+
 // Index marks the current buffer index
 func (h *Hasher) Index() int {
 	return len(h.buf)
