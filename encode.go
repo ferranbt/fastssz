@@ -21,6 +21,7 @@ var (
 	ErrVectorLength = fmt.Errorf("vector does not have the correct length")
 	ErrListTooBig   = fmt.Errorf("list length is higher than max value")
 	ErrEmptyBitlist = fmt.Errorf("bitlist is empty")
+	ErrInvalidVariableOffset = fmt.Errorf("invalid ssz encoding. first variable element offset indexes into fixed value data")
 )
 
 // ---- Unmarshal functions ----

@@ -277,9 +277,12 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// Marshal the dynamic parts
 
 	c := 0
+
+	firstOffsetCheck := func(offsetNumber int) string {
+		return fmt.Sprintf("\nif o%d < %d {\n return ssz.ErrInvalidVariableOffset\n}\n", offsetNumber, v.n+1)
+	}
 	for indx, i := range v.o {
 		if !i.isFixed() {
-
 			from := offsets[c]
 			var to string
 			if c == len(offsets)-1 {
@@ -287,9 +290,9 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			} else {
 				to = offsets[c+1]
 			}
-
 			tmpl := `// Field ({{.indx}}) '{{.name}}'
 			{
+				{{- .firstOffsetCheck -}}
 				buf = tail[{{.from}}:{{.to}}]
 				{{.unmarshal}}
 			}`
@@ -298,8 +301,10 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				"name":      i.name,
 				"from":      from,
 				"to":        to,
+				"firstOffsetCheck": firstOffsetCheck(indx),
 				"unmarshal": i.unmarshal("buf"),
 			})
+			firstOffsetCheck = func(int) string { return "" }
 			outs = append(outs, res)
 			c++
 		}
