@@ -279,7 +279,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	c := 0
 
 	firstOffsetCheck := func(offsetNumber int) string {
-		return fmt.Sprintf("\nif o%d < %d {\n return ssz.ErrInvalidVariableOffset\n}\n", offsetNumber, v.n+1)
+		return fmt.Sprintf("\nif o%d < %d {\n return ssz.ErrInvalidVariableOffset\n}\n", offsetNumber, v.n)
 	}
 	for indx, i := range v.o {
 		if !i.isFixed() {

@@ -67,6 +67,9 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'Aggregate'
 	{
+		if o1 < 108 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o1:]
 		if a.Aggregate == nil {
 			a.Aggregate = new(Attestation)
@@ -373,6 +376,9 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'AggregationBits'
 	{
+		if o0 < 228 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o0:]
 		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
 			return err
@@ -780,6 +786,9 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'AttestationIndices'
 	{
+		if o0 < 228 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o0:]
 		num, err := ssz.DivideInt2(len(buf), 8, 2048)
 		if err != nil {
@@ -913,6 +922,9 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'AggregationBits'
 	{
+		if o0 < 148 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o0:]
 		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
 			return err
@@ -1803,6 +1815,9 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'Attestation1'
 	{
+		if o0 < 8 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o0:o1]
 		if a.Attestation1 == nil {
 			a.Attestation1 = new(IndexedAttestation)
@@ -2219,6 +2234,9 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 
 	// Field (6) 'HistoricalRoots'
 	{
+		if o6 < 7017 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o6:o8]
 		num, err := ssz.DivideInt2(len(buf), 32, 16777216)
 		if err != nil {
@@ -2635,6 +2653,9 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 
 	// Field (3) 'Body'
 	{
+		if o3 < 76 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o3:]
 		if b.Body == nil {
 			b.Body = new(BeaconBlockBody)
@@ -2750,6 +2771,9 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'Block'
 	{
+		if o0 < 100 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o0:]
 		if s.Block == nil {
 			s.Block = new(BeaconBlock)
@@ -3107,6 +3131,9 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 
 	// Field (3) 'ProposerSlashings'
 	{
+		if o3 < 220 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o3:o4]
 		num, err := ssz.DivideInt2(len(buf), 408, 16)
 		if err != nil {
@@ -3575,6 +3602,9 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'Message'
 	{
+		if o0 < 4 {
+			return ssz.ErrInvalidVariableOffset
+		}
 		buf = tail[o0:]
 		if err = e.Message.UnmarshalSSZ(buf); err != nil {
 			return err
