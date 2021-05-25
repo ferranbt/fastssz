@@ -225,6 +225,11 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	// Marshal the fixed part and offsets
 
+	// used for bounds checking of variable length offsets.
+	// for the first offset, use the size of the fixed-length data
+	// as the minimum boundary. subsequent offsets will replace this
+	// value with the name of the previous offset variable.
+	offsetMinimum := fmt.Sprintf("%d", v.n)
 	outs := []string{}
 	for indx, i := range v.o {
 
@@ -252,6 +257,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				"name":   i.name,
 				"offset": offset,
 				"dst":    dst,
+				"offsetMinimum": offsetMinimum,
 			}
 
 			// We need to do two validations for the offset:
@@ -268,8 +274,12 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			if {{.offset}} = ssz.ReadOffset({{.dst}}); {{.offset}} > size {{.more}} {
 				return ssz.ErrOffset
 			}
+			if {{.offset}} < {{.offsetMinimum}} {
+				return ssz.ErrInvalidVariableOffset
+			}
 			`
 			res = execTmpl(tmpl, data)
+			offsetMinimum = offset
 		}
 		outs = append(outs, res)
 	}
@@ -278,9 +288,6 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	c := 0
 
-	firstOffsetCheck := func(offsetNumber int) string {
-		return fmt.Sprintf("\nif o%d < %d {\n return ssz.ErrInvalidVariableOffset\n}\n", offsetNumber, v.n)
-	}
 	for indx, i := range v.o {
 		if !i.isFixed() {
 			from := offsets[c]
@@ -292,7 +299,6 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			}
 			tmpl := `// Field ({{.indx}}) '{{.name}}'
 			{
-				{{- .firstOffsetCheck -}}
 				buf = tail[{{.from}}:{{.to}}]
 				{{.unmarshal}}
 			}`
@@ -301,10 +307,8 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				"name":      i.name,
 				"from":      from,
 				"to":        to,
-				"firstOffsetCheck": firstOffsetCheck(indx),
 				"unmarshal": i.unmarshal("buf"),
 			})
-			firstOffsetCheck = func(int) string { return "" }
 			outs = append(outs, res)
 			c++
 		}
