@@ -59,6 +59,9 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 	if o1 = ssz.ReadOffset(buf[8:12]); o1 > size {
 		return ssz.ErrOffset
 	}
+	if o1 < 108 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (2) 'SelectionProof'
 	if err = a.SelectionProof.UnmarshalSSZ(buf[12:108]); err != nil {
@@ -67,9 +70,6 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'Aggregate'
 	{
-		if o1 < 108 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o1:]
 		if a.Aggregate == nil {
 			a.Aggregate = new(Attestation)
@@ -357,6 +357,9 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
+	if o0 < 228 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (1) 'Data'
 	if a.Data == nil {
@@ -376,9 +379,6 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'AggregationBits'
 	{
-		if o0 < 228 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o0:]
 		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
 			return err
@@ -769,6 +769,9 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
+	if o0 < 228 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (1) 'Data'
 	if i.Data == nil {
@@ -786,9 +789,6 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'AttestationIndices'
 	{
-		if o0 < 228 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o0:]
 		num, err := ssz.DivideInt2(len(buf), 8, 2048)
 		if err != nil {
@@ -905,6 +905,9 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
+	if o0 < 148 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (1) 'Data'
 	if p.Data == nil {
@@ -922,9 +925,6 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'AggregationBits'
 	{
-		if o0 < 148 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o0:]
 		if err = ssz.ValidateBitlist(buf, 2048); err != nil {
 			return err
@@ -1807,17 +1807,20 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
+	if o0 < 8 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Offset (1) 'Attestation2'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
+	if o1 < o0 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (0) 'Attestation1'
 	{
-		if o0 < 8 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o0:o1]
 		if a.Attestation1 == nil {
 			a.Attestation1 = new(IndexedAttestation)
@@ -2150,6 +2153,9 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	if o6 = ssz.ReadOffset(buf[4232:4236]); o6 > size {
 		return ssz.ErrOffset
 	}
+	if o6 < 7017 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (7) 'Eth1Data'
 	if b.Eth1Data == nil {
@@ -2163,6 +2169,9 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	if o8 = ssz.ReadOffset(buf[4308:4312]); o8 > size || o6 > o8 {
 		return ssz.ErrOffset
 	}
+	if o8 < o6 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (9) 'Eth1DepositIndex'
 	b.Eth1DepositIndex = ssz.UnmarshallUint64(buf[4312:4320])
@@ -2171,10 +2180,16 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	if o10 = ssz.ReadOffset(buf[4320:4324]); o10 > size || o8 > o10 {
 		return ssz.ErrOffset
 	}
+	if o10 < o8 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Offset (11) 'Balances'
 	if o11 = ssz.ReadOffset(buf[4324:4328]); o11 > size || o10 > o11 {
 		return ssz.ErrOffset
+	}
+	if o11 < o10 {
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Field (12) 'RandaoMixes'
@@ -2196,10 +2211,16 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	if o14 = ssz.ReadOffset(buf[6888:6892]); o14 > size || o11 > o14 {
 		return ssz.ErrOffset
 	}
+	if o14 < o11 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Offset (15) 'CurrentEpochAttestations'
 	if o15 = ssz.ReadOffset(buf[6892:6896]); o15 > size || o14 > o15 {
 		return ssz.ErrOffset
+	}
+	if o15 < o14 {
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Field (16) 'JustificationBits'
@@ -2234,9 +2255,6 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 
 	// Field (6) 'HistoricalRoots'
 	{
-		if o6 < 7017 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o6:o8]
 		num, err := ssz.DivideInt2(len(buf), 32, 16777216)
 		if err != nil {
@@ -2650,12 +2668,12 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	if o3 = ssz.ReadOffset(buf[72:76]); o3 > size {
 		return ssz.ErrOffset
 	}
+	if o3 < 76 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (3) 'Body'
 	{
-		if o3 < 76 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o3:]
 		if b.Body == nil {
 			b.Body = new(BeaconBlockBody)
@@ -2762,6 +2780,9 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
+	if o0 < 100 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (1) 'Signature'
 	if cap(s.Signature) == 0 {
@@ -2771,9 +2792,6 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'Block'
 	{
-		if o0 < 100 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o0:]
 		if s.Block == nil {
 			s.Block = new(BeaconBlock)
@@ -3108,32 +3126,44 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	if o3 = ssz.ReadOffset(buf[200:204]); o3 > size {
 		return ssz.ErrOffset
 	}
+	if o3 < 220 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Offset (4) 'AttesterSlashings'
 	if o4 = ssz.ReadOffset(buf[204:208]); o4 > size || o3 > o4 {
 		return ssz.ErrOffset
+	}
+	if o4 < o3 {
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Offset (5) 'Attestations'
 	if o5 = ssz.ReadOffset(buf[208:212]); o5 > size || o4 > o5 {
 		return ssz.ErrOffset
 	}
+	if o5 < o4 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Offset (6) 'Deposits'
 	if o6 = ssz.ReadOffset(buf[212:216]); o6 > size || o5 > o6 {
 		return ssz.ErrOffset
+	}
+	if o6 < o5 {
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Offset (7) 'VoluntaryExits'
 	if o7 = ssz.ReadOffset(buf[216:220]); o7 > size || o6 > o7 {
 		return ssz.ErrOffset
 	}
+	if o7 < o6 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (3) 'ProposerSlashings'
 	{
-		if o3 < 220 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o3:o4]
 		num, err := ssz.DivideInt2(len(buf), 408, 16)
 		if err != nil {
@@ -3599,12 +3629,12 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
+	if o0 < 4 {
+		return ssz.ErrInvalidVariableOffset
+	}
 
 	// Field (0) 'Message'
 	{
-		if o0 < 4 {
-			return ssz.ErrInvalidVariableOffset
-		}
 		buf = tail[o0:]
 		if err = e.Message.UnmarshalSSZ(buf); err != nil {
 			return err
