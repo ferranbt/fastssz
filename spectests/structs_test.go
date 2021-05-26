@@ -267,7 +267,7 @@ func TestSpecMinimal(t *testing.T) {
 
 		t.Log(f)
 		for _, f := range walkPath(t, f) {
-			checkSSZEncoding(t, f, base)
+			checkSSZEncoding(t, f, name, base)
 		}
 	}
 }
@@ -289,14 +289,19 @@ func TestSpecMainnet(t *testing.T) {
 		t.Log(f)
 		files := readDir(t, filepath.Join(f, "ssz_random"))
 		for _, f := range files {
-			checkSSZEncoding(t, f, base)
+			checkSSZEncoding(t, f, name, base)
 		}
 	}
 }
 
-func checkSSZEncoding(t *testing.T, f string, base testCallback) {
+func formatSpecFailure(errHeader, specFile, structName string, err error) string {
+	return fmt.Sprintf("%s spec file=%s, struct=%s, err=%v",
+		errHeader, specFile, structName, err)
+}
+
+func checkSSZEncoding(t *testing.T, fileName, structName string, base testCallback) {
 	obj := base()
-	output := readValidGenericSSZ(t, f, &obj)
+	output := readValidGenericSSZ(t, fileName, &obj)
 
 	// Marshal
 	res, err := obj.MarshalSSZTo(nil)
@@ -310,7 +315,7 @@ func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 	// Unmarshal
 	obj2 := base()
 	if err := obj2.UnmarshalSSZ(res); err != nil {
-		panic(err)
+		t.Fatal(formatSpecFailure("UnmarshalSSZ error", fileName, structName, err))
 	}
 	if !deepEqual(obj, obj2) {
 		t.Fatal("bad unmarshalling")
@@ -322,7 +327,7 @@ func checkSSZEncoding(t *testing.T, f string, base testCallback) {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(root[:], output.root) {
-		fmt.Printf("%s bad root\n", f)
+		fmt.Printf("%s bad root\n", fileName)
 	}
 
 	if objt, ok := obj.(codecTree); ok {

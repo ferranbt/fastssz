@@ -225,6 +225,11 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	// Marshal the fixed part and offsets
 
+	// used for bounds checking of variable length offsets.
+	// for the first offset, use the size of the fixed-length data
+	// as the minimum boundary. subsequent offsets will replace this
+	// value with the name of the previous offset variable.
+	firstOffsetCheck := fmt.Sprintf("%d", v.n)
 	outs := []string{}
 	for indx, i := range v.o {
 
@@ -252,6 +257,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				"name":   i.name,
 				"offset": offset,
 				"dst":    dst,
+				"firstOffsetCheck": firstOffsetCheck,
 			}
 
 			// We need to do two validations for the offset:
@@ -268,8 +274,14 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			if {{.offset}} = ssz.ReadOffset({{.dst}}); {{.offset}} > size {{.more}} {
 				return ssz.ErrOffset
 			}
+			{{ if .firstOffsetCheck }}
+			if {{.offset}} < {{.firstOffsetCheck}} {
+				return ssz.ErrInvalidVariableOffset
+			}
+			{{ end }}
 			`
 			res = execTmpl(tmpl, data)
+			firstOffsetCheck = ""
 		}
 		outs = append(outs, res)
 	}
@@ -277,9 +289,9 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// Marshal the dynamic parts
 
 	c := 0
+
 	for indx, i := range v.o {
 		if !i.isFixed() {
-
 			from := offsets[c]
 			var to string
 			if c == len(offsets)-1 {
@@ -287,7 +299,6 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			} else {
 				to = offsets[c+1]
 			}
-
 			tmpl := `// Field ({{.indx}}) '{{.name}}'
 			{
 				buf = tail[{{.from}}:{{.to}}]
