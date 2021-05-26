@@ -229,7 +229,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// for the first offset, use the size of the fixed-length data
 	// as the minimum boundary. subsequent offsets will replace this
 	// value with the name of the previous offset variable.
-	offsetMinimum := fmt.Sprintf("%d", v.n)
+	firstOffsetCheck := fmt.Sprintf("%d", v.n)
 	outs := []string{}
 	for indx, i := range v.o {
 
@@ -257,7 +257,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				"name":   i.name,
 				"offset": offset,
 				"dst":    dst,
-				"offsetMinimum": offsetMinimum,
+				"firstOffsetCheck": firstOffsetCheck,
 			}
 
 			// We need to do two validations for the offset:
@@ -274,12 +274,14 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			if {{.offset}} = ssz.ReadOffset({{.dst}}); {{.offset}} > size {{.more}} {
 				return ssz.ErrOffset
 			}
-			if {{.offset}} < {{.offsetMinimum}} {
+			{{ if .firstOffsetCheck }}
+			if {{.offset}} < {{.firstOffsetCheck}} {
 				return ssz.ErrInvalidVariableOffset
 			}
+			{{ end }}
 			`
 			res = execTmpl(tmpl, data)
-			offsetMinimum = offset
+			firstOffsetCheck = ""
 		}
 		outs = append(outs, res)
 	}
