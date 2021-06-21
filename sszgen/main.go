@@ -659,9 +659,9 @@ func (e *env) generateIR() error {
 
 	// we want to make sure we only include one reference for each struct name
 	// among the source and include paths.
-	addStructs := func(fname string, res *astResult, isRef bool) error {
+	addStructs := func(res *astResult, isRef bool) error {
 		for _, i := range res.objs {
-			if _, ok := e.raw[fname+"/"+i.name]; ok {
+			if _, ok := e.raw[i.name]; ok {
 				return fmt.Errorf("two structs share the same name %s", i.name)
 			}
 			i.isRef = isRef
@@ -715,7 +715,7 @@ func (e *env) generateIR() error {
 	// decode the structs from the input path
 	for name, file := range e.files {
 		res := decodeASTStruct(file)
-		if err := addStructs(name, res, false); err != nil {
+		if err := addStructs(res, false); err != nil {
 			return err
 		}
 
@@ -733,9 +733,9 @@ func (e *env) generateIR() error {
 	// decode the structs from the include path but ONLY include them on 'raw' not in 'order'.
 	// If the structs are in raw they can be used as a reference at compilation time and since they are
 	// not in 'order' they cannot be used to marshal/unmarshal encodings
-	for name, file := range e.include {
+	for _, file := range e.include {
 		res := decodeASTStruct(file)
-		if err := addStructs(name, res, true); err != nil {
+		if err := addStructs(res, true); err != nil {
 			return err
 		}
 
