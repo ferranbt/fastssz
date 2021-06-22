@@ -532,7 +532,7 @@ func decodeASTStruct(file *ast.File) *astResult {
 						obj.obj = structType
 					} else {
 						typExpr, ok := typeSpec.Type.(*ast.Ident)
-						if ok && typeSpec.Name.Name != typExpr.Name {
+						if ok && typeSpec.Name.Name != typExpr.Name && typeSpec.Assign != token.NoPos {
 							continue
 						}
 						obj.typ = typeSpec.Type
