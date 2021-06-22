@@ -531,6 +531,10 @@ func decodeASTStruct(file *ast.File) *astResult {
 					if ok {
 						obj.obj = structType
 					} else {
+						typExpr, ok := typeSpec.Type.(*ast.Ident)
+						if ok && typeSpec.Name.Name != typExpr.Name {
+							continue
+						}
 						obj.typ = typeSpec.Type
 					}
 					res.objs = append(res.objs, obj)
