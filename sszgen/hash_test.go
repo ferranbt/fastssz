@@ -14,11 +14,11 @@ func normalizeGenerated(s string) string {
 	return strings.Join(result, "\n")
 }
 
-var expectedMisalignedInner = `padded = make([]byte, 64)
-if len(i) != 48 {
+var expectedMisalignedInner = `if len(i) != 48 {
 	err = ssz.ErrBytesLength
 	return
 }
+padded = make([]byte, 64)
 copy(padded[0:48], i[0:48])
 hh.Append(padded)`
 
@@ -26,7 +26,7 @@ var expectedAlignedInner = `if len(i) != 32 {
 	err = ssz.ErrBytesLength
 	return
 }
-hh.Append(padded)`
+hh.Append(i)`
 
 func TestHashRootInnerMisaligned(t *testing.T) {
 	e := TypeBytes
