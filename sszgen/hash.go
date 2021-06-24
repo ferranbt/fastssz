@@ -59,7 +59,7 @@ func (v *Value) hashRootsInner(elem Type) string {
 		paddedSize := nextChunkAlignment(int(v.e.s))
 		if paddedSize != int(v.e.s) {
 			subName = "padded"
-			padDeclare = fmt.Sprintf("padded = make([]byte, %d)", paddedSize)
+			padDeclare = fmt.Sprintf("padded := make([]byte, %d)", paddedSize)
 			padCopy = fmt.Sprintf("\ncopy(padded[0:%d], i[0:%d])\n", v.e.s, v.e.s)
 		}
 	}

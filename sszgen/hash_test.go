@@ -18,7 +18,7 @@ var expectedMisalignedInner = `if len(i) != 48 {
 	err = ssz.ErrBytesLength
 	return
 }
-padded = make([]byte, 64)
+padded := make([]byte, 64)
 copy(padded[0:48], i[0:48])
 hh.Append(padded)`
 
