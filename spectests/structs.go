@@ -180,6 +180,7 @@ type BeaconBlockBody struct {
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
 	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
 	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+	PandoraShard      []*PandoraShard        `json:"pandora_shard" ssz-max:"2"`
 }
 
 type SignedBeaconBlockHeader struct {
@@ -196,4 +197,14 @@ type BeaconBlockHeader struct {
 
 type ErrorResponse struct {
 	Message external.DynamicBytes `ssz-max:"256"`
+}
+
+type PandoraShard struct {
+	BlockNumber          uint64   `json:"block_number"`
+	Hash                 []byte   `json:"hash" ssz-size:"32"`
+	ParentHash           []byte   `json:"parent_hash" ssz-size:"32"`
+	StateRoot            []byte   `json:"state_root" ssz-size:"32"`
+	TxHash               []byte   `json:"tx_hash" ssz-size:"32"`
+	ReceiptHash          []byte   `json:"receipt_hash" ssz-size:"32"`
+	Signature            []byte   `json:"signature" ssz-size:"96"`
 }

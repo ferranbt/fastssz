@@ -2933,7 +2933,7 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBody object to a target array
 func (b *BeaconBlockBody) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(220)
+	offset := int(224)
 
 	// Field (0) 'RandaoReveal'
 	if len(b.RandaoReveal) != 96 {
@@ -2978,6 +2978,10 @@ func (b *BeaconBlockBody) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(b.VoluntaryExits) * 112
+
+	// Offset (8) 'PandoraShard'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(b.PandoraShard) * 264
 
 	// Field (3) 'ProposerSlashings'
 	if len(b.ProposerSlashings) > 16 {
@@ -3048,6 +3052,17 @@ func (b *BeaconBlockBody) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		}
 	}
 
+	// Field (8) 'PandoraShard'
+	if len(b.PandoraShard) > 2 {
+		err = ssz.ErrListTooBig
+		return
+	}
+	for ii := 0; ii < len(b.PandoraShard); ii++ {
+		if dst, err = b.PandoraShard[ii].MarshalSSZTo(dst); err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -3055,12 +3070,12 @@ func (b *BeaconBlockBody) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 220 {
+	if size < 224 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o3, o4, o5, o6, o7 uint64
+	var o3, o4, o5, o6, o7, o8 uint64
 
 	// Field (0) 'RandaoReveal'
 	if cap(b.RandaoReveal) == 0 {
@@ -3101,6 +3116,11 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 
 	// Offset (7) 'VoluntaryExits'
 	if o7 = ssz.ReadOffset(buf[216:220]); o7 > size || o6 > o7 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (8) 'PandoraShard'
+	if o8 = ssz.ReadOffset(buf[220:224]); o8 > size || o7 > o8 {
 		return ssz.ErrOffset
 	}
 
@@ -3186,7 +3206,7 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 
 	// Field (7) 'VoluntaryExits'
 	{
-		buf = tail[o7:]
+		buf = tail[o7:o8]
 		num, err := ssz.DivideInt2(len(buf), 112, 16)
 		if err != nil {
 			return err
@@ -3201,12 +3221,30 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 			}
 		}
 	}
+
+	// Field (8) 'PandoraShard'
+	{
+		buf = tail[o8:]
+		num, err := ssz.DivideInt2(len(buf), 264, 2)
+		if err != nil {
+			return err
+		}
+		b.PandoraShard = make([]*PandoraShard, num)
+		for ii := 0; ii < num; ii++ {
+			if b.PandoraShard[ii] == nil {
+				b.PandoraShard[ii] = new(PandoraShard)
+			}
+			if err = b.PandoraShard[ii].UnmarshalSSZ(buf[ii*264 : (ii+1)*264]); err != nil {
+				return err
+			}
+		}
+	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBody object
 func (b *BeaconBlockBody) SizeSSZ() (size int) {
-	size = 220
+	size = 224
 
 	// Field (3) 'ProposerSlashings'
 	size += len(b.ProposerSlashings) * 408
@@ -3228,6 +3266,9 @@ func (b *BeaconBlockBody) SizeSSZ() (size int) {
 
 	// Field (7) 'VoluntaryExits'
 	size += len(b.VoluntaryExits) * 112
+
+	// Field (8) 'PandoraShard'
+	size += len(b.PandoraShard) * 264
 
 	return
 }
@@ -3334,6 +3375,22 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 			}
 		}
 		hh.MerkleizeWithMixin(subIndx, num, 16)
+	}
+
+	// Field (8) 'PandoraShard'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(b.PandoraShard))
+		if num > 2 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		for i := uint64(0); i < num; i++ {
+			if err = b.PandoraShard[i].HashTreeRootWith(hh); err != nil {
+				return
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 2)
 	}
 
 	hh.Merkleize(indx)
@@ -3605,6 +3662,177 @@ func (e *ErrorResponse) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	if err = e.Message.HashTreeRootWith(hh); err != nil {
 		return
 	}
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the PandoraShard object
+func (p *PandoraShard) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(p)
+}
+
+// MarshalSSZTo ssz marshals the PandoraShard object to a target array
+func (p *PandoraShard) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+
+	// Field (0) 'BlockNumber'
+	dst = ssz.MarshalUint64(dst, p.BlockNumber)
+
+	// Field (1) 'Hash'
+	if len(p.Hash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.Hash...)
+
+	// Field (2) 'ParentHash'
+	if len(p.ParentHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.ParentHash...)
+
+	// Field (3) 'StateRoot'
+	if len(p.StateRoot) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.StateRoot...)
+
+	// Field (4) 'TxHash'
+	if len(p.TxHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.TxHash...)
+
+	// Field (5) 'ReceiptHash'
+	if len(p.ReceiptHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.ReceiptHash...)
+
+	// Field (6) 'Signature'
+	if len(p.Signature) != 96 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.Signature...)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the PandoraShard object
+func (p *PandoraShard) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size != 264 {
+		return ssz.ErrSize
+	}
+
+	// Field (0) 'BlockNumber'
+	p.BlockNumber = ssz.UnmarshallUint64(buf[0:8])
+
+	// Field (1) 'Hash'
+	if cap(p.Hash) == 0 {
+		p.Hash = make([]byte, 0, len(buf[8:40]))
+	}
+	p.Hash = append(p.Hash, buf[8:40]...)
+
+	// Field (2) 'ParentHash'
+	if cap(p.ParentHash) == 0 {
+		p.ParentHash = make([]byte, 0, len(buf[40:72]))
+	}
+	p.ParentHash = append(p.ParentHash, buf[40:72]...)
+
+	// Field (3) 'StateRoot'
+	if cap(p.StateRoot) == 0 {
+		p.StateRoot = make([]byte, 0, len(buf[72:104]))
+	}
+	p.StateRoot = append(p.StateRoot, buf[72:104]...)
+
+	// Field (4) 'TxHash'
+	if cap(p.TxHash) == 0 {
+		p.TxHash = make([]byte, 0, len(buf[104:136]))
+	}
+	p.TxHash = append(p.TxHash, buf[104:136]...)
+
+	// Field (5) 'ReceiptHash'
+	if cap(p.ReceiptHash) == 0 {
+		p.ReceiptHash = make([]byte, 0, len(buf[136:168]))
+	}
+	p.ReceiptHash = append(p.ReceiptHash, buf[136:168]...)
+
+	// Field (6) 'Signature'
+	if cap(p.Signature) == 0 {
+		p.Signature = make([]byte, 0, len(buf[168:264]))
+	}
+	p.Signature = append(p.Signature, buf[168:264]...)
+
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the PandoraShard object
+func (p *PandoraShard) SizeSSZ() (size int) {
+	size = 264
+	return
+}
+
+// HashTreeRoot ssz hashes the PandoraShard object
+func (p *PandoraShard) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(p)
+}
+
+// HashTreeRootWith ssz hashes the PandoraShard object with a hasher
+func (p *PandoraShard) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'BlockNumber'
+	hh.PutUint64(p.BlockNumber)
+
+	// Field (1) 'Hash'
+	if len(p.Hash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.Hash)
+
+	// Field (2) 'ParentHash'
+	if len(p.ParentHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.ParentHash)
+
+	// Field (3) 'StateRoot'
+	if len(p.StateRoot) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.StateRoot)
+
+	// Field (4) 'TxHash'
+	if len(p.TxHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.TxHash)
+
+	// Field (5) 'ReceiptHash'
+	if len(p.ReceiptHash) != 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.ReceiptHash)
+
+	// Field (6) 'Signature'
+	if len(p.Signature) != 96 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.Signature)
 
 	hh.Merkleize(indx)
 	return

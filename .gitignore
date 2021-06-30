@@ -1,1 +1,5 @@
 eth2.0-spec-tests
+
+.idea/*
+
+sszgen/sszgen
