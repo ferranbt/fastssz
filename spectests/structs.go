@@ -197,3 +197,10 @@ type BeaconBlockHeader struct {
 type ErrorResponse struct {
 	Message external.DynamicBytes `ssz-max:"256"`
 }
+
+// BeaconBlockV3 serves to ensure we can have an alias with the same name as an imported package.
+type BeaconBlockV3 struct {
+	innerBlock *external2Alias.BeaconBlockV2
+}
+
+type BeaconBlockV2 = BeaconBlockV3
