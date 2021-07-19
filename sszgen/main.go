@@ -274,8 +274,8 @@ type env struct {
 	files map[string]*ast.File
 	// name of the package
 	packName string
-	// map of structs with their Go AST format
-	raw map[string]*astStruct
+	// array of structs with their Go AST format
+	raw []*astStruct
 	// map of structs with their IR format
 	objs map[string]*Value
 	// map of files with their structs in order
@@ -504,20 +504,25 @@ func appendObjSignature(str string, v *Value) string {
 type astStruct struct {
 	name     string
 	obj      *ast.StructType
+	packName string
 	typ      ast.Expr
 	implFunc bool
 	isRef    bool
 }
 
 type astResult struct {
-	objs  []*astStruct
-	funcs []string
+	objs     []*astStruct
+	funcs    []string
+	packName string
 }
 
 func decodeASTStruct(file *ast.File) *astResult {
+	packName := file.Name.String()
+
 	res := &astResult{
-		objs:  []*astStruct{},
-		funcs: []string{},
+		objs:     []*astStruct{},
+		funcs:    []string{},
+		packName: packName,
 	}
 
 	funcRefs := map[string]int{}
@@ -526,7 +531,8 @@ func decodeASTStruct(file *ast.File) *astResult {
 			for _, spec := range genDecl.Specs {
 				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 					obj := &astStruct{
-						name: typeSpec.Name.Name,
+						name:     typeSpec.Name.Name,
+						packName: packName,
 					}
 					structType, ok := typeSpec.Type.(*ast.StructType)
 					if ok {
@@ -653,20 +659,42 @@ func decodeASTImports(file *ast.File) []*astImport {
 	return imports
 }
 
+func (e *env) getRawItemByName(name string) (*astStruct, bool) {
+	for _, item := range e.raw {
+		if item.name == name {
+			return item, true
+		}
+	}
+	return nil, false
+}
+
+func (e *env) addRawItem(i *astStruct) {
+	e.raw = append(e.raw, i)
+}
+
 func (e *env) generateIR() error {
-	e.raw = map[string]*astStruct{}
+	e.raw = []*astStruct{}
 	e.order = map[string][]string{}
 	e.imports = []*astImport{}
+
+	checkObjByPackage := func(packName, name string) (*astStruct, bool) {
+		for _, item := range e.raw {
+			if item.name == name && item.packName == packName {
+				return item, true
+			}
+		}
+		return nil, false
+	}
 
 	// we want to make sure we only include one reference for each struct name
 	// among the source and include paths.
 	addStructs := func(res *astResult, isRef bool) error {
 		for _, i := range res.objs {
-			if _, ok := e.raw[i.name]; ok {
+			if _, ok := checkObjByPackage(i.packName, i.name); ok {
 				return fmt.Errorf("two structs share the same name %s", i.name)
 			}
 			i.isRef = isRef
-			e.raw[i.name] = i
+			e.addRawItem(i)
 		}
 		return nil
 	}
@@ -674,7 +702,7 @@ func (e *env) generateIR() error {
 	checkImplFunc := func(res *astResult) error {
 		// include all the functions that implement the interfaces
 		for _, name := range res.funcs {
-			v, ok := e.raw[name]
+			v, ok := checkObjByPackage(res.packName, name)
 			if !ok {
 				return fmt.Errorf("cannot find %s struct", name)
 			}
@@ -749,7 +777,9 @@ func (e *env) generateIR() error {
 		}
 	}
 
-	for name, obj := range e.raw {
+	for _, obj := range e.raw {
+		name := obj.name
+
 		var valid bool
 		if e.targets == nil || len(e.targets) == 0 {
 			valid = true
@@ -782,7 +812,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 	v, ok := e.objs[name]
 	if !ok {
 		var err error
-		raw, ok := e.raw[name]
+		raw, ok := e.getRawItemByName(name)
 		if !ok {
 			return nil, fmt.Errorf("could not find struct with name '%s'", name)
 		}
