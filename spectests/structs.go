@@ -197,3 +197,6 @@ type BeaconBlockHeader struct {
 type ErrorResponse struct {
 	Message external.DynamicBytes `ssz-max:"256"`
 }
+
+type Dummy struct {
+}
