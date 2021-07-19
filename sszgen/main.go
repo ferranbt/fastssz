@@ -42,6 +42,7 @@ func main() {
 
 	if err := encode(source, targets, output, includeList, experimental); err != nil {
 		fmt.Printf("[ERR]: %v", err)
+		os.Exit(1)
 	}
 }
 
