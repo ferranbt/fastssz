@@ -41,7 +41,7 @@ func main() {
 	includeList := decodeList(include)
 
 	if err := encode(source, targets, output, includeList, experimental); err != nil {
-		fmt.Printf("[ERR]: %v", err)
+		fmt.Printf("[ERR]: %v\n", err)
 		os.Exit(1)
 	}
 }
