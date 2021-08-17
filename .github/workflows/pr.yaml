@@ -4,8 +4,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Go test
-    env:
-      FUZZ_TESTS: true
     steps:
       - uses: actions/checkout@v2
       - name: Setup go
