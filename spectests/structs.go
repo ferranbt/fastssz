@@ -200,3 +200,6 @@ type ErrorResponse struct {
 
 type Dummy struct {
 }
+
+type Interface interface {
+}

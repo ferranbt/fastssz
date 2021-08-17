@@ -536,11 +536,17 @@ func decodeASTStruct(file *ast.File) *astResult {
 					}
 					structType, ok := typeSpec.Type.(*ast.StructType)
 					if ok {
+						// type is a struct
 						obj.obj = structType
 					} else {
-						obj.typ = typeSpec.Type
+						if _, ok := typeSpec.Type.(*ast.InterfaceType); !ok {
+							// type is an alias (skip interfaces)
+							obj.typ = typeSpec.Type
+						}
 					}
-					res.objs = append(res.objs, obj)
+					if obj.obj != nil || obj.typ != nil {
+						res.objs = append(res.objs, obj)
+					}
 				}
 			}
 		}
