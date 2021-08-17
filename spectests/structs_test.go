@@ -175,7 +175,7 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 
 	// Fuzz with append values between the fields
 	for name, codec := range codecs {
-		t.Logf("Unmarshal process %s", name)
+		t.Logf("Process %s", name)
 
 		for j := 0; j < 5; j++ {
 			obj := codec()
