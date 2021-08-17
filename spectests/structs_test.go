@@ -90,7 +90,7 @@ func fuzzTestCount(t *testing.T, i string) int {
 
 func checkIsFuzzEnabled(t *testing.T) {
 	if strings.ToLower(os.Getenv("FUZZ_TESTS")) != "true" {
-		t.Skip("Fuzz testing not enabled")
+		t.Skip("Fuzz testing not enabled, skipping")
 	}
 }
 
@@ -175,7 +175,7 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 
 	// Fuzz with append values between the fields
 	for name, codec := range codecs {
-		t.Log(name)
+		t.Logf("Process %s", name)
 
 		for j := 0; j < 5; j++ {
 			obj := codec()
@@ -265,7 +265,7 @@ func TestSpecMinimal(t *testing.T) {
 			t.Fatalf("name %s not found", name)
 		}
 
-		t.Log(f)
+		t.Logf("Process %s %s", name, f)
 		for _, f := range walkPath(t, f) {
 			checkSSZEncoding(t, f, name, base)
 		}
@@ -286,7 +286,7 @@ func TestSpecMainnet(t *testing.T) {
 			t.Fatalf("name %s not found", name)
 		}
 
-		t.Log(f)
+		t.Logf("Process %s %s", name, f)
 		files := readDir(t, filepath.Join(f, "ssz_random"))
 		for _, f := range files {
 			checkSSZEncoding(t, f, name, base)

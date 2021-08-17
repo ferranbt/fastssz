@@ -100,7 +100,7 @@ type Eth1Block struct {
 type Eth1Data struct {
 	DepositRoot  []byte `json:"deposit_root" ssz-size:"32"`
 	DepositCount uint64 `json:"deposit_count"`
-	BlockHash    []byte `json:"block_hash" ssz-size:"33"`
+	BlockHash    []byte `json:"block_hash" ssz-size:"32"`
 }
 
 type SigningRoot struct {
