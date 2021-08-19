@@ -213,8 +213,8 @@ type Interface interface {
 }
 
 type SyncCommittee struct {
-	PubKeys          [32][48]byte `json:"pubkeys"`
-	PubKeyAggregates [2][48]byte  `json:"pubkey_aggregates"`
+	PubKeys          [][]byte    `json:"pubkeys" ssz-size:"32,48"`
+	PubKeyAggregates [2][48]byte `json:"pubkey_aggregates"`
 }
 
 type SyncAggregate struct {

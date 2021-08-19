@@ -63,7 +63,7 @@ var codecs = map[string]testCallback{
 	*/
 	// -- altair --
 	"SyncCommittee": func() codec { return new(SyncCommittee) },
-	"SyncAggregate": func() codec { return new(SyncAggregate) },
+	//"SyncAggregate": func() codec { return new(SyncAggregate) },
 }
 
 func randomInt(min, max int) int {
