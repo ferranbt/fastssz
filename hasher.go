@@ -146,6 +146,10 @@ func (h *Hasher) FillUpTo32() {
 	}
 }
 
+func (h *Hasher) AppendUint8(i uint8) {
+	h.buf = MarshalUint8(h.buf, i)
+}
+
 func (h *Hasher) AppendUint64(i uint64) {
 	h.buf = MarshalUint64(h.buf, i)
 }
