@@ -23,7 +23,7 @@ type Hash [32]byte
 type AttestationData struct {
 	Slot            Slot        `json:"slot"`
 	Index           uint64      `json:"index"`
-	BeaconBlockHash Hash        `json:"beacon_block_root" ssz-size:"32"`
+	BeaconBlockRoot []byte `json:"beacon_block_root" ssz-size:"32"`
 	Source          *Checkpoint `json:"source"`
 	Target          *Checkpoint `json:"target"`
 }
@@ -72,6 +72,11 @@ type Fork struct {
 	Epoch           uint64 `json:"epoch"`
 }
 
+type ForkData struct {
+	CurrentVersion        []byte `json:"current_version,omitempty" ssz-size:"4"`
+	GenesisValidatorsRoot []byte `json:"genesis_validators_root,omitempty" ssz-size:"32"`
+}
+
 type Validator struct {
 	Pubkey                     []byte `json:"pubkey" ssz-size:"48"`
 	WithdrawalCredentials      []byte `json:"withdrawal_credentials" ssz-size:"32"`
@@ -95,6 +100,8 @@ type SignedVoluntaryExit struct {
 
 type Eth1Block struct {
 	Timestamp uint64 `json:"timestamp"`
+	DepositRoot  []byte `json:"deposit_root" ssz-size:"32"`
+	DepositCount uint64 `json:"deposit_count"`
 }
 
 type Eth1Data struct {
@@ -109,12 +116,11 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [64][32]byte `json:"block_roots" ssz-size:"64"`
-	StateRoots [][]byte     `json:"state_roots" ssz-size:"64,32"`
+	BlockRoots [][]byte `json:"block_roots,omitempty" ssz-size:"8192,32"`
+	StateRoots [][]byte `json:"state_roots,omitempty" ssz-size:"8192,32"`
 }
 
 type ProposerSlashing struct {
-	ProposerIndex uint64                   `json:"proposer_index"`
 	Header1       *SignedBeaconBlockHeader `json:"signed_header_1"`
 	Header2       *SignedBeaconBlockHeader `json:"signed_header_2"`
 }
@@ -161,6 +167,11 @@ type SignedBeaconBlock struct {
 	Signature []byte       `json:"signature" ssz-size:"96"`
 }
 
+type SignedAggregateAndProof struct {
+	Message   *AggregateAndProof `json:"message,omitempty"`
+	Signature []byte                        `json:"signature,omitempty" ssz-size:"96"`
+}
+
 type Transfer struct {
 	Sender    uint64 `json:"sender"`
 	Recipient uint64 `json:"recipient"`
@@ -185,6 +196,11 @@ type BeaconBlockBody struct {
 type SignedBeaconBlockHeader struct {
 	Header    *BeaconBlockHeader `json:"message"`
 	Signature []byte             `json:"signature" ssz-size:"96"`
+}
+
+type SigningData struct {
+	ObjectRoot []byte `json:"object_root,omitempty" ssz-size:"32"`
+	Domain     []byte `json:"domain,omitempty" ssz-size:"32"`
 }
 
 type BeaconBlockHeader struct {

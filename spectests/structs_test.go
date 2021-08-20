@@ -67,6 +67,8 @@ func valueForContainerPhase0(name string) (codec, error) {
 		return &phase0.Eth1Data{}, nil
 	case "Fork":
 		return &phase0.Fork{}, nil
+	case "ForkData":
+		return &phase0.ForkData{}, nil
 	case "HistoricalBatch":
 		return &phase0.HistoricalBatch{}, nil
 	case "IndexedAttestation":
@@ -75,12 +77,16 @@ func valueForContainerPhase0(name string) (codec, error) {
 		return &phase0.PendingAttestation{}, nil
 	case "ProposerSlashing":
 		return &phase0.ProposerSlashing{}, nil
+	case "SignedAggregateAndProof":
+		return &phase0.SignedAggregateAndProof{}, nil
 	case "SignedBeaconBlock":
 		return &phase0.SignedBeaconBlock{}, nil
 	case "SignedBeaconBlockHeader":
 		return &phase0.SignedBeaconBlockHeader{}, nil
 	case "SignedVoluntaryExit":
 		return &phase0.SignedVoluntaryExit{}, nil
+	case "SigningData":
+		return &phase0.SigningData{}, nil
 	case "SigningRoot":
 		return &phase0.SigningRoot{}, nil
 	case "Validator":
@@ -96,7 +102,7 @@ func valueForContainerPhase0(name string) (codec, error) {
 
 var phase0Containers = []string{"AggregateAndProof","Attestation","AttestationData","AttesterSlashing","BeaconBlock",
 	"BeaconBlockBody","BeaconBlockHeader","BeaconState","Checkpoint","Deposit","DepositData","DepositMessage",
-	"Eth1Block","Eth1Data","Fork","HistoricalBatch","IndexedAttestation","PendingAttestation","ProposerSlashing",
+	"Eth1Block","Eth1Data","Fork","ForkData", "HistoricalBatch","IndexedAttestation","PendingAttestation","ProposerSlashing",
 	"SignedBeaconBlock","SignedBeaconBlockHeader","SignedVoluntaryExit","SigningRoot","Validator","VoluntaryExit",
 	"ErrorResponse"}
 
