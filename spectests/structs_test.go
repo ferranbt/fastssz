@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/ferranbt/fastssz/spectests/phase0"
+	"io/fs"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -15,6 +18,7 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/ferranbt/fastssz/fuzz"
 
+	"github.com/golang/snappy"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,33 +35,96 @@ type codecTree interface {
 
 type testCallback func() codec
 
+func valueForContainerPhase0(name string) (codec, error) {
+	switch name {
+	case "AggregateAndProof":
+		return &phase0.AggregateAndProof{}, nil
+	case "Attestation":
+		return &phase0.Attestation{}, nil
+	case "AttestationData":
+		return &phase0.AttestationData{}, nil
+	case "AttesterSlashing":
+		return &phase0.AttesterSlashing{}, nil
+	case "BeaconBlock":
+		return &phase0.BeaconBlock{}, nil
+	case "BeaconBlockBody":
+		return &phase0.BeaconBlockBody{}, nil
+	case "BeaconBlockHeader":
+		return &phase0.BeaconBlockHeader{}, nil
+	case "BeaconState":
+		return &phase0.BeaconState{}, nil
+	case "Checkpoint":
+		return &phase0.Checkpoint{}, nil
+	case "Deposit":
+		return &phase0.Deposit{}, nil
+	case "DepositData":
+		return &phase0.DepositData{}, nil
+	case "DepositMessage":
+		return &phase0.DepositMessage{}, nil
+	case "Eth1Block":
+		return &phase0.Eth1Block{}, nil
+	case "Eth1Data":
+		return &phase0.Eth1Data{}, nil
+	case "Fork":
+		return &phase0.Fork{}, nil
+	case "HistoricalBatch":
+		return &phase0.HistoricalBatch{}, nil
+	case "IndexedAttestation":
+		return &phase0.IndexedAttestation{}, nil
+	case "PendingAttestation":
+		return &phase0.PendingAttestation{}, nil
+	case "ProposerSlashing":
+		return &phase0.ProposerSlashing{}, nil
+	case "SignedBeaconBlock":
+		return &phase0.SignedBeaconBlock{}, nil
+	case "SignedBeaconBlockHeader":
+		return &phase0.SignedBeaconBlockHeader{}, nil
+	case "SignedVoluntaryExit":
+		return &phase0.SignedVoluntaryExit{}, nil
+	case "SigningRoot":
+		return &phase0.SigningRoot{}, nil
+	case "Validator":
+		return &phase0.Validator{}, nil
+	case "VoluntaryExit":
+		return &phase0.VoluntaryExit{}, nil
+	case "ErrorResponse":
+		return &phase0.ErrorResponse{}, nil
+	default:
+		return nil, fmt.Errorf("unknown container named %s", name)
+	}
+}
+
+var phase0Containers = []string{"AggregateAndProof","Attestation","AttestationData","AttesterSlashing","BeaconBlock",
+	"BeaconBlockBody","BeaconBlockHeader","BeaconState","Checkpoint","Deposit","DepositData","DepositMessage",
+	"Eth1Block","Eth1Data","Fork","HistoricalBatch","IndexedAttestation","PendingAttestation","ProposerSlashing",
+	"SignedBeaconBlock","SignedBeaconBlockHeader","SignedVoluntaryExit","SigningRoot","Validator","VoluntaryExit",
+	"ErrorResponse"}
+
+func valueForContainerAltair(name string) (codec, error) {
+	switch name {
+	default:
+		return valueForContainerPhase0(name)
+	}
+}
+
+func valueForContainer(fork string, container string) (codec, error) {
+	switch fork {
+	case "phase0":
+		return valueForContainerPhase0(container)
+	case "altair":
+		return valueForContainerAltair(container)
+	// TODO: only BeaconBlockBody and BeaconState changed, but BeaconBlockBody is included by
+	// several other containers, so any containers that use it also need to be duplicated into
+	// the altair package so that they refer to the right version. otherwise in altair, any
+	// dependencies that are unchanged should point to the phase0 version.
+	default:
+		return nil, fmt.Errorf("spectests do not know about fork named %s", fork)
+	}
+}
+
+var altairContainers = []string{"SyncCommitteeDuty"}
+
 var codecs = map[string]testCallback{
-	"AttestationData":         func() codec { return new(AttestationData) },
-	"Checkpoint":              func() codec { return new(Checkpoint) },
-	"AggregateAndProof":       func() codec { return new(AggregateAndProof) },
-	"Attestation":             func() codec { return new(Attestation) },
-	"AttesterSlashing":        func() codec { return new(AttesterSlashing) },
-	"BeaconBlock":             func() codec { return new(BeaconBlock) },
-	"BeaconBlockBody":         func() codec { return new(BeaconBlockBody) },
-	"BeaconBlockHeader":       func() codec { return new(BeaconBlockHeader) },
-	"BeaconState":             func() codec { return new(BeaconState) },
-	"Deposit":                 func() codec { return new(Deposit) },
-	"DepositData":             func() codec { return new(DepositData) },
-	"DepositMessage":          func() codec { return new(DepositMessage) },
-	"Eth1Block":               func() codec { return new(Eth1Block) },
-	"Eth1Data":                func() codec { return new(Eth1Data) },
-	"Fork":                    func() codec { return new(Fork) },
-	"HistoricalBatch":         func() codec { return new(HistoricalBatch) },
-	"IndexedAttestation":      func() codec { return new(IndexedAttestation) },
-	"PendingAttestation":      func() codec { return new(PendingAttestation) },
-	"ProposerSlashing":        func() codec { return new(ProposerSlashing) },
-	"SignedBeaconBlock":       func() codec { return new(SignedBeaconBlock) },
-	"SignedBeaconBlockHeader": func() codec { return new(SignedBeaconBlockHeader) },
-	"SignedVoluntaryExit":     func() codec { return new(SignedVoluntaryExit) },
-	"SigningRoot":             func() codec { return new(SigningRoot) },
-	"Validator":               func() codec { return new(Validator) },
-	"VoluntaryExit":           func() codec { return new(VoluntaryExit) },
-	"ErrorResponse":           func() codec { return new(ErrorResponse) },
 }
 
 func randomInt(min, max int) int {
@@ -254,42 +321,160 @@ func min(i, j int) int {
 	return j
 }
 
-func TestSpecMinimal(t *testing.T) {
-	files := readDir(t, filepath.Join(testsPath, "/minimal/phase0/ssz_static"))
-	for _, f := range files {
-		spl := strings.Split(f, "/")
-		name := spl[len(spl)-1]
+// example: eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/Attestation/ssz_random/case_0/
+type specTestCase struct {
+	testSet string // ex: mainnet
+	fork string // ex: phase0
+	containerName string // ex: Attestation
+	caseNumber string // ex: case_0
+	path string // path to test case directory
+	root []byte // expected hash tree root of container, read from roots.yaml
+	serializedValue []byte // decompressed, serialized value for container fixture, read from serialized.ssz_snappy
+	yamlValue []byte // yaml representation of the value, used by fastssz's unmarshal test
+	skipContainers map[string]bool // list of container names to skip
+}
 
-		base, ok := codecs[name]
-		if !ok {
-			t.Fatalf("name %s not found", name)
-		}
-
-		t.Logf("Process %s %s", name, f)
-		for _, f := range walkPath(t, f) {
-			checkSSZEncoding(t, f, name, base)
-		}
+func newSpecTestCase(path string, testSet string, fork string, containerName string, caseNumber string) *specTestCase {
+	return &specTestCase{
+		testSet:       testSet,
+		fork:          fork,
+		containerName: containerName,
+		caseNumber:    caseNumber,
+		path:          path,
 	}
 }
 
-func TestSpecMainnet(t *testing.T) {
-	files := readDir(t, filepath.Join(testsPath, "/mainnet/phase0/ssz_static"))
-	for _, f := range files {
-		spl := strings.Split(f, "/")
-		name := spl[len(spl)-1]
+func (tc *specTestCase) prepare() error {
+	// read snappy-encoded, ssz serialized bytes for test case from serialized.ssz_snappy
+	snappyBytes, err := os.ReadFile(filepath.Join(tc.path, serializedFile))
+	if err != nil {
+		return fmt.Errorf("failed to read snappy bytes for case=%s with err=%s", tc.Name(), err)
+	}
+	serializedValue, err := snappy.Decode(nil, snappyBytes)
+	if err != nil {
+		return fmt.Errorf("failed to read snappy bytes serialized ssz for case=%s with err=%s", tc.Name(), err)
+	}
+	tc.serializedValue = serializedValue
 
-		if name == "BeaconState" || name == "HistoricalBatch" {
+	// read expected hash tree root from roots.yaml
+	rootBytes, err := os.ReadFile(filepath.Join(tc.path, rootsFile))
+	if err != nil {
+		return fmt.Errorf("failed to read %s for case=%s with err=%s", rootsFile, tc.Name(), err)
+	}
+	rootStruct := struct{Root string `json:"root"`}{}
+	if err := yaml.Unmarshal(rootBytes, &rootStruct); err != nil {
+		return fmt.Errorf("failed to decode yaml root key from %s for case=%s with err=%s", rootsFile, tc.Name(), err)
+	}
+	root, err := hex.DecodeString(rootStruct.Root[2:])
+	if err != nil {
+		return fmt.Errorf("failed to hex decode root key from %s for case=%s with err=%s", rootsFile, tc.Name(), err)
+	}
+	tc.root = root
+
+	// read the yaml-encoded version of the value
+	yamlBytes, err := os.ReadFile(filepath.Join(tc.path, valueFile))
+	if err != nil {
+		return fmt.Errorf("failed to read %s for case=%s with err=%s", valueFile, tc.Name(), err)
+	}
+	tc.yamlValue = yamlBytes
+
+	return nil
+}
+
+func (tc specTestCase) Runner(t *testing.T) {
+	if _, skip := tc.skipContainers[tc.containerName]; skip {
+		t.Skip("container type skipped in this config+fork")
+	}
+	err := tc.prepare()
+	if err != nil {
+		t.Fatal(err)
+	}
+	v, err := valueForContainer(tc.fork, tc.containerName)
+	if err != nil {
+		t.Fatalf("no type definition for type=%s", tc.containerName)
+	}
+	err = v.UnmarshalSSZ(tc.serializedValue)
+	if err != nil {
+		t.Fatalf("UnmarshalSSZ failure: %s", err)
+	}
+	serialized, err := v.MarshalSSZ()
+	if err != nil {
+		t.Fatalf("MarshalSSZ failure: %s", err)
+	}
+	if !bytes.Equal(serialized, tc.serializedValue) {
+		t.Errorf("MarshalSSZ produced a different value from the serialized ssz fixture")
+	}
+	vfresh, _ := valueForContainer(tc.fork, tc.containerName)
+	err = vfresh.UnmarshalSSZ(serialized)
+	if err != nil {
+		t.Fatalf("using serialized value produced by MarshalSSZ, UnmarshalSSZ failed with err: %s", err)
+	}
+	htr, err := vfresh.HashTreeRoot()
+	if err != nil {
+		t.Fatalf("error from calling HashTreeRoot: %s", err)
+	}
+	if !bytes.Equal(htr[:], tc.root) {
+		t.Fatalf("result of calling HashTreeRoot does not match the expected value")
+	}
+}
+
+func (tc specTestCase) Name() string {
+	//return fmt.Sprintf("%s-%s-%s-%s", tc.testSet, tc.fork, tc.containerName, tc.caseNumber)
+	return tc.path
+}
+
+// example: eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/Attestation/ssz_random/case_0/
+var testcaseRE = regexp.MustCompile(`.*\/ssz_static\/(.+)\/ssz_random\/([^\/]+)`)
+
+// Run all spec tests for mainnet and minimal configurations, across phase0 and altair
+// This test is a meta test that creates a separate subtest for each leaf case in the spectests tree
+func TestSpectests(t *testing.T) {
+	parentCases := []specTestCase{
+		/*
+		{
+			testSet: "minimal",
+			fork: "phase0",
+		},
+		{
+			testSet: "minimal",
+			fork: "altair",
+			skipContainers: map[string]bool{"BeaconState": true, "BeaconBlockBody": true},
+		},
+		 */
+		{
+			testSet: "mainnet",
+			fork: "phase0",
+			skipContainers: map[string]bool{"BeaconState": true, "HistoricalBatch": true},
+		},
+		/*
+		{
+			testSet: "mainnet",
+			fork: "altair",
+			skipContainers: map[string]bool{"BeaconState": true, "BeaconBlockBody": true},
+		},
+		 */
+	}
+	for _, c := range parentCases {
+		parentPath := filepath.Join(testsPath, c.testSet, c.fork, "ssz_static")
+		err := filepath.WalkDir(parentPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				t.Logf("traversing directory %s, failed with error '%s' - skipping this tree of tests", path, err)
+				return err
+			}
+			// skip individual files and parent directories
+			if !d.IsDir() || !testcaseRE.MatchString(path){
+				return nil
+			}
+			parts := testcaseRE.FindStringSubmatch(path)
+			// the following nested array indexing is safe because the MatchString above
+			// guarantees the string structure will match 2 regexp groups
+			tc := newSpecTestCase(path, c.testSet, c.fork, parts[1], parts[2])
+			t.Run(tc.Name(), tc.Runner)
+			return nil
+		})
+		if err != nil {
+			t.Logf("reading spectests from directory %s, failed with error '%s' - skipping this tree of tests", parentPath, err)
 			continue
-		}
-		base, ok := codecs[name]
-		if !ok {
-			t.Fatalf("name %s not found", name)
-		}
-
-		t.Logf("Process %s %s", name, f)
-		files := readDir(t, filepath.Join(f, "ssz_random"))
-		for _, f := range files {
-			checkSSZEncoding(t, f, name, base)
 		}
 	}
 }
@@ -347,7 +532,7 @@ func checkSSZEncoding(t *testing.T, fileName, structName string, base testCallba
 const benchmarkTestCase = "../eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/BeaconBlock/ssz_random/case_4"
 
 func BenchmarkMarshalFast(b *testing.B) {
-	obj := new(BeaconBlock)
+	obj := new(phase0.BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
 	b.ReportAllocs()
@@ -359,7 +544,7 @@ func BenchmarkMarshalFast(b *testing.B) {
 }
 
 func BenchmarkMarshalSuperFast(b *testing.B) {
-	obj := new(BeaconBlock)
+	obj := new(phase0.BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
 	buf := make([]byte, 0)
@@ -373,7 +558,7 @@ func BenchmarkMarshalSuperFast(b *testing.B) {
 }
 
 func BenchmarkUnMarshalFast(b *testing.B) {
-	obj := new(BeaconBlock)
+	obj := new(phase0.BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
 	dst, err := obj.MarshalSSZ()
@@ -385,7 +570,7 @@ func BenchmarkUnMarshalFast(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		obj2 := new(BeaconBlock)
+		obj2 := new(phase0.BeaconBlock)
 		if err := obj2.UnmarshalSSZ(dst); err != nil {
 			b.Fatal(err)
 		}
@@ -393,7 +578,7 @@ func BenchmarkUnMarshalFast(b *testing.B) {
 }
 
 func BenchmarkHashTreeRootFast(b *testing.B) {
-	obj := new(BeaconBlock)
+	obj := new(phase0.BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
 	b.ReportAllocs()
@@ -408,38 +593,10 @@ func BenchmarkHashTreeRootFast(b *testing.B) {
 
 const (
 	testsPath      = "../eth2.0-spec-tests/tests"
-	serializedFile = "serialized.ssz"
+	serializedFile = "serialized.ssz_snappy"
 	valueFile      = "value.yaml"
 	rootsFile      = "roots.yaml"
 )
-
-func walkPath(t *testing.T, path string) (res []string) {
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() && strings.Contains(path, "case_") {
-			res = append(res, path)
-		}
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	return
-}
-
-func readDir(t *testing.T, path string) []string {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	res := []string{}
-	for _, f := range files {
-		res = append(res, filepath.Join(path, f.Name()))
-	}
-	return res
-}
 
 type output struct {
 	root []byte

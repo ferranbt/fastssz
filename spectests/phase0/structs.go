@@ -1,4 +1,4 @@
-package spectests
+package phase0
 
 import (
 	"github.com/ferranbt/fastssz/spectests/external"
@@ -189,6 +189,7 @@ type SignedBeaconBlockHeader struct {
 
 type BeaconBlockHeader struct {
 	Slot       uint64 `json:"slot"`
+	ProposerIndex uint64 `json:"proposer_index"`
 	ParentRoot []byte `json:"parent_root" ssz-size:"32"`
 	StateRoot  []byte `json:"state_root" ssz-size:"32"`
 	BodyRoot   []byte `json:"body_root" ssz-size:"32"`
@@ -202,10 +203,4 @@ type Dummy struct {
 }
 
 type Interface interface {
-}
-
-type SyncCommitteeDuty struct {
-	Pubkey               []byte `json:"pubkey,omitempty" ssz-size:"48"`
-	ValidatorIndex       uint64 `json:"validator_index,omitempty"`
-	SyncCommitteeIndices uint64 `json:"sync_committee_indices,omitempty"`
 }
