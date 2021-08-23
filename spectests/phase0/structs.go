@@ -132,22 +132,23 @@ type AttesterSlashing struct {
 
 type BeaconState struct {
 	GenesisTime       uint64             `json:"genesis_time"`
+	GenesisValidatorsRoot       []byte   `json:"genesis_validators_root,omitempty" ssz-size:"32"`
 	Slot              uint64             `json:"slot"`
 	Fork              *Fork              `json:"fork"`
 	LatestBlockHeader *BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots        [64][32]byte       `json:"block_roots" ssz-size:"64,32"`
-	StateRoots        [][32]byte         `json:"state_roots" ssz-size:"64"`
-	HistoricalRoots   [][32]byte         `json:"historical_roots" ssz-max:"16777216"`
+	BlockRoots        [][]byte       `json:"block_roots" ssz-size:"8192,32"`
+	StateRoots        [][]byte         `json:"state_roots" ssz-size:"8192,32"`
+	HistoricalRoots   [][]byte         `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data          *Eth1Data          `json:"eth1_data"`
-	Eth1DataVotes     []*Eth1Data        `json:"eth1_data_votes" ssz-max:"16"`
+	Eth1DataVotes     []*Eth1Data        `json:"eth1_data_votes" ssz-max:"2048"`
 	Eth1DepositIndex  uint64             `json:"eth1_deposit_index"`
 	Validators        []*Validator       `json:"validators" ssz-max:"1099511627776"`
 	Balances          []uint64           `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes       [][]byte           `json:"randao_mixes" ssz-size:"64,32"`
-	Slashings         []uint64           `json:"slashings" ssz-size:"64"`
+	RandaoMixes       [][]byte           `json:"randao_mixes" ssz-size:"65536,32"`
+	Slashings         []uint64           `json:"slashings" ssz-size:"8192"`
 
-	PreviousEpochAttestations []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"1024"`
-	CurrentEpochAttestations  []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"1024"`
+	PreviousEpochAttestations []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"4096"`
+	CurrentEpochAttestations  []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"4096"`
 	JustificationBits         []byte                `json:"justification_bits" ssz-size:"1"`
 
 	PreviousJustifiedCheckpoint *Checkpoint `json:"previous_justified_checkpoint"`
@@ -157,6 +158,7 @@ type BeaconState struct {
 
 type BeaconBlock struct {
 	Slot       uint64           `json:"slot"`
+	ProposerIndex uint64 `json:"proposer_index,omitempty"`
 	ParentRoot []byte           `json:"parent_root" ssz-size:"32"`
 	StateRoot  []byte           `json:"state_root" ssz-size:"32"`
 	Body       *BeaconBlockBody `json:"body"`
@@ -185,9 +187,9 @@ type Transfer struct {
 type BeaconBlockBody struct {
 	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          [32]byte               `json:"graffiti"`
+	Graffiti          []byte               `json:"graffiti" ssz-size:"32"`
 	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
-	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"1"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
 	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
 	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`

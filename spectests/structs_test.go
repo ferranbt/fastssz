@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/ferranbt/fastssz/spectests/altair"
 	"github.com/ferranbt/fastssz/spectests/phase0"
+	"github.com/ferranbt/fastssz/spectests/phase0/minimal"
+
+	//"github.com/ferranbt/fastssz/spectests/phase0/minimal"
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
@@ -35,7 +39,7 @@ type codecTree interface {
 
 type testCallback func() codec
 
-func valueForContainerPhase0(name string) (codec, error) {
+func valueForContainerPhase0(config string, name string) (codec, error) {
 	switch name {
 	case "AggregateAndProof":
 		return &phase0.AggregateAndProof{}, nil
@@ -52,6 +56,9 @@ func valueForContainerPhase0(name string) (codec, error) {
 	case "BeaconBlockHeader":
 		return &phase0.BeaconBlockHeader{}, nil
 	case "BeaconState":
+		if config == "minimal" {
+			return &minimal.BeaconState{}, nil
+		}
 		return &phase0.BeaconState{}, nil
 	case "Checkpoint":
 		return &phase0.Checkpoint{}, nil
@@ -70,6 +77,9 @@ func valueForContainerPhase0(name string) (codec, error) {
 	case "ForkData":
 		return &phase0.ForkData{}, nil
 	case "HistoricalBatch":
+		if config == "minimal" {
+			return &minimal.HistoricalBatch{}, nil
+		}
 		return &phase0.HistoricalBatch{}, nil
 	case "IndexedAttestation":
 		return &phase0.IndexedAttestation{}, nil
@@ -106,19 +116,45 @@ var phase0Containers = []string{"AggregateAndProof","Attestation","AttestationDa
 	"SignedBeaconBlock","SignedBeaconBlockHeader","SignedVoluntaryExit","SigningRoot","Validator","VoluntaryExit",
 	"ErrorResponse"}
 
-func valueForContainerAltair(name string) (codec, error) {
+func valueForContainerAltair(config string, name string) (codec, error) {
 	switch name {
+	case "SyncCommitteeDuty":
+		return &altair.SyncCommitteeDuty{}, nil
+	case "ContributionAndProof":
+		return &altair.ContributionAndProof{}, nil
+	case "SyncCommittee":
+		return &altair.SyncCommittee{}, nil
+	case "SyncCommitteeContribution":
+		return &altair.SyncCommitteeContribution{}, nil
+	case "SyncCommitteeMessage":
+		return &altair.SyncCommitteeMessage{}, nil
+	case "SyncAggregatorSelectionData":
+		return &altair.SyncAggregatorSelectionData{}, nil
+	case "SyncAggregate":
+		return &altair.SyncAggregate{}, nil
+	case "SignedContributionAndProof":
+		return &altair.SignedContributionAndProof{}, nil
+	case "LightClientSnapshot":
+		return &altair.LightClientSnapshot{}, nil
+	case "BeaconBlock":
+		return &altair.BeaconBlock{}, nil
+	case "BeaconBlockBody":
+		return &altair.BeaconBlockBody{}, nil
+	case "SignedBeaconBlock":
+		return &altair.SignedBeaconBlock{}, nil
+	case "BeaconState":
+		return &altair.BeaconState{}, nil
 	default:
-		return valueForContainerPhase0(name)
+		return valueForContainerPhase0(config, name)
 	}
 }
 
-func valueForContainer(fork string, container string) (codec, error) {
+func valueForContainer(config string, fork string, container string) (codec, error) {
 	switch fork {
 	case "phase0":
-		return valueForContainerPhase0(container)
+		return valueForContainerPhase0(config, container)
 	case "altair":
-		return valueForContainerAltair(container)
+		return valueForContainerAltair(config, container)
 	// TODO: only BeaconBlockBody and BeaconState changed, but BeaconBlockBody is included by
 	// several other containers, so any containers that use it also need to be duplicated into
 	// the altair package so that they refer to the right version. otherwise in altair, any
@@ -329,24 +365,25 @@ func min(i, j int) int {
 
 // example: eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/Attestation/ssz_random/case_0/
 type specTestCase struct {
-	testSet string // ex: mainnet
-	fork string // ex: phase0
-	containerName string // ex: Attestation
-	caseNumber string // ex: case_0
-	path string // path to test case directory
-	root []byte // expected hash tree root of container, read from roots.yaml
-	serializedValue []byte // decompressed, serialized value for container fixture, read from serialized.ssz_snappy
-	yamlValue []byte // yaml representation of the value, used by fastssz's unmarshal test
-	skipContainers map[string]bool // list of container names to skip
+	configName      string          // ex: mainnet
+	fork            string          // ex: phase0
+	containerName   string          // ex: Attestation
+	caseNumber      string          // ex: case_0
+	path            string          // path to test case directory
+	root            []byte          // expected hash tree root of container, read from roots.yaml
+	serializedValue []byte          // decompressed, serialized value for container fixture, read from serialized.ssz_snappy
+	yamlValue       []byte          // yaml representation of the value, used by fastssz's unmarshal test
+	skipContainers  map[string]bool // list of container names to skip
 }
 
-func newSpecTestCase(path string, testSet string, fork string, containerName string, caseNumber string) *specTestCase {
+func newSpecTestCase(path string, testSet string, fork string, name string, number string, skip map[string]bool) *specTestCase {
 	return &specTestCase{
-		testSet:       testSet,
+		configName:    testSet,
 		fork:          fork,
-		containerName: containerName,
-		caseNumber:    caseNumber,
+		containerName: name,
+		caseNumber:    number,
 		path:          path,
+		skipContainers: skip,
 	}
 }
 
@@ -395,9 +432,9 @@ func (tc specTestCase) Runner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := valueForContainer(tc.fork, tc.containerName)
+	v, err := valueForContainer(tc.configName, tc.fork, tc.containerName)
 	if err != nil {
-		t.Fatalf("no type definition for type=%s", tc.containerName)
+		t.Skipf("no type definition for type=%s", tc.containerName)
 	}
 	err = v.UnmarshalSSZ(tc.serializedValue)
 	if err != nil {
@@ -410,7 +447,7 @@ func (tc specTestCase) Runner(t *testing.T) {
 	if !bytes.Equal(serialized, tc.serializedValue) {
 		t.Errorf("MarshalSSZ produced a different value from the serialized ssz fixture")
 	}
-	vfresh, _ := valueForContainer(tc.fork, tc.containerName)
+	vfresh, _ := valueForContainer(tc.configName, tc.fork, tc.containerName)
 	err = vfresh.UnmarshalSSZ(serialized)
 	if err != nil {
 		t.Fatalf("using serialized value produced by MarshalSSZ, UnmarshalSSZ failed with err: %s", err)
@@ -425,7 +462,7 @@ func (tc specTestCase) Runner(t *testing.T) {
 }
 
 func (tc specTestCase) Name() string {
-	//return fmt.Sprintf("%s-%s-%s-%s", tc.testSet, tc.fork, tc.containerName, tc.caseNumber)
+	//return fmt.Sprintf("%s-%s-%s-%s", tc.configName, tc.fork, tc.containerName, tc.caseNumber)
 	return tc.path
 }
 
@@ -436,32 +473,13 @@ var testcaseRE = regexp.MustCompile(`.*\/ssz_static\/(.+)\/ssz_random\/([^\/]+)`
 // This test is a meta test that creates a separate subtest for each leaf case in the spectests tree
 func TestSpectests(t *testing.T) {
 	parentCases := []specTestCase{
-		/*
-		{
-			testSet: "minimal",
-			fork: "phase0",
-		},
-		{
-			testSet: "minimal",
-			fork: "altair",
-			skipContainers: map[string]bool{"BeaconState": true, "BeaconBlockBody": true},
-		},
-		 */
-		{
-			testSet: "mainnet",
-			fork: "phase0",
-			skipContainers: map[string]bool{"BeaconState": true, "HistoricalBatch": true},
-		},
-		/*
-		{
-			testSet: "mainnet",
-			fork: "altair",
-			skipContainers: map[string]bool{"BeaconState": true, "BeaconBlockBody": true},
-		},
-		 */
+		//{ configName: "minimal", fork: "phase0" },
+		//{ configName: "mainnet", fork: "phase0" },
+		//{ configName: "minimal", fork: "altair" },
+		{ configName: "mainnet", fork: "altair", skipContainers: map[string]bool{"BeaconState": true}},
 	}
 	for _, c := range parentCases {
-		parentPath := filepath.Join(testsPath, c.testSet, c.fork, "ssz_static")
+		parentPath := filepath.Join(testsPath, c.configName, c.fork, "ssz_static")
 		err := filepath.WalkDir(parentPath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				t.Logf("traversing directory %s, failed with error '%s' - skipping this tree of tests", path, err)
@@ -474,7 +492,7 @@ func TestSpectests(t *testing.T) {
 			parts := testcaseRE.FindStringSubmatch(path)
 			// the following nested array indexing is safe because the MatchString above
 			// guarantees the string structure will match 2 regexp groups
-			tc := newSpecTestCase(path, c.testSet, c.fork, parts[1], parts[2])
+			tc := newSpecTestCase(path, c.configName, c.fork, parts[1], parts[2], c.skipContainers)
 			t.Run(tc.Name(), tc.Runner)
 			return nil
 		})

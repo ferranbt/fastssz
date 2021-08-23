@@ -2,6 +2,7 @@
 .PHONY:
 build-spec-tests:
 	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/phase0/structs.go --include ./spectests/external,./spectests/external2
+	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/phase0/minimal/structs.go --include ./spectests/external,./spectests/external2
 	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/altair/structs.go --include ./spectests/external,./spectests/external2
 
 build-spec-tests-tree:
