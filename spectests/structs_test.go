@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ferranbt/fastssz/spectests/altair"
+	minimalaltair "github.com/ferranbt/fastssz/spectests/altair/minimal"
 	"github.com/ferranbt/fastssz/spectests/phase0"
 	"github.com/ferranbt/fastssz/spectests/phase0/minimal"
 
@@ -121,28 +122,58 @@ func valueForContainerAltair(config string, name string) (codec, error) {
 	case "SyncCommitteeDuty":
 		return &altair.SyncCommitteeDuty{}, nil
 	case "ContributionAndProof":
+		if config == "minimal" {
+			return &minimalaltair.ContributionAndProof{}, nil
+		}
 		return &altair.ContributionAndProof{}, nil
 	case "SyncCommittee":
+		if config == "minimal" {
+			return &minimalaltair.SyncCommittee{}, nil
+		}
 		return &altair.SyncCommittee{}, nil
 	case "SyncCommitteeContribution":
+		if config == "minimal" {
+			return &minimalaltair.SyncCommitteeContribution{}, nil
+		}
 		return &altair.SyncCommitteeContribution{}, nil
 	case "SyncCommitteeMessage":
 		return &altair.SyncCommitteeMessage{}, nil
 	case "SyncAggregatorSelectionData":
 		return &altair.SyncAggregatorSelectionData{}, nil
 	case "SyncAggregate":
+		if config == "minimal" {
+			return &minimalaltair.SyncAggregate{}, nil
+		}
 		return &altair.SyncAggregate{}, nil
 	case "SignedContributionAndProof":
+		if config == "minimal" {
+			return &minimalaltair.SignedContributionAndProof{}, nil
+		}
 		return &altair.SignedContributionAndProof{}, nil
 	case "LightClientSnapshot":
+		if config == "minimal" {
+			return &minimalaltair.LightClientSnapshot{}, nil
+		}
 		return &altair.LightClientSnapshot{}, nil
 	case "BeaconBlock":
+		if config == "minimal" {
+			return &minimalaltair.BeaconBlock{}, nil
+		}
 		return &altair.BeaconBlock{}, nil
 	case "BeaconBlockBody":
+		if config == "minimal" {
+			return &minimalaltair.BeaconBlockBody{}, nil
+		}
 		return &altair.BeaconBlockBody{}, nil
 	case "SignedBeaconBlock":
+		if config == "minimal" {
+			return &minimalaltair.SignedBeaconBlock{}, nil
+		}
 		return &altair.SignedBeaconBlock{}, nil
 	case "BeaconState":
+		if config == "minimal" {
+			return &minimalaltair.BeaconState{}, nil
+		}
 		return &altair.BeaconState{}, nil
 	default:
 		return valueForContainerPhase0(config, name)
@@ -475,7 +506,7 @@ func TestSpectests(t *testing.T) {
 	parentCases := []specTestCase{
 		{ configName: "minimal", fork: "phase0" },
 		{ configName: "mainnet", fork: "phase0" },
-		//{ configName: "minimal", fork: "altair" },
+		{ configName: "minimal", fork: "altair", skipContainers: map[string]bool{"BeaconState": true}},
 		{ configName: "mainnet", fork: "altair", skipContainers: map[string]bool{"BeaconState": true}},
 	}
 	for _, c := range parentCases {
