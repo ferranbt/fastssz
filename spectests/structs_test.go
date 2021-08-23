@@ -473,8 +473,8 @@ var testcaseRE = regexp.MustCompile(`.*\/ssz_static\/(.+)\/ssz_random\/([^\/]+)`
 // This test is a meta test that creates a separate subtest for each leaf case in the spectests tree
 func TestSpectests(t *testing.T) {
 	parentCases := []specTestCase{
-		//{ configName: "minimal", fork: "phase0" },
-		//{ configName: "mainnet", fork: "phase0" },
+		{ configName: "minimal", fork: "phase0" },
+		{ configName: "mainnet", fork: "phase0" },
 		//{ configName: "minimal", fork: "altair" },
 		{ configName: "mainnet", fork: "altair", skipContainers: map[string]bool{"BeaconState": true}},
 	}
