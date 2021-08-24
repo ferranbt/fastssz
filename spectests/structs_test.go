@@ -111,11 +111,11 @@ func valueForContainerPhase0(config string, name string) (codec, error) {
 	}
 }
 
-var phase0Containers = []string{"AggregateAndProof","Attestation","AttestationData","AttesterSlashing","BeaconBlock",
-	"BeaconBlockBody","BeaconBlockHeader","BeaconState","Checkpoint","Deposit","DepositData","DepositMessage",
-	"Eth1Block","Eth1Data","Fork","ForkData", "HistoricalBatch","IndexedAttestation","PendingAttestation","ProposerSlashing",
-	"SignedBeaconBlock","SignedBeaconBlockHeader","SignedVoluntaryExit","SigningRoot","Validator","VoluntaryExit",
-	"ErrorResponse"}
+var phase0Containers = []string{"AggregateAndProof", "Attestation", "AttestationData", "AttesterSlashing",
+	"BeaconBlock", "BeaconBlockBody", "BeaconBlockHeader", "BeaconState", "Checkpoint", "Deposit", "DepositData",
+	"DepositMessage", "Eth1Block", "Eth1Data", "Fork", "ForkData", "HistoricalBatch", "IndexedAttestation",
+	"PendingAttestation", "ProposerSlashing", "SignedAggregateAndProof", "SignedBeaconBlock", "SignedBeaconBlockHeader",
+	"SignedVoluntaryExit", "SigningData", "SigningRoot", "Validator", "VoluntaryExit", "ErrorResponse"}
 
 func valueForContainerAltair(config string, name string) (codec, error) {
 	switch name {
@@ -195,10 +195,10 @@ func valueForContainer(config string, fork string, container string) (codec, err
 	}
 }
 
-var altairContainers = []string{"SyncCommitteeDuty"}
-
-var codecs = map[string]testCallback{
-}
+var altairContainers = []string{"SyncCommitteeDuty", "ContributionAndProof", "SyncCommittee",
+	"SyncCommitteeContribution", "SyncCommitteeMessage", "SyncAggregatorSelectionData", "SyncAggregate",
+	"SignedContributionAndProof", "LightClientSnapshot", "BeaconBlock", "BeaconBlockBody", "SignedBeaconBlock",
+	"BeaconState"}
 
 func randomInt(min, max int) int {
 	return min + rand.Intn(max-min)
@@ -234,33 +234,69 @@ func checkIsFuzzEnabled(t *testing.T) {
 	}
 }
 
+func configForkTypeMatrix() []specTestCase {
+	cases := make([]specTestCase, 0)
+	for _, name := range phase0Containers {
+		cases = append(cases, specTestCase{
+			configName: "mainnet",
+			fork:       "phase0",
+			typeName:   name,
+		})
+		cases = append(cases, specTestCase{
+			configName: "minimal",
+			fork:       "phase0",
+			typeName:   name,
+		})
+	}
+	for _, name := range altairContainers {
+		cases = append(cases, specTestCase{
+			configName: "mainnet",
+			fork:       "altair",
+			typeName:   name,
+		})
+		cases = append(cases, specTestCase{
+			configName: "minimal",
+			fork:       "altair",
+			typeName:   name,
+		})
+	}
+	return cases
+}
+
 func TestFuzzMarshalWithWrongSizes(t *testing.T) {
 	checkIsFuzzEnabled(t)
 
-	for name, codec := range codecs {
-		count := fuzzTestCount(t, name)
-		for i := 0; i < count; i++ {
-			obj := codec()
+	for _, testCase := range configForkTypeMatrix() {
+		count := fuzzTestCount(t, testCase.typeName)
+		t.Run(fmt.Sprintf("%s-%s-%s-x%d", testCase.typeName, testCase.fork, testCase.configName, count), func(t *testing.T) {
+			for i := 0; i < count; i++ {
+				obj, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+				if err != nil {
+					t.Error(err)
+					break
+				}
 
-			f := fuzz.New()
-			f.SetFailureRatio(.1)
+				f := fuzz.New()
+				f.SetFailureRatio(.1)
 
-			failed := f.Fuzz(obj)
-			if failed {
-				if _, err := obj.MarshalSSZTo(nil); err == nil {
-					t.Fatalf("%s it should have failed", name)
+				failed := f.Fuzz(obj)
+				if failed {
+					if _, err := obj.MarshalSSZTo(nil); err == nil {
+						t.Fatalf("%s.MarshalSSZTo did not produce an expected error", testCase.typeName)
+					}
 				}
 			}
-		}
+		})
 	}
 }
 
 func TestErrorResponse(t *testing.T) {
-	// TODO: Move to fuzzer
-	codec := codecs["ErrorResponse"]
-
 	for i := 0; i < 1000; i++ {
-		obj := codec()
+		obj, err := valueForContainerPhase0("mainnet", "ErrorResponse")
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		f := fuzz.New()
 		f.SetFailureRatio(.1)
 		failed := f.Fuzz(obj)
@@ -274,7 +310,10 @@ func TestErrorResponse(t *testing.T) {
 			}
 		}
 
-		obj2 := codec()
+		obj2, err := valueForContainerPhase0("mainnet", "ErrorResponse")
+		if err != nil {
+			t.Error(err)
+		}
 		if err := obj2.UnmarshalSSZ(dst); err != nil {
 			t.Fatal(err)
 		}
@@ -287,26 +326,37 @@ func TestErrorResponse(t *testing.T) {
 func TestFuzzEncoding(t *testing.T) {
 	checkIsFuzzEnabled(t)
 
-	for name, codec := range codecs {
-		count := fuzzTestCount(t, name)
-		for i := 0; i < count; i++ {
-			obj := codec()
-			f := fuzz.New()
-			f.Fuzz(obj)
+	//for name, codec := range codecs {
+	for _, testCase := range configForkTypeMatrix() {
+		count := fuzzTestCount(t, testCase.typeName)
+		t.Run(fmt.Sprintf("%s-%s-%s-x%d", testCase.typeName, testCase.fork, testCase.configName, count), func(t *testing.T) {
+			for i := 0; i < count; i++ {
+				obj, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				f := fuzz.New()
+				f.Fuzz(obj)
 
-			dst, err := obj.MarshalSSZTo(nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+				dst, err := obj.MarshalSSZTo(nil)
+				if err != nil {
+					t.Fatal(err)
+				}
 
-			obj2 := codec()
-			if err := obj2.UnmarshalSSZ(dst); err != nil {
-				t.Fatal(err)
+				obj2, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				if err := obj2.UnmarshalSSZ(dst); err != nil {
+					t.Fatal(err)
+				}
+				if !deepEqual(obj, obj2) {
+					t.Error("failed to produce equal values across MarshalSSZTo->UnmarshalSSZ round-trip")
+				}
 			}
-			if !deepEqual(obj, obj2) {
-				t.Fatal("bad")
-			}
-		}
+		})
 	}
 }
 
@@ -314,11 +364,62 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 	checkIsFuzzEnabled(t)
 
 	// Fuzz with append values between the fields
-	for name, codec := range codecs {
-		t.Logf("Process %s", name)
+	for _, testCase := range configForkTypeMatrix() {
+		t.Run(fmt.Sprintf("%s-%s-%s", testCase.typeName, testCase.fork, testCase.configName), func(t *testing.T) {
+			for j := 0; j < 5; j++ {
+				obj, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				f := fuzz.New()
+				f.Fuzz(obj)
 
-		for j := 0; j < 5; j++ {
-			obj := codec()
+				dst, err := obj.MarshalSSZTo(nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				for i := 0; i < 100; i++ {
+					buf := []byte{}
+
+					pos := randomInt(0, len(dst))
+					size := randomInt(1, 20)
+
+					aux := make([]byte, size)
+					rand.Read(aux)
+
+					buf = append(buf, dst[:pos]...)
+					buf = append(buf, aux...)
+					buf = append(buf, dst[pos:]...)
+
+					obj2, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+					if err != nil {
+						t.Error(err)
+						return
+					}
+					if err := obj2.UnmarshalSSZ(buf); err == nil {
+						if deepEqual(obj, obj2) {
+							t.Fatal("appending random bytes to a serialized value failed to produce a different unmarshaled value")
+						}
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestFuzzUnmarshalShuffle(t *testing.T) {
+	checkIsFuzzEnabled(t)
+
+	// Unmarshal a correct dst with shuffled data
+	for _, testCase := range configForkTypeMatrix() {
+		t.Run(fmt.Sprintf("%s-%s-%s", testCase.typeName, testCase.fork, testCase.configName), func(t *testing.T) {
+			obj, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+			if err != nil {
+				t.Error(err)
+				return
+			}
 			f := fuzz.New()
 			f.Fuzz(obj)
 
@@ -328,63 +429,29 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 			}
 
 			for i := 0; i < 100; i++ {
-				buf := []byte{}
+				buf := make([]byte, len(dst))
+				copy(buf, dst)
 
-				pos := randomInt(0, len(dst))
-				size := randomInt(1, 20)
+				pos := randomInt(1, len(dst))
+				n := randomInt(2, 4)
+				rand.Read(buf[pos:min(pos+n, len(dst))])
 
-				aux := make([]byte, size)
-				rand.Read(aux)
-
-				buf = append(buf, dst[:pos]...)
-				buf = append(buf, aux...)
-				buf = append(buf, dst[pos:]...)
-
-				obj2 := codec()
+				if bytes.Equal(buf, dst) {
+					continue
+				}
+				obj2, err := valueForContainer(testCase.configName, testCase.fork, testCase.typeName)
+				if err != nil {
+					t.Error(err)
+					return
+				}
 				if err := obj2.UnmarshalSSZ(buf); err == nil {
 					if deepEqual(obj, obj2) {
-						t.Fatal("bad")
+						t.Fatal("randomizing bytes in the serialized value failed to produce a different unmarshaled value")
 					}
 				}
 			}
-		}
+		})
 	}
-}
-
-func TestFuzzUnmarshalShuffle(t *testing.T) {
-	checkIsFuzzEnabled(t)
-
-	// Unmarshal a correct dst with shuffled data
-	for _, codec := range codecs {
-		obj := codec()
-		f := fuzz.New()
-		f.Fuzz(obj)
-
-		dst, err := obj.MarshalSSZTo(nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		for i := 0; i < 100; i++ {
-			buf := make([]byte, len(dst))
-			copy(buf, dst)
-
-			pos := randomInt(1, len(dst))
-			n := randomInt(2, 4)
-			rand.Read(buf[pos:min(pos+n, len(dst))])
-
-			if bytes.Equal(buf, dst) {
-				continue
-			}
-			obj2 := codec()
-			if err := obj2.UnmarshalSSZ(buf); err == nil {
-				if deepEqual(obj, obj2) {
-					t.Fatal("bad")
-				}
-			}
-		}
-	}
-
 }
 
 func min(i, j int) int {
@@ -398,23 +465,23 @@ func min(i, j int) int {
 type specTestCase struct {
 	configName      string          // ex: mainnet
 	fork            string          // ex: phase0
-	containerName   string          // ex: Attestation
+	typeName        string          // ex: Attestation
 	caseNumber      string          // ex: case_0
 	path            string          // path to test case directory
 	root            []byte          // expected hash tree root of container, read from roots.yaml
 	serializedValue []byte          // decompressed, serialized value for container fixture, read from serialized.ssz_snappy
 	yamlValue       []byte          // yaml representation of the value, used by fastssz's unmarshal test
-	skipContainers  map[string]bool // list of container names to skip
+	skipTypes       map[string]bool // list of container names to skip
 }
 
 func newSpecTestCase(path string, testSet string, fork string, name string, number string, skip map[string]bool) *specTestCase {
 	return &specTestCase{
-		configName:    testSet,
-		fork:          fork,
-		containerName: name,
-		caseNumber:    number,
-		path:          path,
-		skipContainers: skip,
+		configName: testSet,
+		fork:       fork,
+		typeName:   name,
+		caseNumber: number,
+		path:       path,
+		skipTypes:  skip,
 	}
 }
 
@@ -456,16 +523,16 @@ func (tc *specTestCase) prepare() error {
 }
 
 func (tc specTestCase) Runner(t *testing.T) {
-	if _, skip := tc.skipContainers[tc.containerName]; skip {
+	if _, skip := tc.skipTypes[tc.typeName]; skip {
 		t.Skip("container type skipped in this config+fork")
 	}
 	err := tc.prepare()
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := valueForContainer(tc.configName, tc.fork, tc.containerName)
+	v, err := valueForContainer(tc.configName, tc.fork, tc.typeName)
 	if err != nil {
-		t.Skipf("no type definition for type=%s", tc.containerName)
+		t.Skipf("no type definition for type=%s", tc.typeName)
 	}
 	err = v.UnmarshalSSZ(tc.serializedValue)
 	if err != nil {
@@ -478,7 +545,7 @@ func (tc specTestCase) Runner(t *testing.T) {
 	if !bytes.Equal(serialized, tc.serializedValue) {
 		t.Errorf("MarshalSSZ produced a different value from the serialized ssz fixture")
 	}
-	vfresh, _ := valueForContainer(tc.configName, tc.fork, tc.containerName)
+	vfresh, _ := valueForContainer(tc.configName, tc.fork, tc.typeName)
 	err = vfresh.UnmarshalSSZ(serialized)
 	if err != nil {
 		t.Fatalf("using serialized value produced by MarshalSSZ, UnmarshalSSZ failed with err: %s", err)
@@ -493,7 +560,7 @@ func (tc specTestCase) Runner(t *testing.T) {
 }
 
 func (tc specTestCase) Name() string {
-	//return fmt.Sprintf("%s-%s-%s-%s", tc.configName, tc.fork, tc.containerName, tc.caseNumber)
+	//return fmt.Sprintf("%s-%s-%s-%s", tc.configName, tc.fork, tc.typeName, tc.caseNumber)
 	return tc.path
 }
 
@@ -506,8 +573,8 @@ func TestSpectests(t *testing.T) {
 	parentCases := []specTestCase{
 		{ configName: "minimal", fork: "phase0" },
 		{ configName: "mainnet", fork: "phase0" },
-		{ configName: "minimal", fork: "altair", skipContainers: map[string]bool{"BeaconState": true}},
-		{ configName: "mainnet", fork: "altair", skipContainers: map[string]bool{"BeaconState": true}},
+		{ configName: "minimal", fork: "altair", skipTypes: map[string]bool{"BeaconState": true}},
+		{ configName: "mainnet", fork: "altair", skipTypes: map[string]bool{"BeaconState": true}},
 	}
 	for _, c := range parentCases {
 		parentPath := filepath.Join(testsPath, c.configName, c.fork, "ssz_static")
@@ -523,7 +590,7 @@ func TestSpectests(t *testing.T) {
 			parts := testcaseRE.FindStringSubmatch(path)
 			// the following nested array indexing is safe because the MatchString above
 			// guarantees the string structure will match 2 regexp groups
-			tc := newSpecTestCase(path, c.configName, c.fork, parts[1], parts[2], c.skipContainers)
+			tc := newSpecTestCase(path, c.configName, c.fork, parts[1], parts[2], c.skipTypes)
 			t.Run(tc.Name(), tc.Runner)
 			return nil
 		})
@@ -537,51 +604,6 @@ func TestSpectests(t *testing.T) {
 func formatSpecFailure(errHeader, specFile, structName string, err error) string {
 	return fmt.Sprintf("%s spec file=%s, struct=%s, err=%v",
 		errHeader, specFile, structName, err)
-}
-
-func checkSSZEncoding(t *testing.T, fileName, structName string, base testCallback) {
-	obj := base()
-	output := readValidGenericSSZ(t, fileName, &obj)
-
-	// Marshal
-	res, err := obj.MarshalSSZTo(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(res, output.ssz) {
-		t.Fatal("bad marshalling")
-	}
-
-	// Unmarshal
-	obj2 := base()
-	if err := obj2.UnmarshalSSZ(res); err != nil {
-		t.Fatal(formatSpecFailure("UnmarshalSSZ error", fileName, structName, err))
-	}
-	if !deepEqual(obj, obj2) {
-		t.Fatal("bad unmarshalling")
-	}
-
-	// Root
-	root, err := obj.HashTreeRoot()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(root[:], output.root) {
-		fmt.Printf("%s bad root\n", fileName)
-	}
-
-	if objt, ok := obj.(codecTree); ok {
-		// node root
-		node, err := objt.GetTree()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		xx := node.Hash()
-		if !bytes.Equal(xx, root[:]) {
-			t.Fatal("bad node")
-		}
-	}
 }
 
 const benchmarkTestCase = "../eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/BeaconBlock/ssz_random/case_4"
