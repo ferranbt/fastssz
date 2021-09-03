@@ -33,37 +33,34 @@ type codecTree interface {
 type testCallback func() codec
 
 var codecs = map[string]testCallback{
-	/*
-		"AttestationData":   func() codec { return new(AttestationData) },
-		"Checkpoint":        func() codec { return new(Checkpoint) },
-		"AggregateAndProof": func() codec { return new(AggregateAndProof) },
-		"Attestation":       func() codec { return new(Attestation) },
-		"AttesterSlashing":  func() codec { return new(AttesterSlashing) },
-		// "BeaconBlock":             func() codec { return new(BeaconBlock) },
-		// "BeaconBlockBody":         func() codec { return new(BeaconBlockBody) },
-		"BeaconBlockHeader": func() codec { return new(BeaconBlockHeader) },
-		// "BeaconState":        func() codec { return new(BeaconState) },
-		"Deposit":            func() codec { return new(Deposit) },
-		"DepositData":        func() codec { return new(DepositData) },
-		"DepositMessage":     func() codec { return new(DepositMessage) },
-		"Eth1Block":          func() codec { return new(Eth1Block) },
-		"Eth1Data":           func() codec { return new(Eth1Data) },
-		"Fork":               func() codec { return new(Fork) },
-		"HistoricalBatch":    func() codec { return new(HistoricalBatch) },
-		"IndexedAttestation": func() codec { return new(IndexedAttestation) },
-		"PendingAttestation": func() codec { return new(PendingAttestation) },
-		"ProposerSlashing":   func() codec { return new(ProposerSlashing) },
-		// "SignedBeaconBlock":       func() codec { return new(SignedBeaconBlock) },
-		"SignedBeaconBlockHeader": func() codec { return new(SignedBeaconBlockHeader) },
-		"SignedVoluntaryExit":     func() codec { return new(SignedVoluntaryExit) },
-		"SigningRoot":             func() codec { return new(SigningRoot) },
-		"Validator":               func() codec { return new(Validator) },
-		"VoluntaryExit":           func() codec { return new(VoluntaryExit) },
-		"ErrorResponse":           func() codec { return new(ErrorResponse) },
-	*/
-	// -- altair --
-	"SyncCommittee": func() codec { return new(SyncCommittee) },
-	//"SyncAggregate": func() codec { return new(SyncAggregate) },
+	"AttestationData":         func() codec { return new(AttestationData) },
+	"Checkpoint":              func() codec { return new(Checkpoint) },
+	"AggregateAndProof":       func() codec { return new(AggregateAndProof) },
+	"Attestation":             func() codec { return new(Attestation) },
+	"AttesterSlashing":        func() codec { return new(AttesterSlashing) },
+	"BeaconBlock":             func() codec { return new(BeaconBlock) },
+	"BeaconBlockBody":         func() codec { return new(BeaconBlockBody) },
+	"BeaconBlockHeader":       func() codec { return new(BeaconBlockHeader) },
+	"Deposit":                 func() codec { return new(Deposit) },
+	"DepositData":             func() codec { return new(DepositData) },
+	"DepositMessage":          func() codec { return new(DepositMessage) },
+	"Eth1Block":               func() codec { return new(Eth1Block) },
+	"Eth1Data":                func() codec { return new(Eth1Data) },
+	"Fork":                    func() codec { return new(Fork) },
+	"HistoricalBatch":         func() codec { return new(HistoricalBatch) },
+	"IndexedAttestation":      func() codec { return new(IndexedAttestation) },
+	"PendingAttestation":      func() codec { return new(PendingAttestation) },
+	"ProposerSlashing":        func() codec { return new(ProposerSlashing) },
+	"SignedBeaconBlock":       func() codec { return new(SignedBeaconBlock) },
+	"SignedBeaconBlockHeader": func() codec { return new(SignedBeaconBlockHeader) },
+	"SignedVoluntaryExit":     func() codec { return new(SignedVoluntaryExit) },
+	"SigningRoot":             func() codec { return new(SigningRoot) },
+	"Validator":               func() codec { return new(Validator) },
+	"VoluntaryExit":           func() codec { return new(VoluntaryExit) },
+	"ErrorResponse":           func() codec { return new(ErrorResponse) },
+	"SyncCommittee":           func() codec { return new(SyncCommittee) },
+	"SyncAggregate":           func() codec { return new(SyncAggregate) },
+	// "BeaconState":        func() codec { return new(BeaconState) },
 }
 
 func randomInt(min, max int) int {
@@ -280,6 +277,8 @@ func TestSpecMinimal(t *testing.T) {
 }
 
 func TestSpecMainnet(t *testing.T) {
+	t.Skip()
+
 	files := readDir(t, filepath.Join(testsPath, "/mainnet/altair/ssz_static"))
 	for _, f := range files {
 		spl := strings.Split(f, "/")

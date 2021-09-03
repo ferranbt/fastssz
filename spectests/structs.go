@@ -156,10 +156,11 @@ type BeaconState struct {
 }
 
 type BeaconBlock struct {
-	Slot       uint64           `json:"slot"`
-	ParentRoot []byte           `json:"parent_root" ssz-size:"32"`
-	StateRoot  []byte           `json:"state_root" ssz-size:"32"`
-	Body       *BeaconBlockBody `json:"body"`
+	Slot          uint64           `json:"slot"`
+	ProposerIndex uint64           `json:"proposer_index"`
+	ParentRoot    []byte           `json:"parent_root" ssz-size:"32"`
+	StateRoot     []byte           `json:"state_root" ssz-size:"32"`
+	Body          *BeaconBlockBody `json:"body"`
 }
 
 type SignedBeaconBlock struct {
@@ -182,7 +183,7 @@ type BeaconBlockBody struct {
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
 	Graffiti          [32]byte               `json:"graffiti"`
 	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
-	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"1"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
 	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
 	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
@@ -218,6 +219,6 @@ type SyncCommittee struct {
 }
 
 type SyncAggregate struct {
-	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz:"bitlist" ssz-max:"8"` // TODO
+	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"4"`
 	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
 }
