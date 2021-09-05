@@ -45,11 +45,17 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 	var elemSize uint64
 	if elem == TypeBytes {
 		// [][]byte
-		appendFn = "Append"
-		elemSize = 32
+		if v.e.s != 32 {
+			// we need to use PutBytes in order to hash the result since
+			// is higher than 32 bytes
+			appendFn = "PutBytes"
+		} else {
+			appendFn = "Append"
+			elemSize = 32
+		}
 	} else {
 		// []uint64
-		appendFn = "AppendUint64"
+		appendFn = "Append" + uintVToName(v.e)
 		elemSize = 8
 	}
 

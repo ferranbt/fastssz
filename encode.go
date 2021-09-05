@@ -144,6 +144,15 @@ func ExtendUint16(b []uint16, needLen int) []uint16 {
 	return b[:needLen]
 }
 
+// ExtendUint16 extends a uint16 buffer to a given size
+func ExtendUint8(b []uint8, needLen int) []uint8 {
+	b = b[:cap(b)]
+	if n := needLen - cap(b); n > 0 {
+		b = append(b, make([]uint8, n)...)
+	}
+	return b[:needLen]
+}
+
 // ---- unmarshal dynamic content ----
 
 const bytesPerLengthOffset = 4

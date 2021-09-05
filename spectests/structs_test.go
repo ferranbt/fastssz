@@ -14,6 +14,7 @@ import (
 
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/ferranbt/fastssz/fuzz"
+	"github.com/golang/snappy"
 
 	"gopkg.in/yaml.v2"
 )
@@ -29,35 +30,61 @@ type codecTree interface {
 	GetTree() (*ssz.Node, error)
 }
 
-type testCallback func() codec
+type testCallback func(config string) codec
 
 var codecs = map[string]testCallback{
-	"AttestationData":         func() codec { return new(AttestationData) },
-	"Checkpoint":              func() codec { return new(Checkpoint) },
-	"AggregateAndProof":       func() codec { return new(AggregateAndProof) },
-	"Attestation":             func() codec { return new(Attestation) },
-	"AttesterSlashing":        func() codec { return new(AttesterSlashing) },
-	"BeaconBlock":             func() codec { return new(BeaconBlock) },
-	"BeaconBlockBody":         func() codec { return new(BeaconBlockBody) },
-	"BeaconBlockHeader":       func() codec { return new(BeaconBlockHeader) },
-	"BeaconState":             func() codec { return new(BeaconState) },
-	"Deposit":                 func() codec { return new(Deposit) },
-	"DepositData":             func() codec { return new(DepositData) },
-	"DepositMessage":          func() codec { return new(DepositMessage) },
-	"Eth1Block":               func() codec { return new(Eth1Block) },
-	"Eth1Data":                func() codec { return new(Eth1Data) },
-	"Fork":                    func() codec { return new(Fork) },
-	"HistoricalBatch":         func() codec { return new(HistoricalBatch) },
-	"IndexedAttestation":      func() codec { return new(IndexedAttestation) },
-	"PendingAttestation":      func() codec { return new(PendingAttestation) },
-	"ProposerSlashing":        func() codec { return new(ProposerSlashing) },
-	"SignedBeaconBlock":       func() codec { return new(SignedBeaconBlock) },
-	"SignedBeaconBlockHeader": func() codec { return new(SignedBeaconBlockHeader) },
-	"SignedVoluntaryExit":     func() codec { return new(SignedVoluntaryExit) },
-	"SigningRoot":             func() codec { return new(SigningRoot) },
-	"Validator":               func() codec { return new(Validator) },
-	"VoluntaryExit":           func() codec { return new(VoluntaryExit) },
-	"ErrorResponse":           func() codec { return new(ErrorResponse) },
+	"AttestationData":   func(config string) codec { return new(AttestationData) },
+	"Checkpoint":        func(config string) codec { return new(Checkpoint) },
+	"AggregateAndProof": func(config string) codec { return new(AggregateAndProof) },
+	"Attestation":       func(config string) codec { return new(Attestation) },
+	"AttesterSlashing":  func(config string) codec { return new(AttesterSlashing) },
+	"BeaconBlock": func(config string) codec {
+		if config == "minimal" {
+			return new(BeaconBlockMinimal)
+		}
+		return new(BeaconBlock)
+	},
+	"BeaconBlockBody": func(config string) codec {
+		if config == "minimal" {
+			return new(BeaconBlockBodyMinimal)
+		}
+		return new(BeaconBlockBody)
+	},
+	"BeaconBlockHeader":  func(config string) codec { return new(BeaconBlockHeader) },
+	"Deposit":            func(config string) codec { return new(Deposit) },
+	"DepositData":        func(config string) codec { return new(DepositData) },
+	"DepositMessage":     func(config string) codec { return new(DepositMessage) },
+	"Eth1Block":          func(config string) codec { return new(Eth1Block) },
+	"Eth1Data":           func(config string) codec { return new(Eth1Data) },
+	"Fork":               func(config string) codec { return new(Fork) },
+	"HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
+	"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
+	"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
+	"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
+	"SignedBeaconBlock": func(config string) codec {
+		if config == "minimal" {
+			return new(SignedBeaconBlockMinimal)
+		}
+		return new(SignedBeaconBlock)
+	},
+	"SignedBeaconBlockHeader": func(config string) codec { return new(SignedBeaconBlockHeader) },
+	"SignedVoluntaryExit":     func(config string) codec { return new(SignedVoluntaryExit) },
+	"SigningRoot":             func(config string) codec { return new(SigningRoot) },
+	"Validator":               func(config string) codec { return new(Validator) },
+	"VoluntaryExit":           func(config string) codec { return new(VoluntaryExit) },
+	"ErrorResponse":           func(config string) codec { return new(ErrorResponse) },
+	"SyncCommittee": func(config string) codec {
+		if config == "minimal" {
+			return new(SyncCommitteeMinimal)
+		}
+		return new(SyncCommittee)
+	},
+	"SyncAggregate": func(config string) codec {
+		if config == "minimal" {
+			return new(SyncAggregateMinimal)
+		}
+		return new(SyncAggregate)
+	},
 }
 
 func randomInt(min, max int) int {
@@ -100,7 +127,7 @@ func TestFuzzMarshalWithWrongSizes(t *testing.T) {
 	for name, codec := range codecs {
 		count := fuzzTestCount(t, name)
 		for i := 0; i < count; i++ {
-			obj := codec()
+			obj := codec("")
 
 			f := fuzz.New()
 			f.SetFailureRatio(.1)
@@ -120,7 +147,7 @@ func TestErrorResponse(t *testing.T) {
 	codec := codecs["ErrorResponse"]
 
 	for i := 0; i < 1000; i++ {
-		obj := codec()
+		obj := codec("")
 		f := fuzz.New()
 		f.SetFailureRatio(.1)
 		failed := f.Fuzz(obj)
@@ -134,7 +161,7 @@ func TestErrorResponse(t *testing.T) {
 			}
 		}
 
-		obj2 := codec()
+		obj2 := codec("")
 		if err := obj2.UnmarshalSSZ(dst); err != nil {
 			t.Fatal(err)
 		}
@@ -150,7 +177,7 @@ func TestFuzzEncoding(t *testing.T) {
 	for name, codec := range codecs {
 		count := fuzzTestCount(t, name)
 		for i := 0; i < count; i++ {
-			obj := codec()
+			obj := codec("")
 			f := fuzz.New()
 			f.Fuzz(obj)
 
@@ -159,7 +186,7 @@ func TestFuzzEncoding(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			obj2 := codec()
+			obj2 := codec("")
 			if err := obj2.UnmarshalSSZ(dst); err != nil {
 				t.Fatal(err)
 			}
@@ -178,7 +205,7 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 		t.Logf("Process %s", name)
 
 		for j := 0; j < 5; j++ {
-			obj := codec()
+			obj := codec("")
 			f := fuzz.New()
 			f.Fuzz(obj)
 
@@ -200,7 +227,7 @@ func TestFuzzUnmarshalAppend(t *testing.T) {
 				buf = append(buf, aux...)
 				buf = append(buf, dst[pos:]...)
 
-				obj2 := codec()
+				obj2 := codec("")
 				if err := obj2.UnmarshalSSZ(buf); err == nil {
 					if deepEqual(obj, obj2) {
 						t.Fatal("bad")
@@ -216,7 +243,7 @@ func TestFuzzUnmarshalShuffle(t *testing.T) {
 
 	// Unmarshal a correct dst with shuffled data
 	for _, codec := range codecs {
-		obj := codec()
+		obj := codec("")
 		f := fuzz.New()
 		f.Fuzz(obj)
 
@@ -236,7 +263,7 @@ func TestFuzzUnmarshalShuffle(t *testing.T) {
 			if bytes.Equal(buf, dst) {
 				continue
 			}
-			obj2 := codec()
+			obj2 := codec("")
 			if err := obj2.UnmarshalSSZ(buf); err == nil {
 				if deepEqual(obj, obj2) {
 					t.Fatal("bad")
@@ -255,25 +282,26 @@ func min(i, j int) int {
 }
 
 func TestSpecMinimal(t *testing.T) {
-	files := readDir(t, filepath.Join(testsPath, "/minimal/phase0/ssz_static"))
+	files := readDir(t, filepath.Join(testsPath, "/minimal/altair/ssz_static"))
 	for _, f := range files {
 		spl := strings.Split(f, "/")
 		name := spl[len(spl)-1]
 
 		base, ok := codecs[name]
 		if !ok {
+			continue
 			t.Fatalf("name %s not found", name)
 		}
 
 		t.Logf("Process %s %s", name, f)
 		for _, f := range walkPath(t, f) {
-			checkSSZEncoding(t, f, name, base)
+			checkSSZEncoding(t, "minimal", f, name, base)
 		}
 	}
 }
 
 func TestSpecMainnet(t *testing.T) {
-	files := readDir(t, filepath.Join(testsPath, "/mainnet/phase0/ssz_static"))
+	files := readDir(t, filepath.Join(testsPath, "/mainnet/altair/ssz_static"))
 	for _, f := range files {
 		spl := strings.Split(f, "/")
 		name := spl[len(spl)-1]
@@ -283,13 +311,14 @@ func TestSpecMainnet(t *testing.T) {
 		}
 		base, ok := codecs[name]
 		if !ok {
+			continue
 			t.Fatalf("name %s not found", name)
 		}
 
 		t.Logf("Process %s %s", name, f)
 		files := readDir(t, filepath.Join(f, "ssz_random"))
 		for _, f := range files {
-			checkSSZEncoding(t, f, name, base)
+			checkSSZEncoding(t, "mainnet", f, name, base)
 		}
 	}
 }
@@ -299,8 +328,8 @@ func formatSpecFailure(errHeader, specFile, structName string, err error) string
 		errHeader, specFile, structName, err)
 }
 
-func checkSSZEncoding(t *testing.T, fileName, structName string, base testCallback) {
-	obj := base()
+func checkSSZEncoding(t *testing.T, phase, fileName, structName string, base testCallback) {
+	obj := base(phase)
 	output := readValidGenericSSZ(t, fileName, &obj)
 
 	// Marshal
@@ -313,7 +342,7 @@ func checkSSZEncoding(t *testing.T, fileName, structName string, base testCallba
 	}
 
 	// Unmarshal
-	obj2 := base()
+	obj2 := base(phase)
 	if err := obj2.UnmarshalSSZ(res); err != nil {
 		t.Fatal(formatSpecFailure("UnmarshalSSZ error", fileName, structName, err))
 	}
@@ -408,7 +437,7 @@ func BenchmarkHashTreeRootFast(b *testing.B) {
 
 const (
 	testsPath      = "../eth2.0-spec-tests/tests"
-	serializedFile = "serialized.ssz"
+	serializedFile = "serialized.ssz_snappy"
 	valueFile      = "value.yaml"
 	rootsFile      = "roots.yaml"
 )
@@ -447,10 +476,15 @@ type output struct {
 }
 
 func readValidGenericSSZ(t *testing.T, path string, obj interface{}) *output {
-	serialized, err := ioutil.ReadFile(filepath.Join(path, serializedFile))
+	serializedSnappy, err := ioutil.ReadFile(filepath.Join(path, serializedFile))
 	if err != nil {
 		t.Fatal(err)
 	}
+	serialized, err := snappy.Decode(nil, serializedSnappy)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	raw, err := ioutil.ReadFile(filepath.Join(path, valueFile))
 	if err != nil {
 		t.Fatal(err)
