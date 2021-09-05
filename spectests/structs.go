@@ -214,11 +214,48 @@ type Interface interface {
 }
 
 type SyncCommittee struct {
+	PubKeys          [][]byte     `json:"pubkeys" ssz-size:"1024,48"`
+	PubKeyAggregates [16][48]byte `json:"pubkey_aggregates"`
+}
+
+type SyncAggregate struct {
+	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"128"`
+	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
+}
+
+// minimal versions
+
+type SyncCommitteeMinimal struct {
 	PubKeys          [][]byte    `json:"pubkeys" ssz-size:"32,48"`
 	PubKeyAggregates [2][48]byte `json:"pubkey_aggregates"`
 }
 
-type SyncAggregate struct {
+type SyncAggregateMinimal struct {
 	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"4"`
 	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
+}
+
+type SignedBeaconBlockMinimal struct {
+	Block     *BeaconBlockMinimal `json:"message"`
+	Signature []byte              `json:"signature" ssz-size:"96"`
+}
+
+type BeaconBlockBodyMinimal struct {
+	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
+	Eth1Data          *Eth1Data              `json:"eth1_data"`
+	Graffiti          [32]byte               `json:"graffiti"`
+	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
+	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
+	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
+	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+	SyncAggregate     *SyncAggregateMinimal  `json:"sync_aggregate"`
+}
+
+type BeaconBlockMinimal struct {
+	Slot          uint64                  `json:"slot"`
+	ProposerIndex uint64                  `json:"proposer_index"`
+	ParentRoot    []byte                  `json:"parent_root" ssz-size:"32"`
+	StateRoot     []byte                  `json:"state_root" ssz-size:"32"`
+	Body          *BeaconBlockBodyMinimal `json:"body"`
 }
