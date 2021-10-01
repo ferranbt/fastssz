@@ -28,9 +28,11 @@ func main() {
 	var output string
 	var include string
 	var experimental bool
+	var excludeObjs string
 
 	flag.StringVar(&source, "path", "", "")
 	flag.StringVar(&objsStr, "objs", "", "")
+	flag.StringVar(&excludeObjs, "exclude-objs", "", "Comma-separated list of types to exclude from output")
 	flag.StringVar(&output, "output", "", "")
 	flag.StringVar(&include, "include", "", "")
 	flag.BoolVar(&experimental, "experimental", false, "")
@@ -39,8 +41,12 @@ func main() {
 
 	targets := decodeList(objsStr)
 	includeList := decodeList(include)
+	excludeTypeNames := make(map[string]bool)
+	for _, name := range decodeList(excludeObjs) {
+		excludeTypeNames[name] = true
+	}
 
-	if err := encode(source, targets, output, includeList, experimental); err != nil {
+	if err := encode(source, targets, output, includeList, excludeTypeNames, experimental); err != nil {
 		fmt.Printf("[ERR]: %v\n", err)
 		os.Exit(1)
 	}
@@ -59,7 +65,7 @@ func decodeList(input string) []string {
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func encode(source string, targets []string, output string, includePaths []string, experimental bool) error {
+func encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, experimental bool) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
@@ -90,6 +96,7 @@ func encode(source string, targets []string, output string, includePaths []strin
 		objs:     map[string]*Value{},
 		packName: packName,
 		targets:  targets,
+		excludeTypeNames: excludeTypeNames,
 	}
 
 	if err := e.generateIR(); err != nil { // 2.
@@ -286,6 +293,8 @@ type env struct {
 	targets []string
 	// imports in all the parsed packages
 	imports []*astImport
+	// excludeTypeNames is a map of type names to leave out of output
+	excludeTypeNames map[string]bool
 }
 
 const encodingPrefix = "_encoding.go"
@@ -304,7 +313,7 @@ func (e *env) generateOutputEncodings(output string, experimental bool) (map[str
 		orders = append(orders, e.order[k]...)
 	}
 
-	res, ok, err := e.print(true, orders, experimental)
+	res, ok, err := e.print(orders, experimental)
 	if err != nil {
 		return nil, err
 	}
@@ -318,19 +327,17 @@ func (e *env) generateOutputEncodings(output string, experimental bool) (map[str
 func (e *env) generateEncodings(experimental bool) (map[string]string, error) {
 	outs := map[string]string{}
 
-	firstDone := true
 	for name, order := range e.order {
 		// remove .go prefix and replace if with our own
 		ext := filepath.Ext(name)
 		name = strings.TrimSuffix(name, ext)
 		name += encodingPrefix
 
-		vvv, ok, err := e.print(firstDone, order, experimental)
+		vvv, ok, err := e.print(order, experimental)
 		if err != nil {
 			return nil, err
 		}
 		if ok {
-			firstDone = false
 			outs[name] = vvv
 		}
 	}
@@ -351,7 +358,7 @@ func (e *env) hashSource() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-func (e *env) print(first bool, order []string, experimental bool) (string, bool, error) {
+func (e *env) print(order []string, experimental bool) (string, bool, error) {
 	hash, err := e.hashSource()
 	if err != nil {
 		return "", false, fmt.Errorf("failed to hash files: %v", err)
@@ -390,6 +397,9 @@ func (e *env) print(first bool, order []string, experimental bool) (string, bool
 
 	// Print the objects in the order in which they appear on the file.
 	for _, name := range order {
+		if exclude := e.excludeTypeNames[name]; exclude {
+			continue
+		}
 		obj, ok := e.objs[name]
 		if !ok {
 			continue
