@@ -30,22 +30,29 @@ func (e *env) getTree(name string, v *Value) string {
 }
 
 func (v *Value) getTrees(isList bool, elem Type) string {
-	if elem != TypeUint {
+	if elem != TypeUint && elem != TypeBytes {
 		panic("unimplemented")
 	}
 
 	var merkleize string
-	subLeavesTmpl := `subLeaves := ssz.LeavesFromUint64(::.{{.name}})`
+	subLeavesTmpl := ""
+	if elem == TypeUint {
+		subLeavesTmpl = `subLeaves := ssz.LeavesFromUint64(::.{{.name}})`
+	} else {
+		subLeavesTmpl = `subLeaves := ssz.LeavesFromBytes(::.{{.name}})`
+	}
 	subLeaves := execTmpl(subLeavesTmpl, map[string]interface{}{
 		"name": v.name,
 	})
 
 	if isList {
 		tmpl := `numItems := len(::.{{.name}})
-		tmp, err = ssz.TreeFromNodesWithMixin(subLeaves, numItems, int(ssz.CalculateLimit({{.listSize}}, uint64(numItems), {{.elemSize}})))
+		tmp, err := ssz.TreeFromNodesWithMixin(subLeaves, numItems, int(ssz.CalculateLimit({{.listSize}}, uint64(numItems), {{.elemSize}})))
 		if err != nil {
 			return nil, err
-		}`
+		}
+		w.AddNode(tmp)
+		`
 
 		merkleize = execTmpl(tmpl, map[string]interface{}{
 			"name":     v.name,
@@ -53,7 +60,12 @@ func (v *Value) getTrees(isList bool, elem Type) string {
 			"elemSize": 8,
 		})
 	} else {
-		merkleize = "tmp = ssz.TreeFromNodes(subLeaves)"
+		merkleize = `tmp, err := ssz.TreeFromNodes(subLeaves)
+		if err != nil {
+			return err
+		}
+		w.AddNode(tmp)
+		`
 	}
 
 	tmpl := `{

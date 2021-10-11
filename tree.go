@@ -303,6 +303,20 @@ func EmptyLeaf() *Node {
 	return NewNodeWithValue(zeroBytes[:32])
 }
 
+func LeavesFromBytes(items [][]byte) []*Node {
+	if len(items) == 0 {
+		return []*Node{}
+	}
+
+	numLeaves := (len(items)*8 + 31) / 32
+	leaves := make([]*Node, numLeaves)
+	for i := 0; i < numLeaves; i++ {
+		leaves[i] = NewNodeWithValue(items[i])
+	}
+
+	return leaves
+}
+
 func LeavesFromUint64(items []uint64) []*Node {
 	if len(items) == 0 {
 		return []*Node{}
