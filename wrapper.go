@@ -1,6 +1,9 @@
 package ssz
 
-import "fmt"
+import (
+	"fmt"
+	"math/bits"
+)
 
 type Wrapper struct {
 	nodes []*Node
@@ -69,4 +72,30 @@ func (w *Wrapper) CommitWithMixin(i, num, limit int) {
 
 func (w *Wrapper) AddEmpty() {
 	w.AddNode(EmptyLeaf())
+}
+
+func (w *Wrapper) AddBitlist(blist []byte, maxSize int) {
+	tmp, size := parseBitlistForTree(blist)
+	subIdx := w.Indx()
+	w.AddBytes(tmp)
+	w.CommitWithMixin(subIdx, int(size), (maxSize+255)/256)
+}
+
+func parseBitlistForTree(buf []byte) ([]byte, uint64) {
+	dst := make([]byte, 0)
+	msb := uint8(bits.Len8(buf[len(buf)-1])) - 1
+	size := uint64(8*(len(buf)-1) + int(msb))
+
+	dst = append(dst, buf...)
+	dst[len(dst)-1] &^= uint8(1 << msb)
+
+	newLen := len(dst)
+	for i := len(dst) - 1; i >= 0; i-- {
+		if dst[i] != 0x00 {
+			break
+		}
+		newLen = i
+	}
+	res := dst[:newLen]
+	return res, size
 }

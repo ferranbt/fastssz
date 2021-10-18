@@ -204,6 +204,7 @@ func hashNode(n *Node) []byte {
 
 // Prove returns a list of sibling values and hashes needed
 // to compute the root hash for a given general index.
+// to compute the root hash for a given general index.
 func (n *Node) Prove(index int) (*Proof, error) {
 	pathLen := getPathLength(index)
 	proof := &Proof{Index: index}

@@ -110,8 +110,14 @@ func (v *Value) getTree() string {
 		return fmt.Sprintf("w.AddUint%d(%s)", bitLen, name)
 
 	case TypeBitList:
-		panic("unimplemented")
-
+		fmt.Println(v.name, v.n, v.t)
+		tmpl := `{
+			w.AddBitlist(::.{{.name}}, {{.maxSize}})
+		}`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": v.name,
+			"maxSize":  v.s,
+		})
 	case TypeBool:
 		return fmt.Sprintf("tmp = ssz.LeafFromBool(::.%s)", v.name)
 

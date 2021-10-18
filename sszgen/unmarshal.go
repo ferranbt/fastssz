@@ -253,10 +253,10 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			offset := "o" + strconv.Itoa(indx)
 
 			data := map[string]interface{}{
-				"indx":   indx,
-				"name":   i.name,
-				"offset": offset,
-				"dst":    dst,
+				"indx":             indx,
+				"name":             i.name,
+				"offset":           offset,
+				"dst":              dst,
 				"firstOffsetCheck": firstOffsetCheck,
 			}
 
@@ -340,7 +340,7 @@ func (v *Value) createSlice() string {
 		// []int uses the Extend functions in the fastssz package
 		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName(v.e), v.name, size)
 
-	case TypeContainer:
+	case TypeContainer, TypeReference:
 		// []*(ref.)Struct{}
 		return fmt.Sprintf("::.%s = make([]*%s, %s)", v.name, v.e.objRef(), size)
 
@@ -355,6 +355,7 @@ func (v *Value) createSlice() string {
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
+		fmt.Println(v)
 		panic(fmt.Sprintf("create not implemented for type %s", v.e.t.String()))
 	}
 }
