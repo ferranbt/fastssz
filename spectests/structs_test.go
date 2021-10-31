@@ -85,6 +85,9 @@ var codecs = map[string]testCallback{
 		}
 		return new(SyncAggregate)
 	},
+	"BeaconState": func(config string) codec {
+		return new(BeaconState)
+	},
 }
 
 func randomInt(min, max int) int {
@@ -323,52 +326,51 @@ func TestSpecMainnet(t *testing.T) {
 	}
 }
 
-func formatSpecFailure(errHeader, specFile, structName string, err error) string {
-	return fmt.Sprintf("%s spec file=%s, struct=%s, err=%v",
-		errHeader, specFile, structName, err)
-}
-
 func checkSSZEncoding(t *testing.T, phase, fileName, structName string, base testCallback) {
 	obj := base(phase)
 	output := readValidGenericSSZ(t, fileName, &obj)
 
+	fatal := func(errHeader string, err error) {
+		t.Fatalf("%s spec file=%s, struct=%s, err=%v", errHeader, fileName, structName, err)
+	}
+
 	// Marshal
 	res, err := obj.MarshalSSZTo(nil)
 	if err != nil {
-		t.Fatal(err)
+		fatal("marshalSSZ", err)
 	}
 	if !bytes.Equal(res, output.ssz) {
-		t.Fatal("bad marshalling")
+		fatal("marshalSSZ_equal", fmt.Errorf("bad marshal"))
 	}
 
 	// Unmarshal
 	obj2 := base(phase)
-	if err := obj2.UnmarshalSSZ(res); err != nil {
-		t.Fatal(formatSpecFailure("UnmarshalSSZ error", fileName, structName, err))
+	if err := obj2.UnmarshalSSZ(output.ssz); err != nil {
+		fatal("UnmarshalSSZ", err)
 	}
 	if !deepEqual(obj, obj2) {
-		t.Fatal("bad unmarshalling")
+		fatal("UnmarshalSSZ_equal", fmt.Errorf("bad unmarshal"))
 	}
 
 	// Root
 	root, err := obj.HashTreeRoot()
 	if err != nil {
-		t.Fatal(err)
+		fatal("HashTreeRoot", err)
 	}
 	if !bytes.Equal(root[:], output.root) {
-		fmt.Printf("%s bad root\n", fileName)
+		fatal("HashTreeRoot_equal", fmt.Errorf("bad root"))
 	}
 
 	if objt, ok := obj.(codecTree); ok {
 		// node root
 		node, err := objt.GetTree()
 		if err != nil {
-			t.Fatal(err)
+			fatal("Tree", err)
 		}
 
 		xx := node.Hash()
 		if !bytes.Equal(xx, root[:]) {
-			t.Fatal("bad node")
+			fatal("Tree_equal", fmt.Errorf("bad node"))
 		}
 	}
 }

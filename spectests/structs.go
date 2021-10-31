@@ -135,7 +135,7 @@ type BeaconState struct {
 	StateRoots            [][32]byte         `json:"state_roots" ssz-size:"64"`
 	HistoricalRoots       [][32]byte         `json:"historical_roots" ssz-max:"16777216"`
 	Eth1Data              *Eth1Data          `json:"eth1_data"`
-	Eth1DataVotes         []*Eth1Data        `json:"eth1_data_votes" ssz-max:"16"`
+	Eth1DataVotes         []*Eth1Data        `json:"eth1_data_votes" ssz-max:"32"`
 	Eth1DepositIndex      uint64             `json:"eth1_deposit_index"`
 	Validators            []*Validator       `json:"validators" ssz-max:"1099511627776"`
 	Balances              []uint64           `json:"balances" ssz-max:"1099511627776"`
@@ -150,9 +150,9 @@ type BeaconState struct {
 	CurrentJustifiedCheckpoint  *Checkpoint `json:"current_justified_checkpoint"`
 	FinalizedCheckpoint         *Checkpoint `json:"finalized_checkpoint"`
 
-	InactivityScores    []uint64       `json:"inactivity_scores" ssz-max:"1099511627776"`
-	CurrentSyncCommitee *SyncCommittee `json:"current_sync_committee"`
-	NextSyncCommittee   *SyncCommittee `json:"next_sync_committee"`
+	InactivityScores    []uint64              `json:"inactivity_scores" ssz-max:"1099511627776"`
+	CurrentSyncCommitee *SyncCommitteeMinimal `json:"current_sync_committee"`
+	NextSyncCommittee   *SyncCommitteeMinimal `json:"next_sync_committee"`
 }
 
 type BeaconBlock struct {
