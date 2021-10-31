@@ -296,6 +296,7 @@ func LeafFromBytes(b []byte) *Node {
 		return NewNodeWithValue(b[:])
 	}
 
+	// < 32
 	return NewNodeWithValue(append(b, zeroBytes[:32-l]...))
 }
 

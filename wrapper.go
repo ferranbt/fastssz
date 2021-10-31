@@ -47,7 +47,20 @@ func (w *Wrapper) MerkleizeWithMixin(indx int, num, limit uint64) {
 }
 
 func (w *Wrapper) PutBitlist(bb []byte, maxSize uint64) {
+	b, size := parseBitlist(nil, bb)
 
+	nodes := []*Node{}
+	for i := 0; i < len(b); i += 32 {
+		nodes = append(nodes, LeafFromBytes(b[i:min(len(b), i+32)]))
+	}
+	nodes = fillEmptyNodes(nodes)
+
+	res, err := TreeFromNodesWithMixin(nodes, int(size), int((maxSize+255)/256))
+	if err != nil {
+		fmt.Println(len(nodes))
+		panic(err)
+	}
+	w.AddNode(res)
 }
 
 func (w *Wrapper) PutBool(b bool) {
@@ -59,17 +72,41 @@ func (w *Wrapper) PutBytes(b []byte) {
 }
 
 func (w *Wrapper) PutUint64(i uint64) {
-
+	w.AddUint64(i)
 }
 
 func (w *Wrapper) PutUint8(i uint8) {
-
+	panic("TODO")
 }
 
 /// --- legacy ones ---
 
-func (w *Wrapper) AddBytes(b []byte) {
+func min(i, j int) int {
+	if i < j {
+		return i
+	}
+	return j
+}
 
+func (w *Wrapper) AddBytes(b []byte) {
+	if len(b) <= 32 {
+		w.AddNode(LeafFromBytes(b))
+	} else {
+		// not sure if this works
+		// need merkleize
+		nodes := []*Node{}
+		for i := 0; i < len(b); i += 32 {
+			nodes = append(nodes, LeafFromBytes(b[i:min(len(b), i+32)]))
+		}
+		nodes = fillEmptyNodes(nodes)
+
+		res, err := TreeFromNodes(nodes)
+		if err != nil {
+			fmt.Println(len(nodes))
+			panic(err)
+		}
+		w.AddNode(res)
+	}
 }
 
 func (w *Wrapper) AddUint64(i uint64) {
@@ -104,7 +141,8 @@ func (w *Wrapper) Node() *Node {
 }
 
 func (w *Wrapper) Commit(i int) {
-	res, err := TreeFromNodes(w.nodes[i:])
+	nn := fillEmptyNodes(w.nodes[i:])
+	res, err := TreeFromNodes(nn)
 	if err != nil {
 		panic(err)
 	}
@@ -127,4 +165,15 @@ func (w *Wrapper) CommitWithMixin(i, num, limit int) {
 
 func (w *Wrapper) AddEmpty() {
 	w.AddNode(EmptyLeaf())
+}
+
+func fillEmptyNodes(w []*Node) []*Node {
+	size := len(w)
+	if isPowerOfTwo(size) {
+		return w
+	}
+	for i := size; i < int(nextPowerOfTwo(uint64(size))); i++ {
+		w = append(w, EmptyLeaf())
+	}
+	return w
 }

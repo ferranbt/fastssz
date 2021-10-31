@@ -25,10 +25,12 @@ type codec interface {
 	ssz.HashRoot
 }
 
+/*
 type codecTree interface {
 	GetTreeWithWrapper(w *ssz.Wrapper) (err error)
 	GetTree() (*ssz.Node, error)
 }
+*/
 
 type testCallback func(config string) codec
 
@@ -37,57 +39,62 @@ var codecs = map[string]testCallback{
 	"Checkpoint":        func(config string) codec { return new(Checkpoint) },
 	"AggregateAndProof": func(config string) codec { return new(AggregateAndProof) },
 	"Attestation":       func(config string) codec { return new(Attestation) },
-	"AttesterSlashing":  func(config string) codec { return new(AttesterSlashing) },
-	"BeaconBlock": func(config string) codec {
-		if config == "minimal" {
-			return new(BeaconBlockMinimal)
-		}
-		return new(BeaconBlock)
-	},
-	"BeaconBlockBody": func(config string) codec {
-		if config == "minimal" {
-			return new(BeaconBlockBodyMinimal)
-		}
-		return new(BeaconBlockBody)
-	},
-	"BeaconBlockHeader":  func(config string) codec { return new(BeaconBlockHeader) },
-	"Deposit":            func(config string) codec { return new(Deposit) },
-	"DepositData":        func(config string) codec { return new(DepositData) },
-	"DepositMessage":     func(config string) codec { return new(DepositMessage) },
-	"Eth1Block":          func(config string) codec { return new(Eth1Block) },
-	"Eth1Data":           func(config string) codec { return new(Eth1Data) },
-	"Fork":               func(config string) codec { return new(Fork) },
-	"HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
-	"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
-	"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
-	"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
-	"SignedBeaconBlock": func(config string) codec {
-		if config == "minimal" {
-			return new(SignedBeaconBlockMinimal)
-		}
-		return new(SignedBeaconBlock)
-	},
-	"SignedBeaconBlockHeader": func(config string) codec { return new(SignedBeaconBlockHeader) },
-	"SignedVoluntaryExit":     func(config string) codec { return new(SignedVoluntaryExit) },
-	"SigningRoot":             func(config string) codec { return new(SigningRoot) },
-	"Validator":               func(config string) codec { return new(Validator) },
-	"VoluntaryExit":           func(config string) codec { return new(VoluntaryExit) },
-	"ErrorResponse":           func(config string) codec { return new(ErrorResponse) },
-	"SyncCommittee": func(config string) codec {
-		if config == "minimal" {
-			return new(SyncCommitteeMinimal)
-		}
-		return new(SyncCommittee)
-	},
-	"SyncAggregate": func(config string) codec {
-		if config == "minimal" {
-			return new(SyncAggregateMinimal)
-		}
-		return new(SyncAggregate)
-	},
-	"BeaconState": func(config string) codec {
-		return new(BeaconState)
-	},
+
+	// "AttesterSlashing": func(config string) codec { return new(AttesterSlashing) },
+	/*
+		"BeaconBlock": func(config string) codec {
+			if config == "minimal" {
+				return new(BeaconBlockMinimal)
+			}
+			return new(BeaconBlock)
+		},
+		"BeaconBlockBody": func(config string) codec {
+			if config == "minimal" {
+				return new(BeaconBlockBodyMinimal)
+			}
+			return new(BeaconBlockBody)
+		},
+		"BeaconBlockHeader":  func(config string) codec { return new(BeaconBlockHeader) },
+		"Deposit":            func(config string) codec { return new(Deposit) },
+	*/
+	"DepositData":    func(config string) codec { return new(DepositData) },
+	"DepositMessage": func(config string) codec { return new(DepositMessage) },
+	"Eth1Block":      func(config string) codec { return new(Eth1Block) },
+	"Eth1Data":       func(config string) codec { return new(Eth1Data) },
+	"Fork":           func(config string) codec { return new(Fork) },
+	/*
+		"HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
+		"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
+		"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
+		"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
+		"SignedBeaconBlock": func(config string) codec {
+			if config == "minimal" {
+				return new(SignedBeaconBlockMinimal)
+			}
+			return new(SignedBeaconBlock)
+		},
+		"SignedBeaconBlockHeader": func(config string) codec { return new(SignedBeaconBlockHeader) },
+		"SignedVoluntaryExit":     func(config string) codec { return new(SignedVoluntaryExit) },
+		"SigningRoot":             func(config string) codec { return new(SigningRoot) },
+		"Validator":               func(config string) codec { return new(Validator) },
+		"VoluntaryExit":           func(config string) codec { return new(VoluntaryExit) },
+		"ErrorResponse":           func(config string) codec { return new(ErrorResponse) },
+		"SyncCommittee": func(config string) codec {
+			if config == "minimal" {
+				return new(SyncCommitteeMinimal)
+			}
+			return new(SyncCommittee)
+		},
+		"SyncAggregate": func(config string) codec {
+			if config == "minimal" {
+				return new(SyncAggregateMinimal)
+			}
+			return new(SyncAggregate)
+		},
+		"BeaconState": func(config string) codec {
+			return new(BeaconState)
+		},
+	*/
 }
 
 func randomInt(min, max int) int {
@@ -361,17 +368,14 @@ func checkSSZEncoding(t *testing.T, phase, fileName, structName string, base tes
 		fatal("HashTreeRoot_equal", fmt.Errorf("bad root"))
 	}
 
-	if objt, ok := obj.(codecTree); ok {
-		// node root
-		node, err := objt.GetTree()
-		if err != nil {
-			fatal("Tree", err)
-		}
-
-		xx := node.Hash()
-		if !bytes.Equal(xx, root[:]) {
-			fatal("Tree_equal", fmt.Errorf("bad node"))
-		}
+	// Proof
+	node, err := obj.GetTree()
+	if err != nil {
+		fatal("Tree", err)
+	}
+	nodeRoot := node.Hash()
+	if !bytes.Equal(nodeRoot, root[:]) {
+		fatal("Tree_equal", fmt.Errorf("bad node"))
 	}
 }
 

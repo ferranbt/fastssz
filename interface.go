@@ -13,6 +13,7 @@ type Unmarshaler interface {
 }
 
 type HashRoot interface {
+	GetTree() (*Node, error)
 	HashTreeRoot() ([32]byte, error)
 	HashTreeRootWith(hh HashWalker) error
 }
