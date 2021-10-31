@@ -146,7 +146,7 @@ func TreeFromChunks(chunks [][]byte) (*Node, error) {
 
 	leaves := make([]*Node, numLeaves)
 	for i, c := range chunks {
-		leaves[i] = &Node{left: nil, right: nil, value: c}
+		leaves[i] = NewNodeWithValue(c)
 	}
 	return TreeFromNodes(leaves)
 }
@@ -176,7 +176,7 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 			nodes[i-1] = leaves[i-numLeaves]
 		} else {
 			// Is a branch node
-			nodes[i-1] = &Node{left: nodes[(i*2)-1], right: nodes[(i*2+1)-1], value: nil}
+			nodes[i-1] = NewNodeWithLR(nodes[(i*2)-1], nodes[(i*2+1)-1])
 		}
 	}
 
