@@ -41,6 +41,7 @@ var codecs = map[string]testCallback{
 	"Attestation":       func(config string) codec { return new(Attestation) },
 
 	// "AttesterSlashing": func(config string) codec { return new(AttesterSlashing) },
+
 	/*
 		"BeaconBlock": func(config string) codec {
 			if config == "minimal" {
@@ -54,19 +55,22 @@ var codecs = map[string]testCallback{
 			}
 			return new(BeaconBlockBody)
 		},
-		"BeaconBlockHeader":  func(config string) codec { return new(BeaconBlockHeader) },
-		"Deposit":            func(config string) codec { return new(Deposit) },
 	*/
-	"DepositData":    func(config string) codec { return new(DepositData) },
-	"DepositMessage": func(config string) codec { return new(DepositMessage) },
-	"Eth1Block":      func(config string) codec { return new(Eth1Block) },
-	"Eth1Data":       func(config string) codec { return new(Eth1Data) },
-	"Fork":           func(config string) codec { return new(Fork) },
+
+	"BeaconBlockHeader": func(config string) codec { return new(BeaconBlockHeader) },
+	"Deposit":           func(config string) codec { return new(Deposit) },
+	"DepositData":       func(config string) codec { return new(DepositData) },
+	"DepositMessage":    func(config string) codec { return new(DepositMessage) },
+	"Eth1Block":         func(config string) codec { return new(Eth1Block) },
+	"Eth1Data":          func(config string) codec { return new(Eth1Data) },
+	"Fork":              func(config string) codec { return new(Fork) },
+
+	// "HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
+	"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
+	"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
+	"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
+
 	/*
-		"HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
-		"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
-		"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
-		"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
 		"SignedBeaconBlock": func(config string) codec {
 			if config == "minimal" {
 				return new(SignedBeaconBlockMinimal)
@@ -75,22 +79,28 @@ var codecs = map[string]testCallback{
 		},
 		"SignedBeaconBlockHeader": func(config string) codec { return new(SignedBeaconBlockHeader) },
 		"SignedVoluntaryExit":     func(config string) codec { return new(SignedVoluntaryExit) },
-		"SigningRoot":             func(config string) codec { return new(SigningRoot) },
-		"Validator":               func(config string) codec { return new(Validator) },
-		"VoluntaryExit":           func(config string) codec { return new(VoluntaryExit) },
-		"ErrorResponse":           func(config string) codec { return new(ErrorResponse) },
+	*/
+	"SigningRoot":   func(config string) codec { return new(SigningRoot) },
+	"Validator":     func(config string) codec { return new(Validator) },
+	"VoluntaryExit": func(config string) codec { return new(VoluntaryExit) },
+	"ErrorResponse": func(config string) codec { return new(ErrorResponse) },
+	/*
 		"SyncCommittee": func(config string) codec {
 			if config == "minimal" {
 				return new(SyncCommitteeMinimal)
 			}
 			return new(SyncCommittee)
 		},
-		"SyncAggregate": func(config string) codec {
-			if config == "minimal" {
-				return new(SyncAggregateMinimal)
-			}
-			return new(SyncAggregate)
-		},
+	*/
+
+	"SyncAggregate": func(config string) codec {
+		if config == "minimal" {
+			return new(SyncAggregateMinimal)
+		}
+		return new(SyncAggregate)
+	},
+
+	/*
 		"BeaconState": func(config string) codec {
 			return new(BeaconState)
 		},

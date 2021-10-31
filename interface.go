@@ -19,6 +19,8 @@ type HashRoot interface {
 }
 
 type HashWalker interface {
+	// Intended for testing purposes to know the latest hash generated during merkleize
+	Hash() []byte
 	AppendUint8(i uint8)
 	AppendUint64(i uint64)
 	PutUint64(i uint64)

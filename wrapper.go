@@ -14,6 +14,7 @@ func ProofTree(v HashRoot) (*Node, error) {
 
 type Wrapper struct {
 	nodes []*Node
+	buf   []byte
 }
 
 /// --- wrapper implements the HashWalker interface ---
@@ -23,26 +24,41 @@ func (w *Wrapper) Index() int {
 }
 
 func (w *Wrapper) Append(i []byte) {
-	panic("TODO")
+	w.buf = append(w.buf, i...)
 }
 
 func (w *Wrapper) AppendUint64(i uint64) {
-	panic("TODO")
+	w.buf = MarshalUint64(w.buf, i)
 }
 
 func (w *Wrapper) AppendUint8(i uint8) {
-	panic("TODO")
+	w.buf = MarshalUint8(w.buf, i)
 }
 
 func (w *Wrapper) FillUpTo32() {
-	panic("TODO")
+	// pad zero bytes to the left
+	if rest := len(w.buf) % 32; rest != 0 {
+		w.buf = append(w.buf, zeroBytes[:32-rest]...)
+	}
 }
 
 func (w *Wrapper) Merkleize(indx int) {
+	if len(w.buf) != 0 {
+		// create the buf inputs
+		w.nodes = append(w.nodes, bytestToNodes(w.buf)...)
+		w.buf = w.buf[:0]
+	}
+
 	w.Commit(indx)
 }
 
 func (w *Wrapper) MerkleizeWithMixin(indx int, num, limit uint64) {
+	if len(w.buf) != 0 {
+		// at this point we should creates nodes from the inputs on buf
+		w.nodes = append(w.nodes, bytestToNodes(w.buf)...)
+		w.buf = w.buf[:0]
+	}
+
 	w.CommitWithMixin(indx, int(num), int(limit))
 }
 
@@ -86,6 +102,15 @@ func min(i, j int) int {
 		return i
 	}
 	return j
+}
+
+func bytestToNodes(b []byte) []*Node {
+	nodes := []*Node{}
+	for i := 0; i < len(b); i += 32 {
+		nodes = append(nodes, LeafFromBytes(b[i:min(len(b), i+32)]))
+	}
+	nodes = fillEmptyNodes(nodes)
+	return nodes
 }
 
 func (w *Wrapper) AddBytes(b []byte) {
@@ -140,6 +165,10 @@ func (w *Wrapper) Node() *Node {
 	return w.nodes[0]
 }
 
+func (w *Wrapper) Hash() []byte {
+	return w.nodes[len(w.nodes)-1].Hash()
+}
+
 func (w *Wrapper) Commit(i int) {
 	nn := fillEmptyNodes(w.nodes[i:])
 	res, err := TreeFromNodes(nn)
@@ -169,9 +198,6 @@ func (w *Wrapper) AddEmpty() {
 
 func fillEmptyNodes(w []*Node) []*Node {
 	size := len(w)
-	if isPowerOfTwo(size) {
-		return w
-	}
 	for i := size; i < int(nextPowerOfTwo(uint64(size))); i++ {
 		w = append(w, EmptyLeaf())
 	}
