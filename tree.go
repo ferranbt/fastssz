@@ -2,7 +2,9 @@ package ssz
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
+	"fmt"
 )
 
 // Proof represents a merkle proof against a general index.
@@ -80,6 +82,48 @@ type Node struct {
 	right *Node
 
 	value []byte
+}
+
+func (n *Node) Show(maxDepth int) {
+	fmt.Printf("--- Show node ---\n")
+	n.show(0, maxDepth)
+}
+
+func (n *Node) show(depth int, maxDepth int) {
+
+	space := ""
+	for i := 0; i < depth; i++ {
+		space += "\t"
+	}
+	print := func(msgs ...string) {
+		for _, msg := range msgs {
+			fmt.Printf("%s%s", space, msg)
+		}
+	}
+
+	if n.left != nil || n.right != nil {
+		// leaf hash is the same as value
+		print("HASH: " + hex.EncodeToString(n.Hash()) + "\n")
+	}
+	if n.value != nil {
+		print("VALUE: " + hex.EncodeToString(n.value) + "\n")
+	}
+
+	if maxDepth > 0 {
+		if depth == maxDepth {
+			// only print hash if we are too deep
+			return
+		}
+	}
+
+	if n.left != nil {
+		print("LEFT: \n")
+		n.left.show(depth+1, maxDepth)
+	}
+	if n.right != nil {
+		print("RIGHT: \n")
+		n.right.show(depth+1, maxDepth)
+	}
 }
 
 // NewNodeWithValue initializes a leaf node.
