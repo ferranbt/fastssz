@@ -85,6 +85,9 @@ var codecs = map[string]testCallback{
 		}
 		return new(SyncAggregate)
 	},
+	"BeaconState": func(config string) codec {
+		return new(BeaconState)
+	},
 }
 
 func randomInt(min, max int) int {
@@ -343,7 +346,7 @@ func checkSSZEncoding(t *testing.T, phase, fileName, structName string, base tes
 
 	// Unmarshal
 	obj2 := base(phase)
-	if err := obj2.UnmarshalSSZ(res); err != nil {
+	if err := obj2.UnmarshalSSZ(output.ssz); err != nil {
 		t.Fatal(formatSpecFailure("UnmarshalSSZ error", fileName, structName, err))
 	}
 	if !deepEqual(obj, obj2) {

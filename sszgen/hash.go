@@ -56,7 +56,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 	} else {
 		// []uint64
 		appendFn = "Append" + uintVToName(v.e)
-		elemSize = 8
+		elemSize = uint64(v.e.n)
 	}
 
 	var merkleize string
