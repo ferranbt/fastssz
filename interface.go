@@ -14,5 +14,20 @@ type Unmarshaler interface {
 
 type HashRoot interface {
 	HashTreeRoot() ([32]byte, error)
-	HashTreeRootWith(hh *Hasher) error
+	HashTreeRootWith(hh HashWalker) error
+}
+
+type HashWalker interface {
+	AppendUint8(i uint8)
+	AppendUint64(i uint64)
+	PutUint64(i uint64)
+	PutUint8(i uint8)
+	FillUpTo32()
+	Append(i []byte)
+	PutBitlist(bb []byte, maxSize uint64)
+	PutBool(b bool)
+	PutBytes(b []byte)
+	Index() int
+	Merkleize(indx int)
+	MerkleizeWithMixin(indx int, num, limit uint64)
 }
