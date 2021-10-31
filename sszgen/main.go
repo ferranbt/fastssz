@@ -369,8 +369,8 @@ func (e *env) print(first bool, order []string, experimental bool) (string, bool
 		{{ .Marshal }}
 		{{ .Unmarshal }}
 		{{ .Size }}
-		{{ .HashTreeRoot }}
 		{{ .GetTree }}
+		{{ .HashTreeRoot }}
 	{{ end }}
 	`
 
@@ -403,13 +403,9 @@ func (e *env) print(first bool, order []string, experimental bool) (string, bool
 			// require the sszgen functions.
 			continue
 		}
-		getTree := ""
-		if experimental {
-			getTree = e.getTree(name, obj)
-		}
 		objs = append(objs, &Obj{
 			HashTreeRoot: e.hashTreeRoot(name, obj),
-			GetTree:      getTree,
+			GetTree:      e.getTree(name, obj),
 			Marshal:      e.marshal(name, obj),
 			Unmarshal:    e.unmarshal(name, obj),
 			Size:         e.size(name, obj),
@@ -618,7 +614,7 @@ func isFuncDecl(funcDecl *ast.FuncDecl) bool {
 		return isSpecificFunc(funcDecl, []string{"[]byte"}, []string{"error"})
 	}
 	if name == "HashTreeRootWith" {
-		return isSpecificFunc(funcDecl, []string{"*ssz.Hasher"}, []string{"error"})
+		return isSpecificFunc(funcDecl, []string{"ssz.HashWalker"}, []string{"error"})
 	}
 	return false
 }

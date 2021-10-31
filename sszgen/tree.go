@@ -7,23 +7,13 @@ import (
 
 // getTree creates a function that SSZ hashes the structs,
 func (e *env) getTree(name string, v *Value) string {
-	tmpl := `// GetTree returns tree-backing for the {{.name}} object
-	func (:: *{{.name}}) GetTreeWithWrapper(w *ssz.Wrapper) (err error) {
-		{{.getTree}}
-		return nil
-	}
-
+	tmpl := `// GetTree ssz hashes the {{.name}} object
 	func (:: *{{.name}}) GetTree() (*ssz.Node, error) {
-		w := &ssz.Wrapper{}
-		if err := ::.GetTreeWithWrapper(w); err != nil {
-			return nil, err
-		}
-		return w.Node(), nil
+		return ssz.ProofTree(::)
 	}`
 
 	data := map[string]interface{}{
-		"name":    name,
-		"getTree": v.getTreeContainer(true),
+		"name": name,
 	}
 	str := execTmpl(tmpl, data)
 	return appendObjSignature(str, v)

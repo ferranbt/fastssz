@@ -95,6 +95,11 @@ func (a *AggregateAndProof) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the AggregateAndProof object
+func (a *AggregateAndProof) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
+}
+
 // HashTreeRoot ssz hashes the AggregateAndProof object
 func (a *AggregateAndProof) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(a)
@@ -167,6 +172,11 @@ func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
 func (c *Checkpoint) SizeSSZ() (size int) {
 	size = 40
 	return
+}
+
+// GetTree ssz hashes the Checkpoint object
+func (c *Checkpoint) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(c)
 }
 
 // HashTreeRoot ssz hashes the Checkpoint object
@@ -269,6 +279,11 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 func (a *AttestationData) SizeSSZ() (size int) {
 	size = 128
 	return
+}
+
+// GetTree ssz hashes the AttestationData object
+func (a *AttestationData) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // HashTreeRoot ssz hashes the AttestationData object
@@ -403,6 +418,11 @@ func (a *Attestation) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the Attestation object
+func (a *Attestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
+}
+
 // HashTreeRoot ssz hashes the Attestation object
 func (a *Attestation) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(a)
@@ -491,6 +511,11 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 func (d *DepositData) SizeSSZ() (size int) {
 	size = 184
 	return
+}
+
+// GetTree ssz hashes the DepositData object
+func (d *DepositData) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // HashTreeRoot ssz hashes the DepositData object
@@ -589,6 +614,11 @@ func (d *Deposit) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the Deposit object
+func (d *Deposit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
+}
+
 // HashTreeRoot ssz hashes the Deposit object
 func (d *Deposit) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(d)
@@ -683,6 +713,11 @@ func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 func (d *DepositMessage) SizeSSZ() (size int) {
 	size = 88
 	return
+}
+
+// GetTree ssz hashes the DepositMessage object
+func (d *DepositMessage) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // HashTreeRoot ssz hashes the DepositMessage object
@@ -813,6 +848,11 @@ func (i *IndexedAttestation) SizeSSZ() (size int) {
 	size += len(i.AttestationIndices) * 8
 
 	return
+}
+
+// GetTree ssz hashes the IndexedAttestation object
+func (i *IndexedAttestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(i)
 }
 
 // HashTreeRoot ssz hashes the IndexedAttestation object
@@ -951,6 +991,11 @@ func (p *PendingAttestation) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the PendingAttestation object
+func (p *PendingAttestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
+}
+
 // HashTreeRoot ssz hashes the PendingAttestation object
 func (p *PendingAttestation) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(p)
@@ -1041,6 +1086,11 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 func (f *Fork) SizeSSZ() (size int) {
 	size = 16
 	return
+}
+
+// GetTree ssz hashes the Fork object
+func (f *Fork) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(f)
 }
 
 // HashTreeRoot ssz hashes the Fork object
@@ -1164,6 +1214,11 @@ func (v *Validator) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the Validator object
+func (v *Validator) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(v)
+}
+
 // HashTreeRoot ssz hashes the Validator object
 func (v *Validator) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(v)
@@ -1250,6 +1305,11 @@ func (v *VoluntaryExit) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the VoluntaryExit object
+func (v *VoluntaryExit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(v)
+}
+
 // HashTreeRoot ssz hashes the VoluntaryExit object
 func (v *VoluntaryExit) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(v)
@@ -1318,6 +1378,11 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 func (s *SignedVoluntaryExit) SizeSSZ() (size int) {
 	size = 112
 	return
+}
+
+// GetTree ssz hashes the SignedVoluntaryExit object
+func (s *SignedVoluntaryExit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // HashTreeRoot ssz hashes the SignedVoluntaryExit object
@@ -1393,6 +1458,11 @@ func (e *Eth1Block) UnmarshalSSZ(buf []byte) error {
 func (e *Eth1Block) SizeSSZ() (size int) {
 	size = 48
 	return
+}
+
+// GetTree ssz hashes the Eth1Block object
+func (e *Eth1Block) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
 
 // HashTreeRoot ssz hashes the Eth1Block object
@@ -1482,6 +1552,11 @@ func (e *Eth1Data) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the Eth1Data object
+func (e *Eth1Data) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
+}
+
 // HashTreeRoot ssz hashes the Eth1Data object
 func (e *Eth1Data) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(e)
@@ -1565,6 +1640,11 @@ func (s *SigningRoot) UnmarshalSSZ(buf []byte) error {
 func (s *SigningRoot) SizeSSZ() (size int) {
 	size = 40
 	return
+}
+
+// GetTree ssz hashes the SigningRoot object
+func (s *SigningRoot) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // HashTreeRoot ssz hashes the SigningRoot object
@@ -1654,6 +1734,11 @@ func (h *HistoricalBatch) UnmarshalSSZ(buf []byte) error {
 func (h *HistoricalBatch) SizeSSZ() (size int) {
 	size = 4096
 	return
+}
+
+// GetTree ssz hashes the HistoricalBatch object
+func (h *HistoricalBatch) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(h)
 }
 
 // HashTreeRoot ssz hashes the HistoricalBatch object
@@ -1754,6 +1839,11 @@ func (p *ProposerSlashing) UnmarshalSSZ(buf []byte) error {
 func (p *ProposerSlashing) SizeSSZ() (size int) {
 	size = 416
 	return
+}
+
+// GetTree ssz hashes the ProposerSlashing object
+func (p *ProposerSlashing) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 // HashTreeRoot ssz hashes the ProposerSlashing object
@@ -1882,6 +1972,11 @@ func (a *AttesterSlashing) SizeSSZ() (size int) {
 	size += a.Attestation2.SizeSSZ()
 
 	return
+}
+
+// GetTree ssz hashes the AttesterSlashing object
+func (a *AttesterSlashing) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // HashTreeRoot ssz hashes the AttesterSlashing object
@@ -2431,6 +2526,11 @@ func (b *BeaconState) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the BeaconState object
+func (b *BeaconState) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // HashTreeRoot ssz hashes the BeaconState object
 func (b *BeaconState) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
@@ -2774,6 +2874,11 @@ func (b *BeaconBlock) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the BeaconBlock object
+func (b *BeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // HashTreeRoot ssz hashes the BeaconBlock object
 func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
@@ -2896,6 +3001,11 @@ func (s *SignedBeaconBlock) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the SignedBeaconBlock object
+func (s *SignedBeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
+}
+
 // HashTreeRoot ssz hashes the SignedBeaconBlock object
 func (s *SignedBeaconBlock) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(s)
@@ -3004,6 +3114,11 @@ func (t *Transfer) UnmarshalSSZ(buf []byte) error {
 func (t *Transfer) SizeSSZ() (size int) {
 	size = 184
 	return
+}
+
+// GetTree ssz hashes the Transfer object
+func (t *Transfer) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(t)
 }
 
 // HashTreeRoot ssz hashes the Transfer object
@@ -3375,6 +3490,11 @@ func (b *BeaconBlockBody) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the BeaconBlockBody object
+func (b *BeaconBlockBody) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // HashTreeRoot ssz hashes the BeaconBlockBody object
 func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
@@ -3546,6 +3666,11 @@ func (s *SignedBeaconBlockHeader) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the SignedBeaconBlockHeader object
+func (s *SignedBeaconBlockHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
+}
+
 // HashTreeRoot ssz hashes the SignedBeaconBlockHeader object
 func (s *SignedBeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(s)
@@ -3651,6 +3776,11 @@ func (b *BeaconBlockHeader) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the BeaconBlockHeader object
+func (b *BeaconBlockHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // HashTreeRoot ssz hashes the BeaconBlockHeader object
 func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
@@ -3753,6 +3883,11 @@ func (e *ErrorResponse) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the ErrorResponse object
+func (e *ErrorResponse) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
+}
+
 // HashTreeRoot ssz hashes the ErrorResponse object
 func (e *ErrorResponse) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(e)
@@ -3798,6 +3933,11 @@ func (d *Dummy) UnmarshalSSZ(buf []byte) error {
 func (d *Dummy) SizeSSZ() (size int) {
 	size = 0
 	return
+}
+
+// GetTree ssz hashes the Dummy object
+func (d *Dummy) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // HashTreeRoot ssz hashes the Dummy object
@@ -3873,6 +4013,11 @@ func (s *SyncCommittee) UnmarshalSSZ(buf []byte) error {
 func (s *SyncCommittee) SizeSSZ() (size int) {
 	size = 49920
 	return
+}
+
+// GetTree ssz hashes the SyncCommittee object
+func (s *SyncCommittee) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // HashTreeRoot ssz hashes the SyncCommittee object
@@ -3962,6 +4107,11 @@ func (s *SyncAggregate) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the SyncAggregate object
+func (s *SyncAggregate) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
+}
+
 // HashTreeRoot ssz hashes the SyncAggregate object
 func (s *SyncAggregate) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(s)
@@ -4045,6 +4195,11 @@ func (s *SyncCommitteeMinimal) UnmarshalSSZ(buf []byte) error {
 func (s *SyncCommitteeMinimal) SizeSSZ() (size int) {
 	size = 1632
 	return
+}
+
+// GetTree ssz hashes the SyncCommitteeMinimal object
+func (s *SyncCommitteeMinimal) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // HashTreeRoot ssz hashes the SyncCommitteeMinimal object
@@ -4132,6 +4287,11 @@ func (s *SyncAggregateMinimal) UnmarshalSSZ(buf []byte) error {
 func (s *SyncAggregateMinimal) SizeSSZ() (size int) {
 	size = 100
 	return
+}
+
+// GetTree ssz hashes the SyncAggregateMinimal object
+func (s *SyncAggregateMinimal) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // HashTreeRoot ssz hashes the SyncAggregateMinimal object
@@ -4239,6 +4399,11 @@ func (s *SignedBeaconBlockMinimal) SizeSSZ() (size int) {
 	size += s.Block.SizeSSZ()
 
 	return
+}
+
+// GetTree ssz hashes the SignedBeaconBlockMinimal object
+func (s *SignedBeaconBlockMinimal) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // HashTreeRoot ssz hashes the SignedBeaconBlockMinimal object
@@ -4593,6 +4758,11 @@ func (b *BeaconBlockBodyMinimal) SizeSSZ() (size int) {
 	return
 }
 
+// GetTree ssz hashes the BeaconBlockBodyMinimal object
+func (b *BeaconBlockBodyMinimal) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // HashTreeRoot ssz hashes the BeaconBlockBodyMinimal object
 func (b *BeaconBlockBodyMinimal) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
@@ -4813,6 +4983,11 @@ func (b *BeaconBlockMinimal) SizeSSZ() (size int) {
 	size += b.Body.SizeSSZ()
 
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockMinimal object
+func (b *BeaconBlockMinimal) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // HashTreeRoot ssz hashes the BeaconBlockMinimal object
