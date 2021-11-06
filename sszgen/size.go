@@ -30,10 +30,8 @@ func (e *env) size(name string, v *Value) string {
 }
 
 func (v *Value) fixedSize() uint64 {
-	if !v.isFixed() {
-		return bytesPerLengthOffset
-	}
-	if v.t == TypeVector {
+	switch v.t {
+	case TypeVector:
 		if v.e == nil {
 			panic(fmt.Sprintf("error computing size of empty vector %v for type name=%s", v, v.name))
 		}
@@ -42,15 +40,18 @@ func (v *Value) fixedSize() uint64 {
 		} else {
 			return v.s * bytesPerLengthOffset
 		}
-	}
-	if v.t == TypeContainer {
+	case TypeContainer:
 		var fixed uint64
 		for _, f := range v.o {
 			fixed += f.fixedSize()
 		}
 		return fixed
+	default:
+		if !v.isFixed() {
+			return bytesPerLengthOffset
+		}
+		return v.s
 	}
-	return v.s
 }
 
 func (v *Value) sizeContainer(name string, start bool) string {
