@@ -43,7 +43,12 @@ func (v *Value) fixedSize() uint64 {
 	case TypeContainer:
 		var fixed uint64
 		for _, f := range v.o {
-			fixed += f.fixedSize()
+			if v.isFixed() {
+				fixed += f.fixedSize()
+			} else {
+				// we don't want variable size objects to recursively calculate their inner sizes
+				fixed += bytesPerLengthOffset
+			}
 		}
 		return fixed
 	default:
