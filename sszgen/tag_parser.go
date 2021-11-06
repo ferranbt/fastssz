@@ -84,7 +84,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	sszSizes, sizeDefined := tags["ssz-size"]
 	sszMax, maxDefined:= tags["ssz-max"]
 	if !sizeDefined && !maxDefined {
-		return nil, fmt.Errorf("No ssz-size or ssz-max tags found for element.")
+		return nil, fmt.Errorf("No ssz-size or ssz-max tags found for element. tag=%s", tag)
 	}
 
 	// split each tag by ",". each position in the csv represents a dimension of an n-dimensional array
@@ -105,30 +105,29 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 			mxi = maxSplit[i]
 		}
 		if szi == "?" && mxi == "?" {
-			return nil, fmt.Errorf("At dimension %d both ssz-size and ssz-max had a '?' value", i)
+			return nil, fmt.Errorf("At dimension %d both ssz-size and ssz-max had a '?' value, tag=%s", i, tag)
 		}
-		if szi == "?" {
-			if mxi == "" {
-				return nil, fmt.Errorf("missing (empty) value for ssz-max at dimesion %d", i)
+		switch szi {
+		case "?", "":
+			if mxi == "?" || mxi == "" {
+				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimesion %d, tag=%s", i, tag)
 			}
 			m, err := strconv.Atoi(mxi)
 			if err != nil {
-				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d. err=%s", mxi, i, err)
+				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d, tag=%s. err=%s", mxi, i, tag, err)
 			}
 			dims[i] = &SSZDimension{
 				ListLength:  &m,
 			}
-		} else {
-			if szi == "" {
-				return nil, fmt.Errorf("missing (empty) value for ssz-size at dimesion %d", i)
-			}
+		default: // szi is not empty or "?"
 			s, err := strconv.Atoi(szi)
 			if err != nil {
-				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d. err=%s", szi, i, err)
+				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, tag=%s. err=%s", szi, i, tag, err)
 			}
 			dims[i] = &SSZDimension{
 				VectorLength:  &s,
 			}
+			continue
 		}
 	}
 	return dims, nil

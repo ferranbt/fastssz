@@ -103,3 +103,39 @@ func TestListOfList(t *testing.T) {
 		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1073741824, dims[1].ListLen())
 	}
 }
+
+func TestOneDVector(t *testing.T) {
+	tag := "`protobuf:\"bytes,1,opt,name=randao_reveal,json=randaoReveal,proto3\" json:\"randao_reveal,omitempty\" ssz-size:\"96\""
+	dims, err := extractSSZDimensions(tag)
+	if err != nil {
+		t.Errorf("Unexpected error calling extractSSZDimensions: %v", err)
+	}
+	expectedDims := 1
+	if len(dims) != expectedDims {
+		t.Errorf("expected %d dimensions from ssz tags, got %d", expectedDims, len(dims))
+	}
+}
+
+func TestOneDList(t *testing.T) {
+	tag := "`protobuf:\"bytes,4,rep,name=proposer_slashings,json=proposerSlashings,proto3\" json:\"proposer_slashings,omitempty\" ssz-max:\"16\"`"
+	dims, err := extractSSZDimensions(tag)
+	if err != nil {
+		t.Errorf("Unexpected error calling extractSSZDimensions: %v", err)
+	}
+	expectedDims := 1
+	if len(dims) != expectedDims {
+		t.Errorf("expected %d dimensions from ssz tags, got %d", expectedDims, len(dims))
+	}
+}
+
+func TestNoDims(t *testing.T) {
+	tag := "`protobuf:\"bytes,2,opt,name=eth1_data,json=eth1Data,proto3\" json:\"eth1_data,omitempty\"`"
+	dims, err := extractSSZDimensions(tag)
+	if err == nil {
+		t.Errorf("expected error when calling extractSSZDimensions without ssz-size or ssz-max: %v", err)
+	}
+	expectedDims := 0
+	if len(dims) != expectedDims {
+		t.Errorf("expected %d dimensions from ssz tags, got %d", expectedDims, len(dims))
+	}
+}
