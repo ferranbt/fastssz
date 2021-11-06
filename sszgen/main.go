@@ -1043,11 +1043,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			return &Value{t: TypeBitList, m: maxSize, s: maxSize}, nil
 		} else if strings.HasPrefix(sel, "Bitvector") {
 			// go-bitfield/Bitvector, fixed bytes
-			size, ok := getTagsInt(tags, "ssz-size")
-			if !ok {
-				return nil, fmt.Errorf("bitvector %s does not have ssz-size tag", name)
+			dims, err := extractSSZDimensions(tags)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse ssz-size tag for bitvector %s, err=%s", name, err)
 			}
-			return &Value{t: TypeBytes, s: size}, nil
+			tailDim := dims[len(dims)-1] // get last value in case this value is nested within a List/Vector
+			if !tailDim.IsVector() {
+				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
+			}
+			return &Value{t: TypeBytes, fixed: true, s: uint64(tailDim.VectorLen())}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
