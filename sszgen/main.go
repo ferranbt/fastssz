@@ -178,8 +178,6 @@ type Value struct {
 	name string
 	// name of the Go object this value represents
 	obj string
-	// n is the fixed size of the value
-	n uint64
 	// auxiliary int number
 	s uint64
 	// type of the value
@@ -837,7 +835,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		}
 		if raw.implFunc {
 			size, _ := getTagsInt(tags, "ssz-size")
-			v = &Value{t: TypeReference, s: size, n: size, noPtr: raw.obj == nil}
+			v = &Value{t: TypeReference, s: size, noPtr: raw.obj == nil}
 		} else if raw.obj != nil {
 			v, err = e.parseASTStructType(name, raw.obj)
 		} else {
@@ -889,16 +887,6 @@ func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, erro
 		v.o = append(v.o, elem)
 	}
 
-	// get the total size of the container
-	for _, f := range v.o {
-		if f.isFixed() {
-			v.n += f.n
-		} else {
-			v.n += bytesPerLengthOffset
-			// container is dynamic
-			v.c = true
-		}
-	}
 	return v, nil
 }
 
@@ -996,8 +984,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					// TypeBytes can either be a list or vector (determined by looking at the isFixed result)
 					collection.t = TypeBytes
 					if dim.IsVector() {
-						// TODO: should .n be set for all vector types in the IsVector condition above, after .t?
-						collection.n = uint64(dim.VectorLen())
 						// this is how we differentiate byte lists from byte vectors, rather than the usual approach
 						// of nesting a Value for the element within the .e attribute
 						collection.fixed = true
@@ -1025,15 +1011,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		var v *Value
 		switch obj.Name {
 		case "uint64":
-			v = &Value{t: TypeUint, n: 8}
+			v = &Value{t: TypeUint, s: 8}
 		case "uint32":
-			v = &Value{t: TypeUint, n: 4}
+			v = &Value{t: TypeUint, s: 4}
 		case "uint16":
-			v = &Value{t: TypeUint, n: 2}
+			v = &Value{t: TypeUint, s: 2}
 		case "uint8":
-			v = &Value{t: TypeUint, n: 1}
+			v = &Value{t: TypeUint, s: 1}
 		case "bool":
-			v = &Value{t: TypeBool, n: 1}
+			v = &Value{t: TypeBool, s: 1}
 		default:
 			// try to resolve as an alias
 			vv, err := e.encodeItem(obj.Name, tags)
@@ -1061,7 +1047,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !ok {
 				return nil, fmt.Errorf("bitvector %s does not have ssz-size tag", name)
 			}
-			return &Value{t: TypeBytes, s: size, n: size}, nil
+			return &Value{t: TypeBytes, s: size}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1176,7 +1162,7 @@ func uintVToName(v *Value) string {
 	if v.t != TypeUint {
 		panic("not expected")
 	}
-	switch v.n {
+	switch v.s {
 	case 8:
 		return "Uint64"
 	case 4:
@@ -1186,6 +1172,6 @@ func uintVToName(v *Value) string {
 	case 1:
 		return "Uint8"
 	default:
-		panic("not found")
+		panic(fmt.Sprintf("unknown uint size, %d bytes. field name=%s", v.s, v.name))
 	}
 }

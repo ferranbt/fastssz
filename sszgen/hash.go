@@ -56,7 +56,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 	} else {
 		// []uint64
 		appendFn = "Append" + uintVToName(v.e)
-		elemSize = uint64(v.e.n)
+		elemSize = uint64(v.e.fixedSize())
 	}
 
 	var merkleize string
@@ -138,7 +138,7 @@ func (v *Value) hashTreeRoot() string {
 		} else {
 			name = "::." + v.name
 		}
-		bitLen := v.n * 8
+		bitLen := v.fixedSize() * 8
 		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
 
 	case TypeBitList:

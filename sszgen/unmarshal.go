@@ -77,14 +77,14 @@ func (v *Value) unmarshal(dst string) string {
 
 	case TypeVector:
 		if v.e.isFixed() {
-			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, v.e.n, v.e.n)
+			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, v.e.fixedSize(), v.e.fixedSize())
 
 			tmpl := `{{.create}}
 			for ii := 0; ii < {{.size}}; ii++ {
 				{{.unmarshal}}
 			}`
 			return execTmpl(tmpl, map[string]interface{}{
-				"create":    v.createSlice(),
+				"create":    v.createSlice(false),
 				"size":      v.s,
 				"unmarshal": v.e.unmarshal(dst),
 			})
@@ -103,15 +103,8 @@ func (v *Value) unmarshal(dst string) string {
 }
 
 func (v *Value) unmarshalList() string {
-
-	// The Go field must have a 'ssz-max' tag to set the maximum number of items
-	maxSize := v.s
-
-	// In order to use createSlice with a dynamic list we need to set v.s to 0
-	v.s = 0
-
 	if v.e.isFixed() {
-		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.n, v.e.n)
+		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.fixedSize(), v.e.fixedSize())
 
 		tmpl := `num, err := ssz.DivideInt2(len(buf), {{.size}}, {{.max}})
 		if err != nil {
@@ -122,9 +115,9 @@ func (v *Value) unmarshalList() string {
 			{{.unmarshal}}
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
-			"size":      v.e.n,
-			"max":       maxSize,
-			"create":    v.createSlice(),
+			"size":      v.e.fixedSize(),
+			"max":       v.s,
+			"create":    v.createSlice(true),
 			"unmarshal": v.e.unmarshal(dst),
 		})
 	}
@@ -136,7 +129,7 @@ func (v *Value) unmarshalList() string {
 	// Decode list with a dynamic element. 'ssz.DecodeDynamicLength' ensures
 	// that the number of elements do not surpass the 'ssz-max' tag.
 
-	tmpl := `num, err := ssz.DecodeDynamicLength(buf, {{.size}})
+	tmpl := `num, err := ssz.DecodeDynamicLength(buf, {{.max}})
 	if err != nil {
 		return err
 	}
@@ -152,8 +145,8 @@ func (v *Value) unmarshalList() string {
 	v.e.name = v.name + "[indx]"
 
 	data := map[string]interface{}{
-		"size":      maxSize,
-		"create":    v.createSlice(),
+		"max":      v.s,
+		"create":    v.createSlice(true),
 		"unmarshal": v.e.unmarshal("buf"),
 	}
 	return execTmpl(tmpl, data)
@@ -217,7 +210,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	str += execTmpl(tmpl, map[string]interface{}{
 		"cmp":     cmp,
-		"size":    v.n,
+		"size":    v.fixedSize(),
 		"offsets": strings.Join(offsets, ", "),
 	})
 
@@ -229,17 +222,13 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// for the first offset, use the size of the fixed-length data
 	// as the minimum boundary. subsequent offsets will replace this
 	// value with the name of the previous offset variable.
-	firstOffsetCheck := fmt.Sprintf("%d", v.n)
+	firstOffsetCheck := fmt.Sprintf("%d", v.fixedSize())
 	outs := []string{}
 	for indx, i := range v.o {
 
 		// How much it increases on every item
 		var incr uint64
-		if i.isFixed() {
-			incr = i.n
-		} else {
-			incr = 4
-		}
+		incr = i.fixedSize()
 
 		dst = fmt.Sprintf("%s[%d:%d]", "buf", o0, o0+incr)
 		o0 += incr
@@ -321,18 +310,15 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 }
 
 // createItem is used to initialize slices of objects
-func (v *Value) createSlice() string {
+func (v *Value) createSlice(useNumVariable bool) string {
 	if v.t != TypeVector && v.t != TypeList {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
 
-	// If v.s is set (fixed slice) we use that value, otherwise (variable size)
-	// we assume there is a 'num' variable generated beforehand with the expected size.
-	var size string
-	if v.s == 0 {
+	size := strconv.Itoa(int(v.s))
+	// when useNumVariable is specified, we assume there is a 'num' variable generated beforehand with the expected size.
+	if useNumVariable {
 		size = "num"
-	} else {
-		size = strconv.Itoa(int(v.s))
 	}
 
 	switch v.e.t {

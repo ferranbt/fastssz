@@ -90,10 +90,10 @@ func (v *Value) size(name string) string {
 		if v.t == TypeContainer {
 			return v.sizeContainer(name, false)
 		}
-		if v.n == 1 {
+		if v.fixedSize() == 1 {
 			return name + "++"
 		}
-		return name + " += " + strconv.Itoa(int(v.n))
+		return name + " += " + strconv.Itoa(int(v.fixedSize()))
 	}
 
 	switch v.t {
@@ -111,7 +111,7 @@ func (v *Value) size(name string) string {
 
 	case TypeVector:
 		if v.e.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.n)
+			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.fixedSize())
 		}
 		v.e.name = v.name + "[ii]"
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
