@@ -23,10 +23,34 @@ func (e *env) size(name string, v *Value) string {
 
 	str := execTmpl(tmpl, map[string]interface{}{
 		"name":    name,
-		"fixed":   v.n,
+		"fixed":   v.fixedSize(),
 		"dynamic": v.sizeContainer("size", true),
 	})
 	return appendObjSignature(str, v)
+}
+
+func (v *Value) fixedSize() uint64 {
+	if !v.isFixed() {
+		return bytesPerLengthOffset
+	}
+	if v.t == TypeVector {
+		if v.e == nil {
+			panic(fmt.Sprintf("error computing size of empty vector %v for type name=%s", v, v.name))
+		}
+		if v.e.isFixed() {
+			return v.s * v.e.fixedSize()
+		} else {
+			return v.s * bytesPerLengthOffset
+		}
+	}
+	if v.t == TypeContainer {
+		var fixed uint64
+		for _, f := range v.o {
+			fixed += f.fixedSize()
+		}
+		return fixed
+	}
+	return v.s
 }
 
 func (v *Value) sizeContainer(name string, start bool) string {
