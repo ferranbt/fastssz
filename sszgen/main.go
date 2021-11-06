@@ -248,8 +248,6 @@ const (
 	TypeContainer
 	// TypeReference is a SSZ reference
 	TypeReference
-	TypeDerp1
-	TypeDerp2
 )
 
 func (t Type) String() string {
@@ -272,10 +270,6 @@ func (t Type) String() string {
 		return "container"
 	case TypeReference:
 		return "reference"
-	case TypeDerp1:
-		return "derp1"
-	case TypeDerp2:
-		return "derp2"
 	default:
 		panic("not found")
 	}
@@ -944,7 +938,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 
 		collectionExpr := obj
-		outer := &Value{t: TypeDerp1}
+		outer := &Value{}
 		collection := outer
 		for _, dim := range dims {
 			if dim.IsVector() {
@@ -994,7 +988,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				// we expect there to a subsequent dimension when the element type is an ArrayType
 				// so we update the expression and value container in preparation for the next iteration
 				collectionExpr = eeType
-				collection.e = &Value{t: TypeDerp2}
+				collection.e = &Value{}
 				collection = collection.e
 				continue
 			case *ast.Ident:
@@ -1161,7 +1155,7 @@ func (v *Value) isFixed() bool {
 	default:
 		// TypeUndefined should be the only type to fallthrough to this case
 		// TypeUndefined always means there is a fatal error in the parsing logic
-		panic(fmt.Errorf("is fixed not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("is fixed not implemented for type %s named %s", v.t.String(), v.name))
 	}
 }
 
