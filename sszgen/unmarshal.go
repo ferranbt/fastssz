@@ -228,7 +228,11 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 		// How much it increases on every item
 		var incr uint64
-		incr = i.fixedSize()
+		if i.isFixed() {
+			incr = i.fixedSize()
+		} else {
+			incr = bytesPerLengthOffset
+		}
 
 		dst = fmt.Sprintf("%s[%d:%d]", "buf", o0, o0+incr)
 		o0 += incr
