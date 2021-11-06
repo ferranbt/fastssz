@@ -248,6 +248,8 @@ const (
 	TypeContainer
 	// TypeReference is a SSZ reference
 	TypeReference
+	TypeDerp1
+	TypeDerp2
 )
 
 func (t Type) String() string {
@@ -270,6 +272,10 @@ func (t Type) String() string {
 		return "container"
 	case TypeReference:
 		return "reference"
+	case TypeDerp1:
+		return "derp1"
+	case TypeDerp2:
+		return "derp2"
 	default:
 		panic("not found")
 	}
@@ -938,7 +944,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 
 		collectionExpr := obj
-		outer := &Value{}
+		outer := &Value{t: TypeDerp1}
 		collection := outer
 		for _, dim := range dims {
 			if dim.IsVector() {
@@ -988,7 +994,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				// we expect there to a subsequent dimension when the element type is an ArrayType
 				// so we update the expression and value container in preparation for the next iteration
 				collectionExpr = eeType
-				collection.e = &Value{}
+				collection.e = &Value{t: TypeDerp2}
 				collection = collection.e
 				continue
 			case *ast.Ident:
