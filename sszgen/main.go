@@ -943,9 +943,11 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		collection := outer
 		for _, dim := range dims {
 			if dim.IsVector() {
+				collection.t = TypeVector
 				collection.s = uint64(dim.VectorLen())
 			}
 			if dim.IsList() {
+				collection.t = TypeList
 				collection.m = uint64(dim.ListLen())
 				collection.s = uint64(dim.ListLen())
 			}
@@ -980,12 +982,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 
 			switch eeType := collectionExpr.Elt.(type) {
 			case *ast.ArrayType:
-				if dim.IsVector() {
-					collection.t = TypeVector
-				}
-				if dim.IsList() {
-					collection.t = TypeList
-				}
 				// we expect there to a subsequent dimension when the element type is an ArrayType
 				// so we update the expression and value container in preparation for the next iteration
 				collectionExpr = eeType
@@ -996,10 +992,14 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				// this condition is preserving the special nesting of byte,
 				// because byte has special handling in the code generator templates.
 				if eeType.Name == "byte" {
+					// note that we are overwriting the list/vector types and replacing them with TypeBytes
+					// TypeBytes can either be a list or vector (determined by looking at the isFixed result)
 					collection.t = TypeBytes
 					if dim.IsVector() {
 						// TODO: should .n be set for all vector types in the IsVector condition above, after .t?
 						collection.n = uint64(dim.VectorLen())
+						// this is how we differentiate byte lists from byte vectors, rather than the usual approach
+						// of nesting a Value for the element within the .e attribute
 						collection.fixed = true
 					}
 					continue
