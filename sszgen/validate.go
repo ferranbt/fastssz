@@ -3,18 +3,14 @@ package main
 func (v *Value) validate() string {
 	switch v.t {
 	case TypeBitList, TypeBytes:
-		cmp := "!="
-		if v.t == TypeBitList {
-			cmp = ">"
-		}
+		// this is a fixed-length array, not a slice, so it's size is a constant we don't need to check
 		if v.c {
 			return ""
 		}
-		// fixed []byte
-		size := v.s
-		if size == 0 {
-			// dynamic []byte
-			size = v.m
+		// for fixed size collections, we need to ensure the size is an exact match
+		cmp := "!="
+		// for variable size values, we want to ensure it doesn't exceed max size bound
+		if !v.isFixed() {
 			cmp = ">"
 		}
 
@@ -26,10 +22,11 @@ func (v *Value) validate() string {
 		return execTmpl(tmpl, map[string]interface{}{
 			"cmp":  cmp,
 			"name": v.name,
-			"size": size,
+			"size": v.s,
 		})
 
 	case TypeVector:
+		// this is a fixed-length array, not a slice, so it's size is a constant we don't need to check
 		if v.c {
 			return ""
 		}
