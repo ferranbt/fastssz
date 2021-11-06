@@ -43,7 +43,7 @@ func (v *Value) fixedSize() uint64 {
 	case TypeContainer:
 		var fixed uint64
 		for _, f := range v.o {
-			if v.isFixed() {
+			if f.isFixed() {
 				fixed += f.fixedSize()
 			} else {
 				// we don't want variable size objects to recursively calculate their inner sizes
