@@ -34,7 +34,7 @@ func (v *Value) unmarshal(dst string) string {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
 		validate := ""
-		if v.s == 0 {
+		if !v.isFixed() {
 			// dynamic bytes, we need to validate the size of the buffer
 			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
 		}
