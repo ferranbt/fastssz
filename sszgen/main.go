@@ -947,7 +947,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if collectionExpr.Len != nil {
 				arrayLen, ok := collectionExpr.Len.(*ast.BasicLit)
 				if !ok {
-					return nil, fmt.Errorf("failed to parse field %s. byte array definition not understood by go/ast")
+					return nil, fmt.Errorf("failed to parse field %s. byte array definition not understood by go/ast", name)
 				}
 				a, err := strconv.ParseUint(arrayLen.Value, 0, 64)
 				if err != nil {
@@ -963,7 +963,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					return nil, fmt.Errorf("unexpected type for fixed size array, name=%s, type=%s", name, collection.t.String())
 				}
 				if collection.s != *astSize {
-					return nil, fmt.Errorf("Unexpected mismatch between ssz-size and array fixed size, name=%s, ssz-size=%d, fixed=%s", name, collection.s, *astSize)
+					return nil, fmt.Errorf("Unexpected mismatch between ssz-size and array fixed size, name=%s, ssz-size=%d, fixed=%d", name, collection.s, *astSize)
 				}
 			}
 
