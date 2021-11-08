@@ -95,18 +95,24 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 	})
 }
 
-func (v *Value) hashTreeRoot() string {
+// takes a "name" param so that the variable name can be replaced with a local name
+// ie within a for loop for a list, the we want to refer to "elem" w/o a receiver variable
+// when not specified, name will be set to "::." + v.name. In the final templating pass,
+// the output formatter replaces all instances of "::" with the receiver variable for the container.
+func (v *Value) hashTreeRoot(name string) string {
+	if name == "" {
+		name = "::." + v.name
+	}
 	switch v.t {
 	case TypeContainer, TypeReference:
 		return v.hashTreeRootContainer(false)
 
 	case TypeBytes:
-		name := v.name
 		if v.c {
 			name += "[:]"
 		}
 		if v.isFixed() {
-			tmpl := `{{.validate}}hh.PutBytes(::.{{.name}})`
+			tmpl := `{{.validate}}hh.PutBytes({{.name}})`
 			return execTmpl(tmpl, map[string]interface{}{
 				"validate": v.validate(),
 				"name":     name,
@@ -116,12 +122,12 @@ func (v *Value) hashTreeRoot() string {
 			// dynamic bytes require special handling, need length mixed in
 			tmpl := `{
 	elemIndx := hh.Index()
-	byteLen := uint64(len(::.{{.name}}))
+	byteLen := uint64(len({{.name}}))
 	if byteLen > {{.maxLen}} {
 		err = ssz.ErrIncorrectListSize
 		return
     }
-	hh.Append(::.{{.name}})
+	hh.Append({{.name}})
 	hh.MerkleizeWithMixin(elemIndx, byteLen, ({{.maxLen}}+31)/32)
 }`
 			return execTmpl(tmpl, map[string]interface{}{
@@ -131,30 +137,27 @@ func (v *Value) hashTreeRoot() string {
 		}
 
 	case TypeUint:
-		var name string
 		if v.ref != "" || v.obj != "" {
 			// alias to Uint64
-			name = fmt.Sprintf("uint64(::.%s)", v.name)
-		} else {
-			name = "::." + v.name
+			name = fmt.Sprintf("uint64(%s)", name)
 		}
 		bitLen := v.fixedSize() * 8
 		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
 
 	case TypeBitList:
-		tmpl := `if len(::.{{.name}}) == 0 {
+		tmpl := `if len({{.name}}) == 0 {
 			err = ssz.ErrEmptyBitlist
 			return
 		}
-		hh.PutBitlist(::.{{.name}}, {{.size}})
+		hh.PutBitlist({{.name}}, {{.size}})
 		`
 		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
+			"name": name,
 			"size": v.m,
 		})
 
 	case TypeBool:
-		return fmt.Sprintf("hh.PutBool(::.%s)", v.name)
+		return fmt.Sprintf("hh.PutBool(%s)", name)
 
 	case TypeVector:
 		return v.hashRoots(false, v.e.t)
@@ -168,34 +171,29 @@ func (v *Value) hashTreeRoot() string {
 
 		tmpl := `{
 			subIndx := hh.Index()
-			num := uint64(len(::.{{.name}}))
+			num := uint64(len({{.name}}))
 			if num > {{.num}} {
 				err = ssz.ErrIncorrectListSize
 				return
 			}
-			for _, elem := range ::.{{.name}} {
+			for _, elem := range {{.name}} {
 {{.htrCall}}
 			}
 			hh.MerkleizeWithMixin(subIndx, num, {{.num}})
 		}`
 		var htrCall string
 		if v.e.t == TypeBytes {
-			prevName := v.e.name
-			v.e.name = "elem"
-			if v.e.c {
-				v.e.name += "[:]"
-			}
+			eName := "elem"
 			// ByteLists should be represented as Value with TypeBytes and .m set instead of .s (isFixed == true)
-			htrCall = v.e.hashTreeRoot()
-			v.e.name = prevName
+			htrCall = v.e.hashTreeRoot(eName)
 		} else {
 			htrCall = execTmpl(`if err = elem.HashTreeRootWith(hh); err != nil {
 	return
 }`,
-				map[string]interface{}{"name": v.name})
+				map[string]interface{}{"name": name})
 		}
 		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
+			"name": name,
 			"num":  v.m,
 			"htrCall": htrCall,
 		})
@@ -212,7 +210,7 @@ func (v *Value) hashTreeRootContainer(start bool) string {
 
 	out := []string{}
 	for indx, i := range v.o {
-		str := fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.hashTreeRoot())
+		str := fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.hashTreeRoot(""))
 		out = append(out, str)
 	}
 
