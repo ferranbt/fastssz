@@ -99,7 +99,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 // ie within a for loop for a list, the we want to refer to "elem" w/o a receiver variable
 // when not specified, name will be set to "::." + v.name. In the final templating pass,
 // the output formatter replaces all instances of "::" with the receiver variable for the container.
-func (v *Value) hashTreeRoot(name string) string {
+func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 	if name == "" {
 		name = "::." + v.name
 	}
@@ -120,6 +120,10 @@ func (v *Value) hashTreeRoot(name string) string {
 			})
 		} else {
 			// dynamic bytes require special handling, need length mixed in
+			hMethod := "PutBytes"
+			if appendBytes {
+				hMethod = "Append"
+			}
 			tmpl := `{
 	elemIndx := hh.Index()
 	byteLen := uint64(len({{.name}}))
@@ -127,10 +131,11 @@ func (v *Value) hashTreeRoot(name string) string {
 		err = ssz.ErrIncorrectListSize
 		return
     }
-	hh.PutBytes({{.name}})
+	hh.{{.hashMethod}}({{.name}})
 	hh.MerkleizeWithMixin(elemIndx, byteLen, ({{.maxLen}}+31)/32)
 }`
 			return execTmpl(tmpl, map[string]interface{}{
+				"hashMethod": hMethod,
 				"name": name,
 				"maxLen": v.m,
 			})
@@ -185,7 +190,7 @@ func (v *Value) hashTreeRoot(name string) string {
 		if v.e.t == TypeBytes {
 			eName := "elem"
 			// ByteLists should be represented as Value with TypeBytes and .m set instead of .s (isFixed == true)
-			htrCall = v.e.hashTreeRoot(eName)
+			htrCall = v.e.hashTreeRoot(eName, true)
 		} else {
 			htrCall = execTmpl(`if err = elem.HashTreeRootWith(hh); err != nil {
 	return
@@ -210,7 +215,7 @@ func (v *Value) hashTreeRootContainer(start bool) string {
 
 	out := []string{}
 	for indx, i := range v.o {
-		str := fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.hashTreeRoot(""))
+		str := fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.hashTreeRoot("", false))
 		out = append(out, str)
 	}
 
