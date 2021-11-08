@@ -122,7 +122,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			// dynamic bytes require special handling, need length mixed in
 			hMethod := "PutBytes"
 			if appendBytes {
-				hMethod = "Append"
+				hMethod = "AppendBytes32"
 			}
 			tmpl := `{
 	elemIndx := hh.Index()
