@@ -127,7 +127,7 @@ func (v *Value) hashTreeRoot(name string) string {
 		err = ssz.ErrIncorrectListSize
 		return
     }
-	hh.Append({{.name}})
+	hh.PutBytes({{.name}})
 	hh.MerkleizeWithMixin(elemIndx, byteLen, ({{.maxLen}}+31)/32)
 }`
 			return execTmpl(tmpl, map[string]interface{}{
