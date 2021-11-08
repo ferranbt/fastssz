@@ -116,12 +116,12 @@ func (v *Value) hashTreeRoot() string {
 			// dynamic bytes require special handling, need length mixed in
 			tmpl := `{
 	elemIndx := hh.Index()
-	byteLen := uint64(len({{.name}}))
+	byteLen := uint64(len(::.{{.name}}))
 	if byteLen > {{.maxLen}} {
 		err = ssz.ErrIncorrectListSize
 		return
     }
-	hh.Append({{.name}})
+	hh.Append(::.{{.name}})
 	hh.MerkleizeWithMixin(elemIndx, byteLen, ({{.maxLen}}+31)/32)
 }`
 			return execTmpl(tmpl, map[string]interface{}{
