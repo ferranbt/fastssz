@@ -190,7 +190,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 		if v.e.t == TypeBytes {
 			eName := "elem"
 			// ByteLists should be represented as Value with TypeBytes and .m set instead of .s (isFixed == true)
-			htrCall = v.e.hashTreeRoot(eName, false)
+			htrCall = v.e.hashTreeRoot(eName, true)
 		} else {
 			htrCall = execTmpl(`if err = elem.HashTreeRootWith(hh); err != nil {
 	return
