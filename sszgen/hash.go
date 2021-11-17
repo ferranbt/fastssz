@@ -221,6 +221,12 @@ func (v *Value) hashTreeRootContainer(start bool) string {
 
 	out := []string{}
 	for indx, i := range v.o {
+		// the call to hashTreeRoot below is ugly because it's currently hacked to support ByteLists
+		// the first argument allows the element name to be overriden when calling .HashTreeRoot on it
+		// used to specify the name "elem" when called as part of a for loop iteration. when the string
+		// is empty, it defaults to the .name parameter of the value
+		// the second field tells the code generator to specifically generate a call to AppendBytes32
+		// this is used by List[List[byte, N]] so that lists of lists of bytes are not double-merkleized.
 		str := fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.hashTreeRoot("", false))
 		out = append(out, str)
 	}
