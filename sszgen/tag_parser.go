@@ -17,7 +17,7 @@ const (
 )
 
 type TagParser struct {
-	sc scanner.Scanner
+	sc     scanner.Scanner
 	buffer string
 }
 
@@ -128,7 +128,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 			mxi = maxSplit[i]
 		}
 		if szi == "?" && mxi == "?" {
-			return nil, fmt.Errorf("At dimension %d both ssz-size and ssz-max had a '?' value, tag=%s", i, tag)
+			return nil, fmt.Errorf("At dimension %d both ssz-size and ssz-max had a '?' value. For each dimension, either ssz-size or ssz-max must have a value. Ex: 'ssz-size:\"?,32\" ssz-max:\"100\" defines a List with 100 element limit, containing 32 byte fixed-sized vectors. tag=%s", i, tag)
 		}
 		switch szi {
 		case "?", "":
@@ -140,8 +140,8 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d, tag=%s. err=%s", mxi, i, tag, err)
 			}
 			dims[i] = &SSZDimension{
-				isBitlist: isbl,
-				ListLength:  &m,
+				isBitlist:  isbl,
+				ListLength: &m,
 			}
 		default: // szi is not empty or "?"
 			s, err := strconv.Atoi(szi)
@@ -149,8 +149,8 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, tag=%s. err=%s", szi, i, tag, err)
 			}
 			dims[i] = &SSZDimension{
-				isBitlist: isbl,
-				VectorLength:  &s,
+				isBitlist:    isbl,
+				VectorLength: &s,
 			}
 			continue
 		}
@@ -160,8 +160,8 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 
 type SSZDimension struct {
 	VectorLength *int
-	ListLength *int
-	isBitlist bool
+	ListLength   *int
+	isBitlist    bool
 }
 
 func (dim *SSZDimension) IsVector() bool {
