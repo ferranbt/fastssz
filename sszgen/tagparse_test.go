@@ -139,3 +139,18 @@ func TestNoDims(t *testing.T) {
 		t.Errorf("expected %d dimensions from ssz tags, got %d", expectedDims, len(dims))
 	}
 }
+
+func TestBitlist(t *testing.T) {
+	tag := "`json:\"aggregation_bits\" ssz:\"bitlist\" ssz-max:\"2048\"`"
+	dims, err := extractSSZDimensions(tag)
+	if err != nil {
+		t.Errorf("Unexpected error calling extractSSZDimensions: %v", err)
+	}
+	expectedDims := 1
+	if len(dims) != expectedDims {
+		t.Errorf("expected %d dimensions from ssz tags, got %d", expectedDims, len(dims))
+	}
+	if !dims[0].IsBitlist() {
+		t.Error("Expected tag 'ssz:\"bitlist\" to mark field as a bitlist")
+	}
+}

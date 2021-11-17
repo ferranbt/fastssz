@@ -988,6 +988,9 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 						// of nesting a Value for the element within the .e attribute
 						collection.fixed = true
 					}
+					if dim.IsBitlist() {
+						collection.t = TypeBitList
+					}
 					continue
 				} else {
 					// anything else should recurse to the basic *ast.Ident case defined just below this ArrayType case
@@ -1120,6 +1123,9 @@ func (v *Value) isFixed() bool {
 	case TypeList, TypeBitList:
 		return false
 	case TypeVector:
+		if v.e.t == TypeUndefined {
+			fmt.Printf("%s", v.name)
+		}
 		return v.e.isFixed()
 	case TypeBytes:
 		// we set this flag for all fixed size values of TypeBytes
@@ -1131,6 +1137,9 @@ func (v *Value) isFixed() bool {
 		return false
 	case TypeContainer:
 		for _, f := range v.o {
+			if f.t == TypeUndefined {
+				fmt.Printf("%s %s", v.name, f.name)
+			}
 			// if any contained value is not fixed, it is not fixed
 			if !f.isFixed() {
 				return false

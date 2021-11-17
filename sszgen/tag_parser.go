@@ -57,13 +57,13 @@ func (tp TagParser) GetSSZTags() map[string]string {
 			continue
 		default:
 			if state == tsValue {
-				tags[labelStr] = trimTagQuotes(string(txt))
+				tags[labelStr] = trimTagQuotes(txt)
 				state = tsLabel
 				labelStr = ""
 				continue
 			}
 			if state == tsLabel {
-				labelStr += string(txt)
+				labelStr += txt
 				continue
 			}
 		}
@@ -76,13 +76,29 @@ func (tp TagParser) GetSSZTags() map[string]string {
 // to compare to ssz-size = '?' values
 var nilInt *int
 
+// handle tag structured like 'ssz:"bitlist"'
+// this is not used in prysm but needs to be supported for fastssz tests
+func isBitList(tags map[string]string) bool {
+	for k, v := range tags {
+		if k == "ssz" {
+			parts := strings.Split(v, ",")
+			for _, p := range parts {
+				if p == "bitlist" {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	tp := &TagParser{}
 	tp.Init(tag)
 	// parse the ssz-max and ssz-size key/value pairs out of the tag
 	tags := tp.GetSSZTags()
 	sszSizes, sizeDefined := tags["ssz-size"]
-	sszMax, maxDefined:= tags["ssz-max"]
+	sszMax, maxDefined := tags["ssz-max"]
 	if !sizeDefined && !maxDefined {
 		return nil, fmt.Errorf("No ssz-size or ssz-max tags found for element. tag=%s", tag)
 	}
@@ -97,6 +113,13 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	}
 	dims := make([]*SSZDimension, ndims)
 	for i := 0; i < ndims; i++ {
+		isbl := false
+		// bitlist can only be the inner-most element by definition
+		if i == ndims-1 {
+			if isBitList(tags) {
+				isbl = true
+			}
+		}
 		var szi, mxi string
 		if len(sizeSplit) > i {
 			szi = sizeSplit[i]
@@ -117,6 +140,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d, tag=%s. err=%s", mxi, i, tag, err)
 			}
 			dims[i] = &SSZDimension{
+				isBitlist: isbl,
 				ListLength:  &m,
 			}
 		default: // szi is not empty or "?"
@@ -125,6 +149,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, tag=%s. err=%s", szi, i, tag, err)
 			}
 			dims[i] = &SSZDimension{
+				isBitlist: isbl,
 				VectorLength:  &s,
 			}
 			continue
@@ -136,6 +161,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 type SSZDimension struct {
 	VectorLength *int
 	ListLength *int
+	isBitlist bool
 }
 
 func (dim *SSZDimension) IsVector() bool {
@@ -144,6 +170,10 @@ func (dim *SSZDimension) IsVector() bool {
 
 func (dim *SSZDimension) IsList() bool {
 	return dim.ListLength != nilInt
+}
+
+func (dim *SSZDimension) IsBitlist() bool {
+	return dim.isBitlist
 }
 
 func (dim *SSZDimension) ListLen() int {
