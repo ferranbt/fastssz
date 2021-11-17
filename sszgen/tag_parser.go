@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -16,28 +17,30 @@ const (
 	tsCloseTick
 )
 
-type TagParser struct {
-	sc     scanner.Scanner
-	buffer string
-}
+func GetSSZTags(tag string) (map[string]string, error) {
+	var lastErr error
+	accumulateError := func(_ *scanner.Scanner, msg string) {
+		lastErr = errors.New(msg)
+	}
 
-func (tp *TagParser) Init(tag string) {
 	sr := strings.NewReader(tag)
-	tp.sc = scanner.Scanner{}
-	tp.sc.Init(sr)
-	tp.sc.Filename = "tag"
-	tp.sc.Mode ^= scanner.ScanRawStrings
-}
+	sc := scanner.Scanner{}
+	sc.Init(sr)
+	sc.Filename = "tag"
+	sc.Mode ^= scanner.ScanRawStrings
+	sc.Error = accumulateError
 
-func (tp TagParser) GetSSZTags() map[string]string {
 	var labelStr string
 	var state tokenState
 	tags := make(map[string]string)
-	for tok := tp.sc.Scan(); tok != scanner.EOF; tok = tp.sc.Scan() {
-		if state == tsCloseTick {
-			panic("undefined behavior when scanning beyond the end of the tag")
+	for tok := sc.Scan(); tok != scanner.EOF; tok = sc.Scan() {
+		if lastErr != nil {
+			return nil, fmt.Errorf("GetSSZTags failed: token scanner error = %s", lastErr)
 		}
-		txt := tp.sc.TokenText()
+		if state == tsCloseTick {
+			return nil, errors.New("GetSSZTags failed: undefined behavior when scanning beyond the end of the tag")
+		}
+		txt := sc.TokenText()
 		switch txt {
 		case "`":
 			if state == tsLabel {
@@ -68,7 +71,7 @@ func (tp TagParser) GetSSZTags() map[string]string {
 			}
 		}
 	}
-	return tags
+	return tags, nil
 }
 
 // cannot compare untyped nil to typed nil
@@ -93,10 +96,11 @@ func isBitList(tags map[string]string) bool {
 }
 
 func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
-	tp := &TagParser{}
-	tp.Init(tag)
 	// parse the ssz-max and ssz-size key/value pairs out of the tag
-	tags := tp.GetSSZTags()
+	tags, err := GetSSZTags(tag)
+	if err != nil {
+		return nil, err
+	}
 	sszSizes, sizeDefined := tags["ssz-size"]
 	sszMax, maxDefined := tags["ssz-max"]
 	if !sizeDefined && !maxDefined {

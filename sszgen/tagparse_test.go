@@ -7,9 +7,10 @@ import (
 
 func TestTokens(t *testing.T) {
 	testTag := "`protobuf:\"bytes,2004,rep,name=historical_roots,json=historicalRoots,proto3\" json:\"historical_roots,omitempty\" ssz-max:\"16777216\" ssz-size:\"?,32\"`"
-	tp := &TagParser{}
-	tp.Init(testTag)
-	tags := tp.GetSSZTags()
+	tags, err := GetSSZTags(testTag)
+	if err != nil {
+		t.Errorf("Unexpected error from GetSSZTags=%s", err)
+	}
 	sszSize, ok := tags["ssz-size"]
 	if !ok {
 		t.Errorf("ssz-size tag not present")
