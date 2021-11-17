@@ -99,6 +99,12 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 // ie within a for loop for a list, the we want to refer to "elem" w/o a receiver variable
 // when not specified, name will be set to "::." + v.name. In the final templating pass,
 // the output formatter replaces all instances of "::" with the receiver variable for the container.
+// appendBytes is a control variable which changes the fastssz.Hasher method used to handle byte slices
+// when it is false, the default behavior is to call PutBytes, which merkleizes the buffer after appending
+// the bytes. when true, the generated code calls AppendBytes32, which appends the bytes to the buffer
+// with padding and leaves the merkleization for a following step. This is because in the case of ByteLists,
+// the length of the list needs to be mixed in as part of the merkleization process, which happens in a separate
+// call to MerkleizeWithMixin.
 func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 	if name == "" {
 		name = "::." + v.name
@@ -136,8 +142,8 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 }`
 			return execTmpl(tmpl, map[string]interface{}{
 				"hashMethod": hMethod,
-				"name": name,
-				"maxLen": v.m,
+				"name":       name,
+				"maxLen":     v.m,
 			})
 		}
 
@@ -198,8 +204,8 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 				map[string]interface{}{"name": name})
 		}
 		return execTmpl(tmpl, map[string]interface{}{
-			"name": name,
-			"num":  v.m,
+			"name":    name,
+			"num":     v.m,
 			"htrCall": htrCall,
 		})
 
