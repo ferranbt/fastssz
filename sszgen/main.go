@@ -90,12 +90,12 @@ func encode(source string, targets []string, output string, includePaths []strin
 	}
 
 	e := &env{
-		include:  include,
-		source:   source,
-		files:    files,
-		objs:     map[string]*Value{},
-		packName: packName,
-		targets:  targets,
+		include:          include,
+		source:           source,
+		files:            files,
+		objs:             map[string]*Value{},
+		packName:         packName,
+		targets:          targets,
 		excludeTypeNames: excludeTypeNames,
 	}
 
@@ -1049,6 +1049,9 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			dims, err := extractSSZDimensions(tags)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse ssz-size tag for bitvector %s, err=%s", name, err)
+			}
+			if len(dims) < 1 {
+				return nil, fmt.Errorf("did not find any ssz tags for the bitvector named %s", name)
 			}
 			tailDim := dims[len(dims)-1] // get last value in case this value is nested within a List/Vector
 			if !tailDim.IsVector() {
