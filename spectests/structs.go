@@ -111,7 +111,7 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [64][32]byte `json:"block_roots" ssz-size:"64"`
+	BlockRoots [64][32]byte `json:"block_roots" ssz-size:"64,32"`
 	StateRoots [][]byte     `json:"state_roots" ssz-size:"64,32"`
 }
 
@@ -132,8 +132,8 @@ type BeaconState struct {
 	Fork                  *Fork              `json:"fork"`
 	LatestBlockHeader     *BeaconBlockHeader `json:"latest_block_header"`
 	BlockRoots            [64][32]byte       `json:"block_roots" ssz-size:"64,32"`
-	StateRoots            [][32]byte         `json:"state_roots" ssz-size:"64"`
-	HistoricalRoots       [][32]byte         `json:"historical_roots" ssz-max:"16777216"`
+	StateRoots            [][32]byte         `json:"state_roots" ssz-size:"64,32"`
+	HistoricalRoots       [][32]byte         `json:"historical_roots" ssz-size:"?,32" ssz-max:"16777216"`
 	Eth1Data              *Eth1Data          `json:"eth1_data"`
 	Eth1DataVotes         []*Eth1Data        `json:"eth1_data_votes" ssz-max:"32"`
 	Eth1DepositIndex      uint64             `json:"eth1_deposit_index"`
@@ -181,7 +181,7 @@ type Transfer struct {
 type BeaconBlockBody struct {
 	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          [32]byte               `json:"graffiti"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
 	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
 	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
@@ -215,24 +215,24 @@ type Interface interface {
 
 type SyncCommittee struct {
 	PubKeys          [][]byte     `json:"pubkeys" ssz-size:"1024,48"`
-	PubKeyAggregates [16][48]byte `json:"pubkey_aggregates"`
+	PubKeyAggregates [16][48]byte `json:"pubkey_aggregates" ssz-size:"16,48"`
 }
 
 type SyncAggregate struct {
 	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"128"`
-	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
+	SyncCommiteeSignature [96]byte `json:"sync_committee_signature" ssz-size:"96"`
 }
 
 // minimal versions
 
 type SyncCommitteeMinimal struct {
 	PubKeys          [][]byte    `json:"pubkeys" ssz-size:"32,48"`
-	PubKeyAggregates [2][48]byte `json:"pubkey_aggregates"`
+	PubKeyAggregates [2][48]byte `json:"pubkey_aggregates" ssz-size:"2,48"`
 }
 
 type SyncAggregateMinimal struct {
 	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"4"`
-	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
+	SyncCommiteeSignature [96]byte `json:"sync_committee_signature" ssz-size:"96"`
 }
 
 type SignedBeaconBlockMinimal struct {
@@ -243,7 +243,7 @@ type SignedBeaconBlockMinimal struct {
 type BeaconBlockBodyMinimal struct {
 	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          [32]byte               `json:"graffiti"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
 	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
 	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`

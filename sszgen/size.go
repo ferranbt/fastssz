@@ -23,10 +23,40 @@ func (e *env) size(name string, v *Value) string {
 
 	str := execTmpl(tmpl, map[string]interface{}{
 		"name":    name,
-		"fixed":   v.n,
+		"fixed":   v.fixedSize(),
 		"dynamic": v.sizeContainer("size", true),
 	})
 	return appendObjSignature(str, v)
+}
+
+func (v *Value) fixedSize() uint64 {
+	switch v.t {
+	case TypeVector:
+		if v.e == nil {
+			panic(fmt.Sprintf("error computing size of empty vector %v for type name=%s", v, v.name))
+		}
+		if v.e.isFixed() {
+			return v.s * v.e.fixedSize()
+		} else {
+			return v.s * bytesPerLengthOffset
+		}
+	case TypeContainer:
+		var fixed uint64
+		for _, f := range v.o {
+			if f.isFixed() {
+				fixed += f.fixedSize()
+			} else {
+				// we don't want variable size objects to recursively calculate their inner sizes
+				fixed += bytesPerLengthOffset
+			}
+		}
+		return fixed
+	default:
+		if !v.isFixed() {
+			return bytesPerLengthOffset
+		}
+		return v.s
+	}
 }
 
 func (v *Value) sizeContainer(name string, start bool) string {
@@ -66,10 +96,10 @@ func (v *Value) size(name string) string {
 		if v.t == TypeContainer {
 			return v.sizeContainer(name, false)
 		}
-		if v.n == 1 {
+		if v.fixedSize() == 1 {
 			return name + "++"
 		}
-		return name + " += " + strconv.Itoa(int(v.n))
+		return name + " += " + strconv.Itoa(int(v.fixedSize()))
 	}
 
 	switch v.t {
@@ -87,7 +117,7 @@ func (v *Value) size(name string) string {
 
 	case TypeVector:
 		if v.e.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.n)
+			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.fixedSize())
 		}
 		v.e.name = v.name + "[ii]"
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
