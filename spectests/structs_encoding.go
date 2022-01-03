@@ -3,6 +3,7 @@
 package spectests
 
 import (
+	"fmt"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/ferranbt/fastssz/spectests/external"
 	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
@@ -1758,6 +1759,7 @@ func (h *HistoricalBatch) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 		}
 		hh.Merkleize(subIndx)
 	}
+	fmt.Println(hh.Hash())
 
 	// Field (1) 'StateRoots'
 	{
@@ -1776,7 +1778,10 @@ func (h *HistoricalBatch) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 		hh.Merkleize(subIndx)
 	}
 
+	fmt.Println(hh.Hash())
+
 	hh.Merkleize(indx)
+	fmt.Println(hh.Hash())
 	return
 }
 

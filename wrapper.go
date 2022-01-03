@@ -139,11 +139,18 @@ func (w *Wrapper) Node() *Node {
 }
 
 func (w *Wrapper) Hash() []byte {
+	w.nodes[len(w.nodes)-1].Show(2)
 	return w.nodes[len(w.nodes)-1].Hash()
 }
 
 func (w *Wrapper) Commit(i int) {
 	w.fillEmptyNodes(i)
+
+	if i == 0 {
+		for _, n := range w.nodes {
+			fmt.Println(n)
+		}
+	}
 	res, err := TreeFromNodes(w.nodes[i:])
 	if err != nil {
 		panic(err)

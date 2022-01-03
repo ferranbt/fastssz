@@ -65,7 +65,7 @@ var codecs = map[string]testCallback{
 	"Eth1Data":          func(config string) codec { return new(Eth1Data) },
 	"Fork":              func(config string) codec { return new(Fork) },
 
-	//"HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
+	"HistoricalBatch":    func(config string) codec { return new(HistoricalBatch) },
 	"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
 	"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
 	"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
@@ -313,6 +313,9 @@ func TestSpecMinimal(t *testing.T) {
 			t.Fatalf("name %s not found", name)
 		}
 
+		if name != "HistoricalBatch" {
+			continue
+		}
 		t.Logf("Process %s %s", name, f)
 		for _, f := range walkPath(t, f) {
 			fmt.Println(f)
