@@ -326,11 +326,8 @@ func nextPowerOfTwo(v uint64) uint {
 }
 
 func getDepth(d uint64) uint8 {
-	if d == 0 {
+	if d <= 0 {
 		return 0
-	}
-	if d == 1 {
-		return 1
 	}
 	i := nextPowerOfTwo(d)
 	return 64 - uint8(bits.LeadingZeros(i)) - 1
