@@ -4,6 +4,31 @@ import (
 	"testing"
 )
 
+func TestDepth(t *testing.T) {
+	cases := []struct {
+		Num uint64
+		Res uint8
+	}{
+		{0, 0},
+		{1, 0},
+		{2, 1},
+		{3, 2},
+		{4, 2},
+		{5, 3},
+		{6, 3},
+		{7, 3},
+		{8, 3},
+		{9, 4},
+		{16, 4},
+		{1024, 10},
+	}
+	for _, c := range cases {
+		if depth := getDepth(c.Num); depth != c.Res {
+			t.Fatalf("num %d, expected %d but found %d", c.Num, c.Res, depth)
+		}
+	}
+}
+
 func TestNextPowerOfTwo(t *testing.T) {
 	cases := []struct {
 		Num, Res uint64
