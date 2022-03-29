@@ -290,11 +290,17 @@ func (a *AttestationData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutBytes(a.BeaconBlockHash[:])
 
 	// Field (3) 'Source'
+	if a.Source == nil {
+		a.Source = new(Checkpoint)
+	}
 	if err = a.Source.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (4) 'Target'
+	if a.Target == nil {
+		a.Target = new(Checkpoint)
+	}
 	if err = a.Target.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -420,11 +426,17 @@ func (a *Attestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutBitlist(a.AggregationBits, 2048)
 
 	// Field (1) 'Data'
+	if a.Data == nil {
+		a.Data = new(AttestationData)
+	}
 	if err = a.Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (2) 'Signature'
+	if a.Signature == nil {
+		a.Signature = new(external.Signature)
+	}
 	if err = a.Signature.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -616,6 +628,9 @@ func (d *Deposit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (1) 'Data'
+	if d.Data == nil {
+		d.Data = new(DepositData)
+	}
 	if err = d.Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -840,6 +855,9 @@ func (i *IndexedAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (1) 'Data'
+	if i.Data == nil {
+		i.Data = new(AttestationData)
+	}
 	if err = i.Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -968,6 +986,9 @@ func (p *PendingAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutBitlist(p.AggregationBits, 2048)
 
 	// Field (1) 'Data'
+	if p.Data == nil {
+		p.Data = new(AttestationData)
+	}
 	if err = p.Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -1330,6 +1351,9 @@ func (s *SignedVoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Exit'
+	if s.Exit == nil {
+		s.Exit = new(VoluntaryExit)
+	}
 	if err = s.Exit.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -1766,11 +1790,17 @@ func (p *ProposerSlashing) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Header1'
+	if p.Header1 == nil {
+		p.Header1 = new(SignedBeaconBlockHeader)
+	}
 	if err = p.Header1.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (1) 'Header2'
+	if p.Header2 == nil {
+		p.Header2 = new(SignedBeaconBlockHeader)
+	}
 	if err = p.Header2.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -2454,11 +2484,17 @@ func (b *BeaconState) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutUint64(b.Slot)
 
 	// Field (3) 'Fork'
+	if b.Fork == nil {
+		b.Fork = new(Fork)
+	}
 	if err = b.Fork.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (4) 'LatestBlockHeader'
+	if b.LatestBlockHeader == nil {
+		b.LatestBlockHeader = new(BeaconBlockHeader)
+	}
 	if err = b.LatestBlockHeader.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -2500,6 +2536,9 @@ func (b *BeaconState) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (8) 'Eth1Data'
+	if b.Eth1Data == nil {
+		b.Eth1Data = new(Eth1Data)
+	}
 	if err = b.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -2622,16 +2661,25 @@ func (b *BeaconState) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutBytes(b.JustificationBits)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
+	if b.PreviousJustifiedCheckpoint == nil {
+		b.PreviousJustifiedCheckpoint = new(Checkpoint)
+	}
 	if err = b.PreviousJustifiedCheckpoint.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
+	if b.CurrentJustifiedCheckpoint == nil {
+		b.CurrentJustifiedCheckpoint = new(Checkpoint)
+	}
 	if err = b.CurrentJustifiedCheckpoint.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
+	if b.FinalizedCheckpoint == nil {
+		b.FinalizedCheckpoint = new(Checkpoint)
+	}
 	if err = b.FinalizedCheckpoint.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -2652,11 +2700,17 @@ func (b *BeaconState) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (22) 'CurrentSyncCommitee'
+	if b.CurrentSyncCommitee == nil {
+		b.CurrentSyncCommitee = new(SyncCommitteeMinimal)
+	}
 	if err = b.CurrentSyncCommitee.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
 	// Field (23) 'NextSyncCommittee'
+	if b.NextSyncCommittee == nil {
+		b.NextSyncCommittee = new(SyncCommitteeMinimal)
+	}
 	if err = b.NextSyncCommittee.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -3392,6 +3446,9 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutBytes(b.RandaoReveal)
 
 	// Field (1) 'Eth1Data'
+	if b.Eth1Data == nil {
+		b.Eth1Data = new(Eth1Data)
+	}
 	if err = b.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -3480,6 +3537,9 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (8) 'SyncAggregate'
+	if b.SyncAggregate == nil {
+		b.SyncAggregate = new(SyncAggregate)
+	}
 	if err = b.SyncAggregate.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -3556,6 +3616,9 @@ func (s *SignedBeaconBlockHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Header'
+	if s.Header == nil {
+		s.Header = new(BeaconBlockHeader)
+	}
 	if err = s.Header.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -4610,6 +4673,9 @@ func (b *BeaconBlockBodyMinimal) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.PutBytes(b.RandaoReveal)
 
 	// Field (1) 'Eth1Data'
+	if b.Eth1Data == nil {
+		b.Eth1Data = new(Eth1Data)
+	}
 	if err = b.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -4698,6 +4764,9 @@ func (b *BeaconBlockBodyMinimal) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (8) 'SyncAggregate'
+	if b.SyncAggregate == nil {
+		b.SyncAggregate = new(SyncAggregateMinimal)
+	}
 	if err = b.SyncAggregate.HashTreeRootWith(hh); err != nil {
 		return
 	}

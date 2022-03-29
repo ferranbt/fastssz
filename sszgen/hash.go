@@ -11,8 +11,8 @@ func (e *env) hashTreeRoot(name string, v *Value) string {
 	func (:: *{{.name}}) HashTreeRoot() ([32]byte, error) {
 		return ssz.HashWithDefaultHasher(::)
 	}
-	
-	// HashTreeRootWith ssz hashes the {{.name}} object with a hasher	
+
+	// HashTreeRootWith ssz hashes the {{.name}} object with a hasher
 	func (:: *{{.name}}) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		{{.hashTreeRoot}}
 		return
@@ -216,7 +216,25 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 
 func (v *Value) hashTreeRootContainer(start bool) string {
 	if !start {
-		return fmt.Sprintf("if err = ::.%s.HashTreeRootWith(hh); err != nil {\n return\n}", v.name)
+		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
+			::.{{.name}} = new({{.obj}})
+		}
+		{{ end }}if err = ::.{{.name}}.HashTreeRootWith(hh); err != nil {
+			return
+		}`
+		// validate only for fixed structs
+		check := v.isFixed()
+		if v.isListElem() {
+			check = false
+		}
+		if v.noPtr {
+			check = false
+		}
+		return execTmpl(tmpl, map[string]interface{}{
+			"name":  v.name,
+			"obj":   v.objRef(),
+			"check": check,
+		})
 	}
 
 	out := []string{}
