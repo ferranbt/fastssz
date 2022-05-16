@@ -8,4 +8,4 @@ build-spec-tests-tree:
 
 .PHONY:
 get-spec-tests:
-	./scripts/download-spec-tests.sh v1.1.0
+	./scripts/download-spec-tests.sh v1.1.10

@@ -188,6 +188,7 @@ type BeaconBlockBody struct {
 	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
 	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
 	SyncAggregate     *SyncAggregate         `json:"sync_aggregate"`
+	ExecutionPayload  *ExecutionPayload      `json:"execution_payload"`
 }
 
 type SignedBeaconBlockHeader struct {
@@ -258,4 +259,23 @@ type BeaconBlockMinimal struct {
 	ParentRoot    []byte                  `json:"parent_root" ssz-size:"32"`
 	StateRoot     []byte                  `json:"state_root" ssz-size:"32"`
 	Body          *BeaconBlockBodyMinimal `json:"body"`
+}
+
+// bellatrix
+
+type ExecutionPayload struct {
+	ParentHash    [32]byte  `ssz-size:"32" json:"parent_hash"`
+	FeeRecipient  [20]byte  `ssz-size:"20" json:"fee_recipient"`
+	StateRoot     [32]byte  `ssz-size:"32" json:"state_root"`
+	ReceiptsRoot  [32]byte  `ssz-size:"32" json:"receipts_root"`
+	LogsBloom     [256]byte `ssz-size:"256" json:"logs_bloom"`
+	PrevRandao    [32]byte  `ssz-size:"32" json:"prev_randao"`
+	BlockNumber   uint64    `json:"block_number"`
+	GasLimit      uint64    `json:"gas_limit"`
+	GasUsed       uint64    `json:"gas_used"`
+	Timestamp     uint64    `json:"timestamp"`
+	ExtraData     []byte    `ssz-max:"32" json:"extra_data"`
+	BaseFeePerGas [32]byte  `ssz-size:"32" json:"base_fee_per_gas"`
+	BlockHash     [32]byte  `ssz-size:"32" json:"block_hash"`
+	Transactions  [][]byte  `ssz-max:"1048576,1073741824" json:"transactions"`
 }
