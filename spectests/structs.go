@@ -125,38 +125,6 @@ type AttesterSlashing struct {
 	Attestation2 *IndexedAttestation `json:"attestation_2"`
 }
 
-/*
-type BeaconState struct {
-	GenesisTime           uint64             `json:"genesis_time"`
-	GenesisValidatorsRoot []byte             `json:"genesis_validators_root" ssz-size:"32"`
-	Slot                  uint64             `json:"slot"`
-	Fork                  *Fork              `json:"fork"`
-	LatestBlockHeader     *BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots            [64][32]byte       `json:"block_roots" ssz-size:"64,32"`
-	StateRoots            [][32]byte         `json:"state_roots" ssz-size:"64,32"`
-	HistoricalRoots       [][32]byte         `json:"historical_roots" ssz-size:"?,32" ssz-max:"16777216"`
-	Eth1Data              *Eth1Data          `json:"eth1_data"`
-	Eth1DataVotes         []*Eth1Data        `json:"eth1_data_votes" ssz-max:"32"`
-	Eth1DepositIndex      uint64             `json:"eth1_deposit_index"`
-	Validators            []*Validator       `json:"validators" ssz-max:"1099511627776"`
-	Balances              []uint64           `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes           [][]byte           `json:"randao_mixes" ssz-size:"64,32"`
-	Slashings             []uint64           `json:"slashings" ssz-size:"64"`
-
-	PreviousEpochParticipation []uint8 `json:"previous_epoch_participation" ssz-max:"1099511627776"`
-	CurrentEpochParticipation  []uint8 `json:"current_epoch_participation" ssz-max:"1099511627776"`
-	JustificationBits          []byte  `json:"justification_bits" ssz-size:"1"`
-
-	PreviousJustifiedCheckpoint *Checkpoint `json:"previous_justified_checkpoint"`
-	CurrentJustifiedCheckpoint  *Checkpoint `json:"current_justified_checkpoint"`
-	FinalizedCheckpoint         *Checkpoint `json:"finalized_checkpoint"`
-
-	InactivityScores    []uint64              `json:"inactivity_scores" ssz-max:"1099511627776"`
-	CurrentSyncCommitee *SyncCommitteeMinimal `json:"current_sync_committee"`
-	NextSyncCommittee   *SyncCommitteeMinimal `json:"next_sync_committee"`
-}
-*/
-
 type BeaconBlock struct {
 	Slot          uint64                 `json:"slot"`
 	ProposerIndex uint64                 `json:"proposer_index"`
