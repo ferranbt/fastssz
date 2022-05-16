@@ -33,7 +33,12 @@ func customHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, 
 		if !ok {
 			return nil, fmt.Errorf("failed to decode '%s' as big int", raw)
 		}
-		elem = num.Bytes()
+		// bytes have to be in little endian format
+		bigEndian := num.Bytes()
+		elem = make([]byte, len(bigEndian))
+		for i := 0; i < len(bigEndian); i++ {
+			elem[i] = bigEndian[len(bigEndian)-1-i]
+		}
 	} else {
 		var err error
 		if elem, err = hex.DecodeString(raw[2:]); err != nil {

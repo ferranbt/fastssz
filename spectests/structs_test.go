@@ -38,21 +38,19 @@ var codecs = map[string]testCallback{
 	"AggregateAndProof": func(config string) codec { return new(AggregateAndProof) },
 	"Attestation":       func(config string) codec { return new(Attestation) },
 	"AttesterSlashing":  func(config string) codec { return new(AttesterSlashing) },
-	/*
-		"BeaconBlock": func(config string) codec {
-			if config == "minimal" {
-				return new(BeaconBlockMinimal)
-			}
-			return new(BeaconBlock)
-		},
-		"BeaconBlockBody": func(config string) codec {
-			if config == "minimal" {
-				return new(BeaconBlockBodyMinimal)
-			}
-			return new(BeaconBlockBody)
-		},
-		"BeaconBlockHeader":  func(config string) codec { return new(BeaconBlockHeader) },
-	*/
+	"BeaconBlock": func(config string) codec {
+		if config == "minimal" {
+			return new(BeaconBlockMinimal)
+		}
+		return new(BeaconBlock)
+	},
+	"BeaconBlockBody": func(config string) codec {
+		if config == "minimal" {
+			return new(BeaconBlockBodyMinimal)
+		}
+		return new(BeaconBlockBody)
+	},
+	"BeaconBlockHeader":  func(config string) codec { return new(BeaconBlockHeader) },
 	"Deposit":            func(config string) codec { return new(Deposit) },
 	"DepositData":        func(config string) codec { return new(DepositData) },
 	"DepositMessage":     func(config string) codec { return new(DepositMessage) },
@@ -63,14 +61,12 @@ var codecs = map[string]testCallback{
 	"IndexedAttestation": func(config string) codec { return new(IndexedAttestation) },
 	"PendingAttestation": func(config string) codec { return new(PendingAttestation) },
 	"ProposerSlashing":   func(config string) codec { return new(ProposerSlashing) },
-	/*
-		"SignedBeaconBlock": func(config string) codec {
-			if config == "minimal" {
-				return new(SignedBeaconBlockMinimal)
-			}
-			return new(SignedBeaconBlock)
-		},
-	*/
+	"SignedBeaconBlock": func(config string) codec {
+		if config == "minimal" {
+			return new(SignedBeaconBlockMinimal)
+		}
+		return new(SignedBeaconBlock)
+	},
 	"SignedBeaconBlockHeader": func(config string) codec { return new(SignedBeaconBlockHeader) },
 	"SignedVoluntaryExit":     func(config string) codec { return new(SignedVoluntaryExit) },
 	"SigningRoot":             func(config string) codec { return new(SigningRoot) },
@@ -324,7 +320,6 @@ func TestSpecMainnet(t *testing.T) {
 		base, ok := codecs[name]
 		if !ok {
 			continue
-			t.Fatalf("name %s not found", name)
 		}
 
 		t.Logf("Process %s %s", name, f)
