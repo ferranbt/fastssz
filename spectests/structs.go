@@ -111,8 +111,8 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [64][32]byte `json:"block_roots" ssz-size:"64,32"`
-	StateRoots [][]byte     `json:"state_roots" ssz-size:"64,32"`
+	BlockRoots [][32]byte `json:"block_roots" ssz-size:"8192,32"`
+	StateRoots [][32]byte `json:"state_roots" ssz-size:"8192,32"`
 }
 
 type ProposerSlashing struct {
@@ -125,6 +125,7 @@ type AttesterSlashing struct {
 	Attestation2 *IndexedAttestation `json:"attestation_2"`
 }
 
+/*
 type BeaconState struct {
 	GenesisTime           uint64             `json:"genesis_time"`
 	GenesisValidatorsRoot []byte             `json:"genesis_validators_root" ssz-size:"32"`
@@ -154,13 +155,14 @@ type BeaconState struct {
 	CurrentSyncCommitee *SyncCommitteeMinimal `json:"current_sync_committee"`
 	NextSyncCommittee   *SyncCommitteeMinimal `json:"next_sync_committee"`
 }
+*/
 
 type BeaconBlock struct {
-	Slot          uint64           `json:"slot"`
-	ProposerIndex uint64           `json:"proposer_index"`
-	ParentRoot    []byte           `json:"parent_root" ssz-size:"32"`
-	StateRoot     []byte           `json:"state_root" ssz-size:"32"`
-	Body          *BeaconBlockBody `json:"body"`
+	Slot          uint64                 `json:"slot"`
+	ProposerIndex uint64                 `json:"proposer_index"`
+	ParentRoot    []byte                 `json:"parent_root" ssz-size:"32"`
+	StateRoot     []byte                 `json:"state_root" ssz-size:"32"`
+	Body          *BeaconBlockBodyPhase0 `json:"body"`
 }
 
 type SignedBeaconBlock struct {
@@ -178,7 +180,30 @@ type Transfer struct {
 	Signature []byte `json:"signature" ssz-size:"96"`
 }
 
-type BeaconBlockBody struct {
+type BeaconBlockBodyPhase0 struct {
+	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
+	Eth1Data          *Eth1Data              `json:"eth1_data"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
+	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
+	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
+	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
+	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+}
+
+type BeaconBlockBodyAltair struct {
+	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
+	Eth1Data          *Eth1Data              `json:"eth1_data"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
+	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
+	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
+	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
+	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+	SyncAggregate     *SyncAggregate         `json:"sync_aggregate"`
+}
+
+type BeaconBlockBodyBellatrix struct {
 	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
 	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
@@ -226,6 +251,7 @@ type SyncAggregate struct {
 
 // minimal versions
 
+/*
 type SyncCommitteeMinimal struct {
 	PubKeys          [][]byte    `json:"pubkeys" ssz-size:"32,48"`
 	PubKeyAggregates [2][48]byte `json:"pubkey_aggregates" ssz-size:"2,48"`
@@ -260,6 +286,7 @@ type BeaconBlockMinimal struct {
 	StateRoot     []byte                  `json:"state_root" ssz-size:"32"`
 	Body          *BeaconBlockBodyMinimal `json:"body"`
 }
+*/
 
 // bellatrix
 

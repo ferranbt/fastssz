@@ -16,5 +16,4 @@ function download {
     rm $OUTPUT
 }
 
-download "minimal"
 download "mainnet"
