@@ -9,7 +9,24 @@ import (
 	"github.com/ferranbt/fastssz/sszgen/generator"
 )
 
+const version = "0.1.1"
+
 func main() {
+	args := os.Args[1:]
+
+	var cmd string
+	if len(args) != 0 {
+		cmd = args[0]
+	}
+	switch cmd {
+	case "version":
+		fmt.Println(version)
+	default:
+		generate()
+	}
+}
+
+func generate() {
 	var source string
 	var objsStr string
 	var output string
