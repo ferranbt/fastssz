@@ -284,6 +284,7 @@ func min(i, j int) int {
 	return j
 }
 
+/*
 func TestSpecMinimal(t *testing.T) {
 	files := readDir(t, filepath.Join(testsPath, "/minimal/altair/ssz_static"))
 	for _, f := range files {
@@ -302,6 +303,7 @@ func TestSpecMinimal(t *testing.T) {
 		}
 	}
 }
+*/
 
 func TestSpecMainnet(t *testing.T) {
 	files := readDir(t, filepath.Join(testsPath, "/mainnet/altair/ssz_static"))
