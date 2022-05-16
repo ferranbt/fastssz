@@ -1,4 +1,4 @@
-package main
+package generator
 
 func (v *Value) validate() string {
 	switch v.t {

@@ -1,8 +1,7 @@
-package main
+package generator
 
 import (
 	"testing"
-
 )
 
 func TestTokens(t *testing.T) {
@@ -45,7 +44,7 @@ func TestListOfVector(t *testing.T) {
 	}
 }
 
-func TestWildcardSSZSize(t *testing.T)  {
+func TestWildcardSSZSize(t *testing.T) {
 	tag := "`ssz-max:\"16777216\" ssz-size:\"?,32\"`"
 	dims, err := extractSSZDimensions(tag)
 	if err != nil {
@@ -98,7 +97,7 @@ func TestListOfList(t *testing.T) {
 		t.Errorf("Expected neither dimension to be vector, but the second dimension is")
 	}
 	if dims[0].ListLen() != 1048576 {
-		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1048576 , dims[0].ListLen())
+		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1048576, dims[0].ListLen())
 	}
 	if dims[1].ListLen() != 1073741824 {
 		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1073741824, dims[1].ListLen())
