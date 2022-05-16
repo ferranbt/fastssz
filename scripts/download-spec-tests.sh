@@ -9,12 +9,11 @@ mkdir $REPO_NAME
 
 function download {
     OUTPUT=$1.tar.gz
-    DOWNLOAD_URL=https://github.com/protolambda/$REPO_NAME/releases/download/$VERSION/$OUTPUT
+    DOWNLOAD_URL=https://github.com/ethereum/$REPO_NAME/releases/download/$VERSION/$OUTPUT
     echo $DOWNLOAD_URL
     wget $DOWNLOAD_URL -O $OUTPUT
     tar -xzf $OUTPUT -C $REPO_NAME
     rm $OUTPUT
 }
 
-download "minimal"
 download "mainnet"
