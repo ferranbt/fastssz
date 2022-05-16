@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"fmt"
@@ -145,7 +145,7 @@ func (v *Value) unmarshalList() string {
 	v.e.name = v.name + "[indx]"
 
 	data := map[string]interface{}{
-		"max":      v.s,
+		"max":       v.s,
 		"create":    v.createSlice(true),
 		"unmarshal": v.e.unmarshal("buf"),
 	}
@@ -246,10 +246,10 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			offset := "o" + strconv.Itoa(indx)
 
 			data := map[string]interface{}{
-				"indx":   indx,
-				"name":   i.name,
-				"offset": offset,
-				"dst":    dst,
+				"indx":             indx,
+				"name":             i.name,
+				"offset":           offset,
+				"dst":              dst,
 				"firstOffsetCheck": firstOffsetCheck,
 			}
 
