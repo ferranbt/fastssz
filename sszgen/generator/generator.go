@@ -483,6 +483,10 @@ type astStruct struct {
 	isRef    bool
 }
 
+func (a *astStruct) isAlias() bool {
+	return a.typ != nil
+}
+
 type astResult struct {
 	objs     []*astStruct
 	funcs    []string
@@ -563,7 +567,7 @@ func isSpecificFunc(funcDecl *ast.FuncDecl, in, out []string) bool {
 			if err := format.Node(&buf, fset, typ); err != nil {
 				panic(err)
 			}
-			if string(buf.Bytes()) != arg {
+			if buf.String() != arg {
 				return false
 			}
 		}
@@ -757,6 +761,11 @@ func (e *env) generateIR() error {
 	}
 
 	for _, obj := range e.raw {
+		// If the user does not want to generate a struct we should skip it right away
+		if e.excludeTypeNames[obj.name] {
+			continue
+		}
+
 		name := obj.name
 
 		var valid bool
@@ -914,7 +923,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				}
 				a, err := strconv.ParseUint(arrayLen.Value, 0, 64)
 				if err != nil {
-					return nil, fmt.Errorf("Could not parse array length for field %s", name)
+					return nil, fmt.Errorf("could not parse array length for field %s", name)
 				}
 				astSize = &a
 			}
@@ -926,7 +935,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					return nil, fmt.Errorf("unexpected type for fixed size array, name=%s, type=%s", name, collection.t.String())
 				}
 				if collection.s != *astSize {
-					return nil, fmt.Errorf("Unexpected mismatch between ssz-size and array fixed size, name=%s, ssz-size=%d, fixed=%d", name, collection.s, *astSize)
+					return nil, fmt.Errorf("unexpected mismatch between ssz-size and array fixed size, name=%s, ssz-size=%d, fixed=%d", name, collection.s, *astSize)
 				}
 			}
 
