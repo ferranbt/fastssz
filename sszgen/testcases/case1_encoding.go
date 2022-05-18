@@ -114,7 +114,7 @@ func (c *Case1B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset += len(c.Bar)
 
 	// Field (0) 'Bar'
-	if len(c.Bar) > 2048 {
+	if len(c.Bar) > 32 {
 		err = ssz.ErrBytesLength
 		return
 	}
@@ -146,7 +146,7 @@ func (c *Case1B) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Bar'
 	{
 		buf = tail[o0:]
-		if len(buf) > 2048 {
+		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
 		if cap(c.Bar) == 0 {
@@ -180,12 +180,12 @@ func (c *Case1B) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	{
 		elemIndx := hh.Index()
 		byteLen := uint64(len(c.Bar))
-		if byteLen > 2048 {
+		if byteLen > 32 {
 			err = ssz.ErrIncorrectListSize
 			return
 		}
 		hh.PutBytes(c.Bar)
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (2048+31)/32)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (32+31)/32)
 	}
 
 	hh.Merkleize(indx)

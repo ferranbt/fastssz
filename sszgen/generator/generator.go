@@ -817,7 +817,12 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		}
 		v.name = name
 		v.obj = name
-		e.objs[name] = v
+
+		if !raw.isAlias() {
+			// alias objects have to be recreated every time and cannot be reused
+			// since they only define the type
+			e.objs[name] = v
+		}
 	}
 	return v.copy(), nil
 }
