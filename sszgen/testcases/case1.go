@@ -8,6 +8,6 @@ type Case1A struct {
 	Foo Bytes `ssz-max:"2048"`
 }
 
-type Case2A struct {
+type Case1B struct {
 	Bar Bytes `ssz-max:"32"`
 }
