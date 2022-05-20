@@ -3,6 +3,7 @@ package ssz
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"reflect"
 	"strings"
 
@@ -24,13 +25,27 @@ func customHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, 
 	}
 
 	raw := data.(string)
+
+	var elem []byte
 	if !strings.HasPrefix(raw, "0x") {
-		return nil, fmt.Errorf("0x prefix not found")
+		// number as big int
+		num, ok := new(big.Int).SetString(raw, 10)
+		if !ok {
+			return nil, fmt.Errorf("failed to decode '%s' as big int", raw)
+		}
+		// bytes have to be in little endian format
+		bigEndian := num.Bytes()
+		elem = make([]byte, len(bigEndian))
+		for i := 0; i < len(bigEndian); i++ {
+			elem[i] = bigEndian[len(bigEndian)-1-i]
+		}
+	} else {
+		var err error
+		if elem, err = hex.DecodeString(raw[2:]); err != nil {
+			return nil, err
+		}
 	}
-	elem, err := hex.DecodeString(raw[2:])
-	if err != nil {
-		return nil, err
-	}
+
 	if isByteSlice(t) {
 		// []byte
 		return elem, nil
@@ -67,10 +82,12 @@ func UnmarshalSSZTest(content []byte, result interface{}) error {
 		return err
 	}
 
+	metadata := &mapstructure.Metadata{}
 	dc := &mapstructure.DecoderConfig{
 		Result:     result,
 		DecodeHook: customHook,
 		TagName:    "json",
+		Metadata:   metadata,
 	}
 	ms, err := mapstructure.NewDecoder(dc)
 	if err != nil {
@@ -78,6 +95,9 @@ func UnmarshalSSZTest(content []byte, result interface{}) error {
 	}
 	if err = ms.Decode(source); err != nil {
 		return err
+	}
+	if len(metadata.Unused) != 0 {
+		return fmt.Errorf("some keys not used: %v", metadata.Unused)
 	}
 	return nil
 }

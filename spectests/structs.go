@@ -111,8 +111,8 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [64][32]byte `json:"block_roots" ssz-size:"64"`
-	StateRoots [][]byte     `json:"state_roots" ssz-size:"64,32"`
+	BlockRoots [][32]byte `json:"block_roots" ssz-size:"8192,32"`
+	StateRoots [][32]byte `json:"state_roots" ssz-size:"8192,32"`
 }
 
 type ProposerSlashing struct {
@@ -125,42 +125,12 @@ type AttesterSlashing struct {
 	Attestation2 *IndexedAttestation `json:"attestation_2"`
 }
 
-type BeaconState struct {
-	GenesisTime           uint64             `json:"genesis_time"`
-	GenesisValidatorsRoot []byte             `json:"genesis_validators_root" ssz-size:"32"`
-	Slot                  uint64             `json:"slot"`
-	Fork                  *Fork              `json:"fork"`
-	LatestBlockHeader     *BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots            [64][32]byte       `json:"block_roots" ssz-size:"64,32"`
-	StateRoots            [][32]byte         `json:"state_roots" ssz-size:"64"`
-	HistoricalRoots       [][32]byte         `json:"historical_roots" ssz-max:"16777216"`
-	Eth1Data              *Eth1Data          `json:"eth1_data"`
-	Eth1DataVotes         []*Eth1Data        `json:"eth1_data_votes" ssz-max:"32"`
-	Eth1DepositIndex      uint64             `json:"eth1_deposit_index"`
-	Validators            []*Validator       `json:"validators" ssz-max:"1099511627776"`
-	Balances              []uint64           `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes           [][]byte           `json:"randao_mixes" ssz-size:"64,32"`
-	Slashings             []uint64           `json:"slashings" ssz-size:"64"`
-
-	PreviousEpochParticipation []uint8 `json:"previous_epoch_participation" ssz-max:"1099511627776"`
-	CurrentEpochParticipation  []uint8 `json:"current_epoch_participation" ssz-max:"1099511627776"`
-	JustificationBits          []byte  `json:"justification_bits" ssz-size:"1"`
-
-	PreviousJustifiedCheckpoint *Checkpoint `json:"previous_justified_checkpoint"`
-	CurrentJustifiedCheckpoint  *Checkpoint `json:"current_justified_checkpoint"`
-	FinalizedCheckpoint         *Checkpoint `json:"finalized_checkpoint"`
-
-	InactivityScores    []uint64              `json:"inactivity_scores" ssz-max:"1099511627776"`
-	CurrentSyncCommitee *SyncCommitteeMinimal `json:"current_sync_committee"`
-	NextSyncCommittee   *SyncCommitteeMinimal `json:"next_sync_committee"`
-}
-
 type BeaconBlock struct {
-	Slot          uint64           `json:"slot"`
-	ProposerIndex uint64           `json:"proposer_index"`
-	ParentRoot    []byte           `json:"parent_root" ssz-size:"32"`
-	StateRoot     []byte           `json:"state_root" ssz-size:"32"`
-	Body          *BeaconBlockBody `json:"body"`
+	Slot          uint64                 `json:"slot"`
+	ProposerIndex uint64                 `json:"proposer_index"`
+	ParentRoot    []byte                 `json:"parent_root" ssz-size:"32"`
+	StateRoot     []byte                 `json:"state_root" ssz-size:"32"`
+	Body          *BeaconBlockBodyPhase0 `json:"body"`
 }
 
 type SignedBeaconBlock struct {
@@ -178,16 +148,40 @@ type Transfer struct {
 	Signature []byte `json:"signature" ssz-size:"96"`
 }
 
-type BeaconBlockBody struct {
+type BeaconBlockBodyPhase0 struct {
 	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
 	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          [32]byte               `json:"graffiti"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
+	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
+	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
+	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
+	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+}
+
+type BeaconBlockBodyAltair struct {
+	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
+	Eth1Data          *Eth1Data              `json:"eth1_data"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
 	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
 	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
 	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
 	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
 	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
 	SyncAggregate     *SyncAggregate         `json:"sync_aggregate"`
+}
+
+type BeaconBlockBodyBellatrix struct {
+	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
+	Eth1Data          *Eth1Data              `json:"eth1_data"`
+	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
+	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
+	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
+	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
+	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
+	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
+	SyncAggregate     *SyncAggregate         `json:"sync_aggregate"`
+	ExecutionPayload  *ExecutionPayload      `json:"execution_payload"`
 }
 
 type SignedBeaconBlockHeader struct {
@@ -214,48 +208,30 @@ type Interface interface {
 }
 
 type SyncCommittee struct {
-	PubKeys          [][]byte     `json:"pubkeys" ssz-size:"1024,48"`
-	PubKeyAggregates [16][48]byte `json:"pubkey_aggregates"`
+	PubKeys         [][]byte `json:"pubkeys" ssz-size:"512,48"`
+	AggregatePubKey [48]byte `json:"aggregate_pubkey" ssz-size:"48"`
 }
 
 type SyncAggregate struct {
-	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"128"`
-	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
+	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"64"`
+	SyncCommiteeSignature [96]byte `json:"sync_committee_signature" ssz-size:"96"`
 }
 
-// minimal versions
+// bellatrix
 
-type SyncCommitteeMinimal struct {
-	PubKeys          [][]byte    `json:"pubkeys" ssz-size:"32,48"`
-	PubKeyAggregates [2][48]byte `json:"pubkey_aggregates"`
-}
-
-type SyncAggregateMinimal struct {
-	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"4"`
-	SyncCommiteeSignature [96]byte `json:"sync_committee_signature"`
-}
-
-type SignedBeaconBlockMinimal struct {
-	Block     *BeaconBlockMinimal `json:"message"`
-	Signature []byte              `json:"signature" ssz-size:"96"`
-}
-
-type BeaconBlockBodyMinimal struct {
-	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
-	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          [32]byte               `json:"graffiti"`
-	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
-	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
-	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
-	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
-	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
-	SyncAggregate     *SyncAggregateMinimal  `json:"sync_aggregate"`
-}
-
-type BeaconBlockMinimal struct {
-	Slot          uint64                  `json:"slot"`
-	ProposerIndex uint64                  `json:"proposer_index"`
-	ParentRoot    []byte                  `json:"parent_root" ssz-size:"32"`
-	StateRoot     []byte                  `json:"state_root" ssz-size:"32"`
-	Body          *BeaconBlockBodyMinimal `json:"body"`
+type ExecutionPayload struct {
+	ParentHash    [32]byte  `ssz-size:"32" json:"parent_hash"`
+	FeeRecipient  [20]byte  `ssz-size:"20" json:"fee_recipient"`
+	StateRoot     [32]byte  `ssz-size:"32" json:"state_root"`
+	ReceiptsRoot  [32]byte  `ssz-size:"32" json:"receipts_root"`
+	LogsBloom     [256]byte `ssz-size:"256" json:"logs_bloom"`
+	PrevRandao    [32]byte  `ssz-size:"32" json:"prev_randao"`
+	BlockNumber   uint64    `json:"block_number"`
+	GasLimit      uint64    `json:"gas_limit"`
+	GasUsed       uint64    `json:"gas_used"`
+	Timestamp     uint64    `json:"timestamp"`
+	ExtraData     []byte    `ssz-max:"32" json:"extra_data"`
+	BaseFeePerGas [32]byte  `ssz-size:"32" json:"base_fee_per_gas"`
+	BlockHash     [32]byte  `ssz-size:"32" json:"block_hash"`
+	Transactions  [][]byte  `ssz-max:"1048576,1073741824" ssz-size:"?,?" json:"transactions"`
 }

@@ -94,7 +94,7 @@ func (h *Hasher) Reset() {
 	h.hash.Reset()
 }
 
-func (h *Hasher) appendBytes32(b []byte) {
+func (h *Hasher) AppendBytes32(b []byte) {
 	h.buf = append(h.buf, b...)
 	if rest := len(b) % 32; rest != 0 {
 		// pad zero bytes to the left
@@ -106,26 +106,26 @@ func (h *Hasher) appendBytes32(b []byte) {
 func (h *Hasher) PutUint64(i uint64) {
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, i)
-	h.appendBytes32(buf)
+	h.AppendBytes32(buf)
 }
 
 // PutUint32 appends a uint32 in 32 bytes
 func (h *Hasher) PutUint32(i uint32) {
 	buf := make([]byte, 4)
 	binary.LittleEndian.PutUint32(buf, i)
-	h.appendBytes32(buf)
+	h.AppendBytes32(buf)
 }
 
 // PutUint16 appends a uint16 in 32 bytes
 func (h *Hasher) PutUint16(i uint16) {
 	buf := make([]byte, 2)
 	binary.LittleEndian.PutUint16(buf, i)
-	h.appendBytes32(buf)
+	h.AppendBytes32(buf)
 }
 
 // PutUint16 appends a uint16 in 32 bytes
 func (h *Hasher) PutUint8(i uint8) {
-	h.appendBytes32([]byte{byte(i)})
+	h.AppendBytes32([]byte{byte(i)})
 }
 
 func CalculateLimit(maxCapacity, numItems, size uint64) uint64 {
@@ -225,7 +225,7 @@ func (h *Hasher) PutBitlist(bb []byte, maxSize uint64) {
 
 	// merkleize the content with mix in length
 	indx := h.Index()
-	h.appendBytes32(h.tmp)
+	h.AppendBytes32(h.tmp)
 	h.MerkleizeWithMixin(indx, size, (maxSize+255)/256)
 }
 
@@ -241,14 +241,14 @@ func (h *Hasher) PutBool(b bool) {
 // PutBytes appends bytes
 func (h *Hasher) PutBytes(b []byte) {
 	if len(b) <= 32 {
-		h.appendBytes32(b)
+		h.AppendBytes32(b)
 		return
 	}
 
 	// if the bytes are longer than 32 we have to
 	// merkleize the content
 	indx := h.Index()
-	h.appendBytes32(b)
+	h.AppendBytes32(b)
 	h.Merkleize(indx)
 }
 
@@ -330,11 +330,8 @@ func nextPowerOfTwo(v uint64) uint {
 }
 
 func getDepth(d uint64) uint8 {
-	if d == 0 {
+	if d <= 1 {
 		return 0
-	}
-	if d == 1 {
-		return 1
 	}
 	i := nextPowerOfTwo(d)
 	return 64 - uint8(bits.LeadingZeros(i)) - 1

@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func (e *env) marshal(name string, v *Value) string {
 	}
 	if !v.isFixed() {
 		// offset is the position where the offset starts
-		data["offset"] = fmt.Sprintf("offset := int(%d)\n", v.n)
+		data["offset"] = fmt.Sprintf("offset := int(%d)\n", v.fixedSize())
 	}
 	str := execTmpl(tmpl, data)
 	return appendObjSignature(str, v)
@@ -159,7 +159,7 @@ func (v *Value) marshalContainer(start bool) string {
 		})
 	}
 
-	offset := v.n
+	offset := v.fixedSize()
 	out := []string{}
 
 	for indx, i := range v.o {
@@ -170,7 +170,7 @@ func (v *Value) marshalContainer(start bool) string {
 		} else {
 			// write the offset
 			str = fmt.Sprintf("// Offset (%d) '%s'\ndst = ssz.WriteOffset(dst, offset)\n%s\n", indx, i.name, i.size("offset"))
-			offset += i.n
+			offset += i.fixedSize()
 		}
 		out = append(out, str)
 	}

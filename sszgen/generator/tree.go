@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"fmt"
@@ -84,8 +84,8 @@ func (v *Value) getTree() string {
 			name = "::." + v.name
 		}
 
-		bitLen := v.n * 8
-		return fmt.Sprintf("w.AddUint%d(%s)", bitLen, name)
+		method := uintVToName(v)
+		return fmt.Sprintf("w.Add%s(%s)", method, name)
 
 	case TypeBitList:
 		panic("unimplemented")
