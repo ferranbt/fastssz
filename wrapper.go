@@ -35,6 +35,11 @@ func (w *Wrapper) AppendUint8(i uint8) {
 	w.buf = MarshalUint8(w.buf, i)
 }
 
+func (w *Wrapper) AppendBytes32(b []byte) {
+	w.buf = append(w.buf, b...)
+	w.FillUpTo32()
+}
+
 func (w *Wrapper) FillUpTo32() {
 	// pad zero bytes to the left
 	if rest := len(w.buf) % 32; rest != 0 {
@@ -147,8 +152,8 @@ func (w *Wrapper) Commit(i int) {
 	w.fillEmptyNodes(i)
 
 	if i == 0 {
-		for _, n := range w.nodes {
-			fmt.Println(n)
+		for indx, n := range w.nodes {
+			fmt.Println(indx, n)
 		}
 	}
 	res, err := TreeFromNodes(w.nodes[i:])

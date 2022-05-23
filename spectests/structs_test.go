@@ -105,6 +105,10 @@ func testSpecFork(t *testing.T, fork fork) {
 			continue
 		}
 
+		if name != "AttesterSlashing" {
+			continue
+		}
+
 		t.Run(name, func(t *testing.T) {
 			files := readDir(t, filepath.Join(f, "ssz_random"))
 			for _, f := range files {
@@ -156,6 +160,8 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 		fatal("UnmarshalSSZ_equal", fmt.Errorf("bad unmarshal"))
 	}
 
+	fmt.Println("== HASH TREE ROOT ==")
+
 	// Root
 	root, err := obj.HashTreeRoot()
 	if err != nil {
@@ -164,6 +170,8 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 	if !bytes.Equal(root[:], output.root) {
 		fatal("HashTreeRoot_equal", fmt.Errorf("bad root"))
 	}
+
+	fmt.Println("== PROOF ==")
 
 	// Proof
 	node, err := obj.GetTree()

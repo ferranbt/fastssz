@@ -3,6 +3,8 @@
 package spectests
 
 import (
+	"fmt"
+
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/ferranbt/fastssz/spectests/external"
 	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
@@ -121,6 +123,11 @@ func (a *AggregateAndProof) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the AggregateAndProof object
+func (a *AggregateAndProof) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
+}
+
 // MarshalSSZ ssz marshals the Checkpoint object
 func (c *Checkpoint) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(c)
@@ -190,6 +197,11 @@ func (c *Checkpoint) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Checkpoint object
+func (c *Checkpoint) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(c)
 }
 
 // MarshalSSZ ssz marshals the AttestationData object
@@ -301,6 +313,11 @@ func (a *AttestationData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the AttestationData object
+func (a *AttestationData) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // MarshalSSZ ssz marshals the Attestation object
@@ -433,6 +450,11 @@ func (a *Attestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the Attestation object
+func (a *Attestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
+}
+
 // MarshalSSZ ssz marshals the DepositData object
 func (d *DepositData) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(d)
@@ -520,6 +542,11 @@ func (d *DepositData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the DepositData object
+func (d *DepositData) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the Deposit object
@@ -624,6 +651,11 @@ func (d *Deposit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the Deposit object
+func (d *Deposit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
+}
+
 // MarshalSSZ ssz marshals the DepositMessage object
 func (d *DepositMessage) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(d)
@@ -713,6 +745,11 @@ func (d *DepositMessage) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the DepositMessage object
+func (d *DepositMessage) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the IndexedAttestation object
@@ -824,6 +861,8 @@ func (i *IndexedAttestation) HashTreeRoot() ([32]byte, error) {
 func (i *IndexedAttestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
+	fmt.Println("b")
+
 	// Field (0) 'AttestationIndices'
 	{
 		if len(i.AttestationIndices) > 2048 {
@@ -851,8 +890,14 @@ func (i *IndexedAttestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	}
 	hh.PutBytes(i.Signature)
 
+	fmt.Println("???")
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the IndexedAttestation object
+func (i *IndexedAttestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(i)
 }
 
 // MarshalSSZ ssz marshals the PendingAttestation object
@@ -982,6 +1027,11 @@ func (p *PendingAttestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the PendingAttestation object
+func (p *PendingAttestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
+}
+
 // MarshalSSZ ssz marshals the Fork object
 func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(f)
@@ -1071,6 +1121,11 @@ func (f *Fork) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Fork object
+func (f *Fork) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(f)
 }
 
 // MarshalSSZ ssz marshals the Validator object
@@ -1209,6 +1264,11 @@ func (v *Validator) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the Validator object
+func (v *Validator) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(v)
+}
+
 // MarshalSSZ ssz marshals the VoluntaryExit object
 func (v *VoluntaryExit) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(v)
@@ -1267,6 +1327,11 @@ func (v *VoluntaryExit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the VoluntaryExit object
+func (v *VoluntaryExit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(v)
 }
 
 // MarshalSSZ ssz marshals the SignedVoluntaryExit object
@@ -1339,6 +1404,11 @@ func (s *SignedVoluntaryExit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SignedVoluntaryExit object
+func (s *SignedVoluntaryExit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the Eth1Block object
@@ -1419,6 +1489,11 @@ func (e *Eth1Block) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Eth1Block object
+func (e *Eth1Block) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
 
 // MarshalSSZ ssz marshals the Eth1Data object
@@ -1512,6 +1587,11 @@ func (e *Eth1Data) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the Eth1Data object
+func (e *Eth1Data) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
+}
+
 // MarshalSSZ ssz marshals the SigningRoot object
 func (s *SigningRoot) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(s)
@@ -1592,6 +1672,11 @@ func (s *SigningRoot) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SigningRoot object
+func (s *SigningRoot) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the HistoricalBatch object
@@ -1692,6 +1777,11 @@ func (h *HistoricalBatch) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the HistoricalBatch object
+func (h *HistoricalBatch) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(h)
+}
+
 // MarshalSSZ ssz marshals the ProposerSlashing object
 func (p *ProposerSlashing) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(p)
@@ -1774,6 +1864,11 @@ func (p *ProposerSlashing) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the ProposerSlashing object
+func (p *ProposerSlashing) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 // MarshalSSZ ssz marshals the AttesterSlashing object
@@ -1890,18 +1985,28 @@ func (a *AttesterSlashing) HashTreeRoot() ([32]byte, error) {
 func (a *AttesterSlashing) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
+	fmt.Println("a1")
+
 	// Field (0) 'Attestation1'
 	if err = a.Attestation1.HashTreeRootWith(hh); err != nil {
 		return
 	}
+
+	fmt.Println("a2")
 
 	// Field (1) 'Attestation2'
 	if err = a.Attestation2.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
+	fmt.Println("- end -")
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the AttesterSlashing object
+func (a *AttesterSlashing) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlock object
@@ -2051,6 +2156,11 @@ func (b *BeaconBlock) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the BeaconBlock object
+func (b *BeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // MarshalSSZ ssz marshals the SignedBeaconBlock object
 func (s *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(s)
@@ -2158,6 +2268,11 @@ func (s *SignedBeaconBlock) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SignedBeaconBlock object
+func (s *SignedBeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the Transfer object
@@ -2285,6 +2400,11 @@ func (t *Transfer) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Transfer object
+func (t *Transfer) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(t)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockBodyPhase0 object
@@ -2704,6 +2824,11 @@ func (b *BeaconBlockBodyPhase0) HashTreeRootWith(hh ssz.HashWalker) (err error) 
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockBodyPhase0 object
+func (b *BeaconBlockBodyPhase0) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockBodyAltair object
@@ -3144,6 +3269,11 @@ func (b *BeaconBlockBodyAltair) HashTreeRootWith(hh ssz.HashWalker) (err error) 
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockBodyAltair object
+func (b *BeaconBlockBodyAltair) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockBodyBellatrix object
@@ -3625,6 +3755,11 @@ func (b *BeaconBlockBodyBellatrix) HashTreeRootWith(hh ssz.HashWalker) (err erro
 	return
 }
 
+// GetTree ssz hashes the BeaconBlockBodyBellatrix object
+func (b *BeaconBlockBodyBellatrix) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // MarshalSSZ ssz marshals the SignedBeaconBlockHeader object
 func (s *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(s)
@@ -3706,6 +3841,11 @@ func (s *SignedBeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SignedBeaconBlockHeader object
+func (s *SignedBeaconBlockHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockHeader object
@@ -3828,6 +3968,11 @@ func (b *BeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the BeaconBlockHeader object
+func (b *BeaconBlockHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // MarshalSSZ ssz marshals the ErrorResponse object
 func (e *ErrorResponse) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(e)
@@ -3908,6 +4053,11 @@ func (e *ErrorResponse) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the ErrorResponse object
+func (e *ErrorResponse) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
+}
+
 // MarshalSSZ ssz marshals the Dummy object
 func (d *Dummy) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(d)
@@ -3948,6 +4098,11 @@ func (d *Dummy) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Dummy object
+func (d *Dummy) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the SyncCommittee object
@@ -4040,6 +4195,11 @@ func (s *SyncCommittee) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
+// GetTree ssz hashes the SyncCommittee object
+func (s *SyncCommittee) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
+}
+
 // MarshalSSZ ssz marshals the SyncAggregate object
 func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(s)
@@ -4109,6 +4269,11 @@ func (s *SyncAggregate) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SyncAggregate object
+func (s *SyncAggregate) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the ExecutionPayload object
@@ -4394,4 +4559,9 @@ func (e *ExecutionPayload) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the ExecutionPayload object
+func (e *ExecutionPayload) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
