@@ -480,7 +480,7 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 
 	// Field (3) 'Signature'
 	if cap(d.Signature) == 0 {
-		d.Signature = make([]byte, 0, len(buf[88:184]))
+		d.Signature = external.Bytes(make([]byte, 0, len(buf[88:184])))
 	}
 	d.Signature = append(d.Signature, buf[88:184]...)
 
