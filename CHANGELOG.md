@@ -1,6 +1,7 @@
 
 # 0.1.1 (Unreleased)
 
+- Update to go `1.8` version [[GH-80](https://github.com/ferranbt/fastssz/issues/80)]
 - Fix `alias` should not be considered objects but only used as types [[GH-76](https://github.com/ferranbt/fastssz/issues/76)]
 - Fix the exclude of types from generation if they are set with the `exclude-objs` flag [[GH-76](https://github.com/ferranbt/fastssz/issues/76)]
 - Add `version` command to `sszgen` [[GH-74](https://github.com/ferranbt/fastssz/issues/74)]
