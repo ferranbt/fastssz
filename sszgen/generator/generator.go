@@ -470,8 +470,16 @@ func detectImports(v *Value) []string {
 // This function replaces the '::' string with a valid one that corresponds
 // to the first letter of the method in lower case.
 func appendObjSignature(str string, v *Value) string {
-	sig := strings.ToLower(string(v.name[0]))
-	return strings.Replace(str, "::", sig, -1)
+	signatures := map[string]string{
+		// pointer receiver
+		"::": strings.ToLower(string(v.name[0])),
+		// full name of the struct
+		"--": v.name,
+	}
+	for k, v := range signatures {
+		str = strings.Replace(str, k, v, -1)
+	}
+	return str
 }
 
 type astStruct struct {

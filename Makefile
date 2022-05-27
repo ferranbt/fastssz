@@ -1,7 +1,7 @@
 
 .PHONY:
 build-spec-tests:
-	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/structs.go --include ./spectests/external,./spectests/external2
+	go run github.com/ferranbt/fastssz/sszgen --exclude-objs Hash --path ./spectests/structs.go --include ./spectests/external,./spectests/external2
 
 build-spec-tests-tree:
 	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/structs.go --objs AttestationData --experimental

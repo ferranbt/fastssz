@@ -15,14 +15,26 @@ func MarshalSSZ(m Marshaler) ([]byte, error) {
 // Errors
 
 var (
-	ErrOffset       = fmt.Errorf("incorrect offset")
-	ErrSize         = fmt.Errorf("incorrect size")
-	ErrBytesLength  = fmt.Errorf("bytes array does not have the correct length")
-	ErrVectorLength = fmt.Errorf("vector does not have the correct length")
-	ErrListTooBig   = fmt.Errorf("list length is higher than max value")
-	ErrEmptyBitlist = fmt.Errorf("bitlist is empty")
+	ErrOffset                = fmt.Errorf("incorrect offset")
+	ErrSize                  = fmt.Errorf("incorrect size")
+	ErrBytesLength           = fmt.Errorf("bytes array does not have the correct length")
+	ErrVectorLength          = fmt.Errorf("vector does not have the correct length")
+	ErrListTooBig            = fmt.Errorf("list length is higher than max value")
+	ErrEmptyBitlist          = fmt.Errorf("bitlist is empty")
 	ErrInvalidVariableOffset = fmt.Errorf("invalid ssz encoding. first variable element offset indexes into fixed value data")
 )
+
+func ErrBytesLengthFn(name string, found, expected int) error {
+	return fmt.Errorf("%s: %v", name, ErrBytesLength)
+}
+
+func ErrVectorLengthFn(name string, found, expected int) error {
+	return fmt.Errorf("%s: %v", name, ErrBytesLength)
+}
+
+func ErrListTooBigFn(name string, found, max int) error {
+	return fmt.Errorf("%s: %v", name, ErrListTooBig)
+}
 
 // ---- Unmarshal functions ----
 
