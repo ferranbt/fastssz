@@ -1003,7 +1003,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			// try to resolve as an alias
 			vv, err := e.encodeItem(obj.Name, tags)
 			if err != nil {
-				return nil, fmt.Errorf("type %s not found", obj.Name)
+				return nil, fmt.Errorf("failed to encode %s: %v", obj.Name, err)
 			}
 			return vv, nil
 		}
@@ -1038,7 +1038,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to encode %s: %v", sel, err)
 		}
 		vv.ref = name
 		vv.noPtr = true
