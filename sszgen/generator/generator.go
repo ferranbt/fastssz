@@ -27,7 +27,7 @@ const bytesPerLengthOffset = 4
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, experimental bool) error {
+func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
@@ -68,10 +68,10 @@ func Encode(source string, targets []string, output string, includePaths []strin
 	// 3.
 	var out map[string]string
 	if output == "" {
-		out, err = e.generateEncodings(experimental)
+		out, err = e.generateEncodings()
 	} else {
 		// output to a specific path
-		out, err = e.generateOutputEncodings(output, experimental)
+		out, err = e.generateOutputEncodings(output)
 	}
 	if err != nil {
 		panic(err)
@@ -260,7 +260,7 @@ type env struct {
 
 const encodingPrefix = "_encoding.go"
 
-func (e *env) generateOutputEncodings(output string, experimental bool) (map[string]string, error) {
+func (e *env) generateOutputEncodings(output string) (map[string]string, error) {
 	out := map[string]string{}
 
 	keys := make([]string, 0, len(e.order))
@@ -274,7 +274,7 @@ func (e *env) generateOutputEncodings(output string, experimental bool) (map[str
 		orders = append(orders, e.order[k]...)
 	}
 
-	res, ok, err := e.print(orders, experimental)
+	res, ok, err := e.print(orders)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (e *env) generateOutputEncodings(output string, experimental bool) (map[str
 	return out, nil
 }
 
-func (e *env) generateEncodings(experimental bool) (map[string]string, error) {
+func (e *env) generateEncodings() (map[string]string, error) {
 	outs := map[string]string{}
 
 	for name, order := range e.order {
@@ -294,7 +294,7 @@ func (e *env) generateEncodings(experimental bool) (map[string]string, error) {
 		name = strings.TrimSuffix(name, ext)
 		name += encodingPrefix
 
-		vvv, ok, err := e.print(order, experimental)
+		vvv, ok, err := e.print(order)
 		if err != nil {
 			return nil, err
 		}
@@ -319,7 +319,7 @@ func (e *env) hashSource() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-func (e *env) print(order []string, experimental bool) (string, bool, error) {
+func (e *env) print(order []string) (string, bool, error) {
 	hash, err := e.hashSource()
 	if err != nil {
 		return "", false, fmt.Errorf("failed to hash files: %v", err)
@@ -376,13 +376,9 @@ func (e *env) print(order []string, experimental bool) (string, bool, error) {
 			// require the sszgen functions.
 			continue
 		}
-		getTree := ""
-		if experimental {
-			getTree = e.getTree(name, obj)
-		}
 		objs = append(objs, &Obj{
 			HashTreeRoot: e.hashTreeRoot(name, obj),
-			GetTree:      getTree,
+			GetTree:      e.getTree(name, obj),
 			Marshal:      e.marshal(name, obj),
 			Unmarshal:    e.unmarshal(name, obj),
 			Size:         e.size(name, obj),
@@ -595,7 +591,7 @@ func isFuncDecl(funcDecl *ast.FuncDecl) bool {
 		return isSpecificFunc(funcDecl, []string{"[]byte"}, []string{"error"})
 	}
 	if name == "HashTreeRootWith" {
-		return isSpecificFunc(funcDecl, []string{"*ssz.Hasher"}, []string{"error"})
+		return isSpecificFunc(funcDecl, []string{"ssz.HashWalker"}, []string{"error"})
 	}
 	return false
 }

@@ -284,6 +284,10 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 	h.buf = append(h.buf[:indx], input...)
 }
 
+func (h *Hasher) Hash() []byte {
+	return h.buf[len(h.buf)-32:]
+}
+
 // HashRoot creates the hash final hash root
 func (h *Hasher) HashRoot() (res [32]byte, err error) {
 	if len(h.buf) != 32 {

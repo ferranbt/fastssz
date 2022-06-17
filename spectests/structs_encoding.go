@@ -101,7 +101,7 @@ func (a *AggregateAndProof) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the AggregateAndProof object with a hasher
-func (a *AggregateAndProof) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (a *AggregateAndProof) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Index'
@@ -119,6 +119,11 @@ func (a *AggregateAndProof) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the AggregateAndProof object
+func (a *AggregateAndProof) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // MarshalSSZ ssz marshals the Checkpoint object
@@ -175,7 +180,7 @@ func (c *Checkpoint) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Checkpoint object with a hasher
-func (c *Checkpoint) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (c *Checkpoint) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Epoch'
@@ -190,6 +195,11 @@ func (c *Checkpoint) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Checkpoint object
+func (c *Checkpoint) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(c)
 }
 
 // MarshalSSZ ssz marshals the AttestationData object
@@ -277,7 +287,7 @@ func (a *AttestationData) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the AttestationData object with a hasher
-func (a *AttestationData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (a *AttestationData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -301,6 +311,11 @@ func (a *AttestationData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the AttestationData object
+func (a *AttestationData) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // MarshalSSZ ssz marshals the Attestation object
@@ -409,7 +424,7 @@ func (a *Attestation) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Attestation object with a hasher
-func (a *Attestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (a *Attestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'AggregationBits'
@@ -431,6 +446,11 @@ func (a *Attestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Attestation object
+func (a *Attestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // MarshalSSZ ssz marshals the DepositData object
@@ -499,7 +519,7 @@ func (d *DepositData) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the DepositData object with a hasher
-func (d *DepositData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (d *DepositData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -520,6 +540,11 @@ func (d *DepositData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the DepositData object
+func (d *DepositData) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the Deposit object
@@ -595,7 +620,7 @@ func (d *Deposit) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Deposit object with a hasher
-func (d *Deposit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (d *Deposit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Proof'
@@ -622,6 +647,11 @@ func (d *Deposit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Deposit object
+func (d *Deposit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the DepositMessage object
@@ -691,7 +721,7 @@ func (d *DepositMessage) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the DepositMessage object with a hasher
-func (d *DepositMessage) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (d *DepositMessage) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -713,6 +743,11 @@ func (d *DepositMessage) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the DepositMessage object
+func (d *DepositMessage) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the IndexedAttestation object
@@ -821,7 +856,7 @@ func (i *IndexedAttestation) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the IndexedAttestation object with a hasher
-func (i *IndexedAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (i *IndexedAttestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'AttestationIndices'
@@ -853,6 +888,11 @@ func (i *IndexedAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the IndexedAttestation object
+func (i *IndexedAttestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(i)
 }
 
 // MarshalSSZ ssz marshals the PendingAttestation object
@@ -957,7 +997,7 @@ func (p *PendingAttestation) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the PendingAttestation object with a hasher
-func (p *PendingAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (p *PendingAttestation) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'AggregationBits'
@@ -980,6 +1020,11 @@ func (p *PendingAttestation) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the PendingAttestation object
+func (p *PendingAttestation) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 // MarshalSSZ ssz marshals the Fork object
@@ -1049,7 +1094,7 @@ func (f *Fork) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Fork object with a hasher
-func (f *Fork) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (f *Fork) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'PreviousVersion'
@@ -1071,6 +1116,11 @@ func (f *Fork) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Fork object
+func (f *Fork) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(f)
 }
 
 // MarshalSSZ ssz marshals the Validator object
@@ -1170,7 +1220,7 @@ func (v *Validator) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Validator object with a hasher
-func (v *Validator) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (v *Validator) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -1207,6 +1257,11 @@ func (v *Validator) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Validator object
+func (v *Validator) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(v)
 }
 
 // MarshalSSZ ssz marshals the VoluntaryExit object
@@ -1256,7 +1311,7 @@ func (v *VoluntaryExit) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the VoluntaryExit object with a hasher
-func (v *VoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (v *VoluntaryExit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Epoch'
@@ -1267,6 +1322,11 @@ func (v *VoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the VoluntaryExit object
+func (v *VoluntaryExit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(v)
 }
 
 // MarshalSSZ ssz marshals the SignedVoluntaryExit object
@@ -1326,7 +1386,7 @@ func (s *SignedVoluntaryExit) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the SignedVoluntaryExit object with a hasher
-func (s *SignedVoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *SignedVoluntaryExit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Exit'
@@ -1339,6 +1399,11 @@ func (s *SignedVoluntaryExit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SignedVoluntaryExit object
+func (s *SignedVoluntaryExit) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the Eth1Block object
@@ -1401,7 +1466,7 @@ func (e *Eth1Block) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Eth1Block object with a hasher
-func (e *Eth1Block) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (e *Eth1Block) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Timestamp'
@@ -1419,6 +1484,11 @@ func (e *Eth1Block) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Eth1Block object
+func (e *Eth1Block) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
 
 // MarshalSSZ ssz marshals the Eth1Data object
@@ -1488,7 +1558,7 @@ func (e *Eth1Data) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Eth1Data object with a hasher
-func (e *Eth1Data) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (e *Eth1Data) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'DepositRoot'
@@ -1510,6 +1580,11 @@ func (e *Eth1Data) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Eth1Data object
+func (e *Eth1Data) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
 
 // MarshalSSZ ssz marshals the SigningRoot object
@@ -1573,7 +1648,7 @@ func (s *SigningRoot) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the SigningRoot object with a hasher
-func (s *SigningRoot) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *SigningRoot) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'ObjectRoot'
@@ -1592,6 +1667,11 @@ func (s *SigningRoot) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SigningRoot object
+func (s *SigningRoot) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the HistoricalBatch object
@@ -1659,7 +1739,7 @@ func (h *HistoricalBatch) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the HistoricalBatch object with a hasher
-func (h *HistoricalBatch) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (h *HistoricalBatch) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'BlockRoots'
@@ -1690,6 +1770,11 @@ func (h *HistoricalBatch) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the HistoricalBatch object
+func (h *HistoricalBatch) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(h)
 }
 
 // MarshalSSZ ssz marshals the ProposerSlashing object
@@ -1759,7 +1844,7 @@ func (p *ProposerSlashing) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the ProposerSlashing object with a hasher
-func (p *ProposerSlashing) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (p *ProposerSlashing) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Header1'
@@ -1774,6 +1859,11 @@ func (p *ProposerSlashing) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the ProposerSlashing object
+func (p *ProposerSlashing) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 // MarshalSSZ ssz marshals the AttesterSlashing object
@@ -1887,7 +1977,7 @@ func (a *AttesterSlashing) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the AttesterSlashing object with a hasher
-func (a *AttesterSlashing) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (a *AttesterSlashing) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Attestation1'
@@ -1902,6 +1992,11 @@ func (a *AttesterSlashing) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the AttesterSlashing object
+func (a *AttesterSlashing) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(a)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlock object
@@ -2019,7 +2114,7 @@ func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlock object with a hasher
-func (b *BeaconBlock) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconBlock) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -2049,6 +2144,11 @@ func (b *BeaconBlock) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlock object
+func (b *BeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the SignedBeaconBlock object
@@ -2141,7 +2241,7 @@ func (s *SignedBeaconBlock) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the SignedBeaconBlock object with a hasher
-func (s *SignedBeaconBlock) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *SignedBeaconBlock) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Block'
@@ -2158,6 +2258,11 @@ func (s *SignedBeaconBlock) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SignedBeaconBlock object
+func (s *SignedBeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the Transfer object
@@ -2251,7 +2356,7 @@ func (t *Transfer) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Transfer object with a hasher
-func (t *Transfer) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (t *Transfer) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Sender'
@@ -2285,6 +2390,11 @@ func (t *Transfer) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Transfer object
+func (t *Transfer) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(t)
 }
 
 // MarshalSSZ ssz marshals the BeaconState object
@@ -2824,7 +2934,7 @@ func (b *BeaconState) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconState object with a hasher
-func (b *BeaconState) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconState) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'GenesisTime'
@@ -3043,6 +3153,11 @@ func (b *BeaconState) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconState object
+func (b *BeaconState) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockBodyPhase0 object
@@ -3362,7 +3477,7 @@ func (b *BeaconBlockBodyPhase0) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockBodyPhase0 object with a hasher
-func (b *BeaconBlockBodyPhase0) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconBlockBodyPhase0) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -3462,6 +3577,11 @@ func (b *BeaconBlockBodyPhase0) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockBodyPhase0 object
+func (b *BeaconBlockBodyPhase0) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockBodyAltair object
@@ -3797,7 +3917,7 @@ func (b *BeaconBlockBodyAltair) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockBodyAltair object with a hasher
-func (b *BeaconBlockBodyAltair) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconBlockBodyAltair) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -3902,6 +4022,11 @@ func (b *BeaconBlockBodyAltair) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockBodyAltair object
+func (b *BeaconBlockBodyAltair) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockBodyBellatrix object
@@ -4271,7 +4396,7 @@ func (b *BeaconBlockBodyBellatrix) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockBodyBellatrix object with a hasher
-func (b *BeaconBlockBodyBellatrix) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconBlockBodyBellatrix) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -4381,6 +4506,11 @@ func (b *BeaconBlockBodyBellatrix) HashTreeRootWith(hh *ssz.Hasher) (err error) 
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockBodyBellatrix object
+func (b *BeaconBlockBodyBellatrix) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconStateAltair object
@@ -4932,7 +5062,7 @@ func (b *BeaconStateAltair) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconStateAltair object with a hasher
-func (b *BeaconStateAltair) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconStateAltair) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'GenesisTime'
@@ -5168,6 +5298,11 @@ func (b *BeaconStateAltair) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconStateAltair object
+func (b *BeaconStateAltair) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the BeaconStateBellatrix object
@@ -5753,7 +5888,7 @@ func (b *BeaconStateBellatrix) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconStateBellatrix object with a hasher
-func (b *BeaconStateBellatrix) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconStateBellatrix) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'GenesisTime'
@@ -5996,6 +6131,11 @@ func (b *BeaconStateBellatrix) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
+// GetTree ssz hashes the BeaconStateBellatrix object
+func (b *BeaconStateBellatrix) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
+}
+
 // MarshalSSZ ssz marshals the SignedBeaconBlockHeader object
 func (s *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(s)
@@ -6060,7 +6200,7 @@ func (s *SignedBeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the SignedBeaconBlockHeader object with a hasher
-func (s *SignedBeaconBlockHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *SignedBeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Header'
@@ -6077,6 +6217,11 @@ func (s *SignedBeaconBlockHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SignedBeaconBlockHeader object
+func (s *SignedBeaconBlockHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the BeaconBlockHeader object
@@ -6165,7 +6310,7 @@ func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher
-func (b *BeaconBlockHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (b *BeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -6197,6 +6342,11 @@ func (b *BeaconBlockHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the BeaconBlockHeader object
+func (b *BeaconBlockHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 // MarshalSSZ ssz marshals the ErrorResponse object
@@ -6267,7 +6417,7 @@ func (e *ErrorResponse) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the ErrorResponse object with a hasher
-func (e *ErrorResponse) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (e *ErrorResponse) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Message'
@@ -6277,6 +6427,11 @@ func (e *ErrorResponse) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the ErrorResponse object
+func (e *ErrorResponse) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
 
 // MarshalSSZ ssz marshals the Dummy object
@@ -6314,11 +6469,16 @@ func (d *Dummy) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Dummy object with a hasher
-func (d *Dummy) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (d *Dummy) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Dummy object
+func (d *Dummy) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(d)
 }
 
 // MarshalSSZ ssz marshals the SyncCommittee object
@@ -6384,7 +6544,7 @@ func (s *SyncCommittee) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the SyncCommittee object with a hasher
-func (s *SyncCommittee) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *SyncCommittee) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'PubKeys'
@@ -6409,6 +6569,11 @@ func (s *SyncCommittee) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SyncCommittee object
+func (s *SyncCommittee) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the SyncAggregate object
@@ -6465,7 +6630,7 @@ func (s *SyncAggregate) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the SyncAggregate object with a hasher
-func (s *SyncAggregate) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *SyncAggregate) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'SyncCommiteeBits'
@@ -6480,6 +6645,11 @@ func (s *SyncAggregate) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the SyncAggregate object
+func (s *SyncAggregate) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(s)
 }
 
 // MarshalSSZ ssz marshals the ExecutionPayload object
@@ -6689,7 +6859,7 @@ func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher
-func (e *ExecutionPayload) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (e *ExecutionPayload) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'ParentHash'
@@ -6765,6 +6935,11 @@ func (e *ExecutionPayload) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the ExecutionPayload object
+func (e *ExecutionPayload) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
 
 // MarshalSSZ ssz marshals the ExecutionPayloadHeader object
@@ -6982,7 +7157,7 @@ func (e *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the ExecutionPayloadHeader object with a hasher
-func (e *ExecutionPayloadHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (e *ExecutionPayloadHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'ParentHash'
@@ -7074,4 +7249,9 @@ func (e *ExecutionPayloadHeader) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the ExecutionPayloadHeader object
+func (e *ExecutionPayloadHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }
