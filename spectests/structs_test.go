@@ -44,6 +44,16 @@ var codecs = map[string]testCallback{
 	"AggregateAndProof": func(fork fork) codec { return new(AggregateAndProof) },
 	"Attestation":       func(fork fork) codec { return new(Attestation) },
 	"AttesterSlashing":  func(fork fork) codec { return new(AttesterSlashing) },
+	"BeaconState": func(fork fork) codec {
+		if fork == phase0 {
+			return new(BeaconState)
+		} else if fork == altair {
+			return new(BeaconStateAltair)
+		} else if fork == bellatrix {
+			return new(BeaconStateBellatrix)
+		}
+		return nil
+	},
 	"BeaconBlock": func(fork fork) codec {
 		if fork == phase0 {
 			return new(BeaconBlock)
