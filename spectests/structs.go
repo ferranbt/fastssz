@@ -6,9 +6,9 @@ import (
 )
 
 type AggregateAndProof struct {
-	Index          uint64       `json:"aggregator_index"`
-	Aggregate      *Attestation `json:"aggregate"`
-	SelectionProof []byte       `json:"selection_proof" ssz-size:"96"`
+	Index          uint64             `json:"aggregator_index"`
+	Aggregate      *Attestation       `json:"aggregate"`
+	SelectionProof external.Signature `json:"selection_proof" ssz-size:"96"`
 }
 
 type Checkpoint struct {
@@ -29,9 +29,9 @@ type AttestationData struct {
 }
 
 type Attestation struct {
-	AggregationBits []byte           `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
-	Data            *AttestationData `json:"data"`
-	Signature       []byte           `json:"signature" ssz-size:"96"`
+	AggregationBits []byte              `json:"aggregation_bits" ssz:"bitlist" ssz-max:"2048"`
+	Data            *AttestationData    `json:"data"`
+	Signature       *external.Signature `json:"signature" ssz-size:"96"`
 }
 
 type DepositData struct {

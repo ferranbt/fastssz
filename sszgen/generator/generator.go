@@ -595,7 +595,7 @@ func isFuncDecl(funcDecl *ast.FuncDecl) bool {
 		return isSpecificFunc(funcDecl, []string{"[]byte"}, []string{"error"})
 	}
 	if name == "HashTreeRootWith" {
-		return isSpecificFunc(funcDecl, []string{"*ssz.Hasher"}, []string{"error"})
+		return isSpecificFunc(funcDecl, []string{"ssz.HashWalker"}, []string{"error"})
 	}
 	return false
 }
