@@ -1,7 +1,5 @@
 package ssz
 
-import "fmt"
-
 // ProofTree hashes a HashRoot object with a Hasher from
 // the default HasherPool
 func ProofTree(v HashRoot) (*Node, error) {
@@ -73,7 +71,8 @@ func (w *Wrapper) PutBitlist(bb []byte, maxSize uint64) {
 
 func (w *Wrapper) appendBytesAsNodes(b []byte) {
 	for i := 0; i < len(b); i += 32 {
-		w.nodes = append(w.nodes, LeafFromBytes(b[i:min(len(b), i+32)]))
+		val := append([]byte{}, b[i:min(len(b), i+32)]...)
+		w.nodes = append(w.nodes, LeafFromBytes(val))
 	}
 }
 
@@ -85,12 +84,16 @@ func (w *Wrapper) PutBytes(b []byte) {
 	w.AddBytes(b)
 }
 
+func (w *Wrapper) PutUint16(i uint16) {
+	w.AddUint16(i)
+}
+
 func (w *Wrapper) PutUint64(i uint64) {
 	w.AddUint64(i)
 }
 
 func (w *Wrapper) PutUint8(i uint8) {
-	panic("TODO")
+	w.AddUint8(i)
 }
 
 /// --- legacy ones ---
@@ -137,25 +140,18 @@ func (w *Wrapper) AddNode(n *Node) {
 
 func (w *Wrapper) Node() *Node {
 	if len(w.nodes) != 1 {
-		fmt.Println(w.nodes)
 		panic("BAD")
 	}
 	return w.nodes[0]
 }
 
 func (w *Wrapper) Hash() []byte {
-	w.nodes[len(w.nodes)-1].Show(2)
 	return w.nodes[len(w.nodes)-1].Hash()
 }
 
 func (w *Wrapper) Commit(i int) {
 	w.fillEmptyNodes(i)
 
-	if i == 0 {
-		for indx, n := range w.nodes {
-			fmt.Println(indx, n)
-		}
-	}
 	res, err := TreeFromNodes(w.nodes[i:])
 	if err != nil {
 		panic(err)
