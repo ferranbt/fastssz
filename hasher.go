@@ -11,6 +11,8 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
+var _ HashWalker = (*Hasher)(nil)
+
 var (
 	// ErrIncorrectByteSize means that the byte size is incorrect
 	ErrIncorrectByteSize = fmt.Errorf("incorrect byte size")
