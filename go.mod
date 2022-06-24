@@ -1,6 +1,6 @@
 module github.com/bboris-dev/fastssz
 
-go 1.18
+go 1.17
 
 require (
 	github.com/golang/snappy v0.0.3
