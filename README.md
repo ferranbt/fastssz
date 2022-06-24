@@ -48,7 +48,7 @@ $ FUZZ_TESTS=True go test -v ./spectests/... -run TestFuzz
 To install the generator run:
 
 ```
-$ go get github.com/ferranbt/fastssz/sszgen
+$ go get github.com/bboris-dev/fastssz/sszgen
 ```
 
 Benchmark (BeaconBlock):
@@ -57,14 +57,14 @@ Benchmark (BeaconBlock):
 $ go test -v ./spectests/... -run=XXX -bench=.
 goos: linux
 goarch: amd64
-pkg: github.com/ferranbt/fastssz/spectests
+pkg: github.com/bboris-dev/fastssz/spectests
 BenchmarkMarshalGoSSZ-4       	    1366	    753160 ns/op	  115112 B/op	    8780 allocs/op
 BenchmarkMarshalFast-4        	  240765	      5093 ns/op	   18432 B/op	       1 allocs/op
 BenchmarkMarshalSuperFast-4   	  377835	      3041 ns/op	       0 B/op	       0 allocs/op
 BenchmarkUnMarshalGoSSZ-4     	     847	   1395097 ns/op	  144608 B/op	    8890 allocs/op
 BenchmarkUnMarshalFast-4      	   43824	     27190 ns/op	   31024 B/op	     577 allocs/op
 PASS
-ok  	github.com/ferranbt/fastssz/spectests	6.608s
+ok  	github.com/bboris-dev/fastssz/spectests	6.608s
 ```
 
 # Package reference

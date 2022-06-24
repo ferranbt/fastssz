@@ -1,8 +1,8 @@
 package spectests
 
 import (
-	"github.com/ferranbt/fastssz/spectests/external"
-	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
+	"github.com/bboris-dev/fastssz/spectests/external"
+	external2Alias "github.com/bboris-dev/fastssz/spectests/external2"
 )
 
 type AggregateAndProof struct {

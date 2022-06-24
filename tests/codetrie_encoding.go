@@ -3,7 +3,7 @@
 package tests
 
 import (
-	ssz "github.com/ferranbt/fastssz"
+	ssz "github.com/bboris-dev/fastssz"
 )
 
 // MarshalSSZ ssz marshals the Metadata object

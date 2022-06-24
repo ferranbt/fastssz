@@ -3,9 +3,9 @@
 package spectests
 
 import (
-	ssz "github.com/ferranbt/fastssz"
-	"github.com/ferranbt/fastssz/spectests/external"
-	external2Alias "github.com/ferranbt/fastssz/spectests/external2"
+	ssz "github.com/bboris-dev/fastssz"
+	"github.com/bboris-dev/fastssz/spectests/external"
+	external2Alias "github.com/bboris-dev/fastssz/spectests/external2"
 )
 
 // MarshalSSZ ssz marshals the AggregateAndProof object

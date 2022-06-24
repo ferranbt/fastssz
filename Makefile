@@ -1,8 +1,8 @@
 
 .PHONY:
 build-spec-tests:
-	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/structs.go --include ./spectests/external,./spectests/external2 --exclude-objs Hash
-	go run github.com/ferranbt/fastssz/sszgen --path ./tests/codetrie.go
+	go run github.com/bboris-dev/fastssz/sszgen --path ./spectests/structs.go --include ./spectests/external,./spectests/external2 --exclude-objs Hash
+	go run github.com/bboris-dev/fastssz/sszgen --path ./tests/codetrie.go
 
 .PHONY:
 get-spec-tests:

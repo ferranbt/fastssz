@@ -1,7 +1,7 @@
 package external
 
 import (
-	ssz "github.com/ferranbt/fastssz"
+	ssz "github.com/bboris-dev/fastssz"
 )
 
 // Signature is a 96 bytes array external reference
