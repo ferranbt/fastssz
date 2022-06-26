@@ -25,15 +25,15 @@ var (
 )
 
 func ErrBytesLengthFn(name string, found, expected int) error {
-	return fmt.Errorf("%s: %v", name, ErrBytesLength)
+	return fmt.Errorf("%s (%v): expected %d and %d found", name, ErrBytesLength, expected, found)
 }
 
 func ErrVectorLengthFn(name string, found, expected int) error {
-	return fmt.Errorf("%s: %v", name, ErrBytesLength)
+	return fmt.Errorf("%s (%v): expected %d and %d found", name, ErrBytesLength, expected, found)
 }
 
 func ErrListTooBigFn(name string, found, max int) error {
-	return fmt.Errorf("%s: %v", name, ErrListTooBig)
+	return fmt.Errorf("%s (%v): max expected %d and %d found", name, ErrListTooBig, max, found)
 }
 
 // ---- Unmarshal functions ----
