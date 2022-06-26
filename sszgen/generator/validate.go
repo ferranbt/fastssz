@@ -14,8 +14,8 @@ func (v *Value) validate() string {
 			cmp = ">"
 		}
 
-		tmpl := `if len(::.{{.name}}) {{.cmp}} {{.size}} {
-			err = ssz.ErrBytesLength
+		tmpl := `if size := len(::.{{.name}}); size {{.cmp}} {{.size}} {
+			err = ssz.ErrBytesLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
 		`
@@ -31,8 +31,8 @@ func (v *Value) validate() string {
 			return ""
 		}
 		// We only have vectors for [][]byte roots
-		tmpl := `if len(::.{{.name}}) != {{.size}} {
-			err = ssz.ErrVectorLength
+		tmpl := `if size := len(::.{{.name}}); size != {{.size}} {
+			err = ssz.ErrVectorLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
 		`
@@ -42,8 +42,8 @@ func (v *Value) validate() string {
 		})
 
 	case TypeList:
-		tmpl := `if len(::.{{.name}}) > {{.size}} {
-			err = ssz.ErrListTooBig
+		tmpl := `if size := len(::.{{.name}}); size > {{.size}} {
+			err = ssz.ErrListTooBigFn("--.{{.name}}", size, {{.size}})
 			return
 		}
 		`
