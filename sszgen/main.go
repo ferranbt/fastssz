@@ -31,7 +31,6 @@ func generate() {
 	var objsStr string
 	var output string
 	var include string
-	var experimental bool
 	var excludeObjs string
 
 	flag.StringVar(&source, "path", "", "")
@@ -39,7 +38,6 @@ func generate() {
 	flag.StringVar(&excludeObjs, "exclude-objs", "", "Comma-separated list of types to exclude from output")
 	flag.StringVar(&output, "output", "", "")
 	flag.StringVar(&include, "include", "", "")
-	flag.BoolVar(&experimental, "experimental", false, "")
 
 	flag.Parse()
 
@@ -50,7 +48,7 @@ func generate() {
 		excludeTypeNames[name] = true
 	}
 
-	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames, experimental); err != nil {
+	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames); err != nil {
 		fmt.Printf("[ERR]: %v\n", err)
 		os.Exit(1)
 	}

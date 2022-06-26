@@ -2,7 +2,9 @@ package ssz
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
+	"fmt"
 )
 
 // Proof represents a merkle proof against a general index.
@@ -82,6 +84,48 @@ type Node struct {
 	value []byte
 }
 
+func (n *Node) Show(maxDepth int) {
+	fmt.Printf("--- Show node ---\n")
+	n.show(0, maxDepth)
+}
+
+func (n *Node) show(depth int, maxDepth int) {
+
+	space := ""
+	for i := 0; i < depth; i++ {
+		space += "\t"
+	}
+	print := func(msgs ...string) {
+		for _, msg := range msgs {
+			fmt.Printf("%s%s", space, msg)
+		}
+	}
+
+	if n.left != nil || n.right != nil {
+		// leaf hash is the same as value
+		print("HASH: " + hex.EncodeToString(n.Hash()) + "\n")
+	}
+	if n.value != nil {
+		print("VALUE: " + hex.EncodeToString(n.value) + "\n")
+	}
+
+	if maxDepth > 0 {
+		if depth == maxDepth {
+			// only print hash if we are too deep
+			return
+		}
+	}
+
+	if n.left != nil {
+		print("LEFT: \n")
+		n.left.show(depth+1, maxDepth)
+	}
+	if n.right != nil {
+		print("RIGHT: \n")
+		n.right.show(depth+1, maxDepth)
+	}
+}
+
 // NewNodeWithValue initializes a leaf node.
 func NewNodeWithValue(value []byte) *Node {
 	return &Node{left: nil, right: nil, value: value}
@@ -102,7 +146,7 @@ func TreeFromChunks(chunks [][]byte) (*Node, error) {
 
 	leaves := make([]*Node, numLeaves)
 	for i, c := range chunks {
-		leaves[i] = &Node{left: nil, right: nil, value: c}
+		leaves[i] = NewNodeWithValue(c)
 	}
 	return TreeFromNodes(leaves)
 }
@@ -132,7 +176,7 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 			nodes[i-1] = leaves[i-numLeaves]
 		} else {
 			// Is a branch node
-			nodes[i-1] = &Node{left: nodes[(i*2)-1], right: nodes[(i*2+1)-1], value: nil}
+			nodes[i-1] = NewNodeWithLR(nodes[(i*2)-1], nodes[(i*2+1)-1])
 		}
 	}
 
@@ -296,6 +340,7 @@ func LeafFromBytes(b []byte) *Node {
 		return NewNodeWithValue(b[:])
 	}
 
+	// < 32
 	return NewNodeWithValue(append(b, zeroBytes[:32-l]...))
 }
 

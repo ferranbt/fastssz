@@ -11,6 +11,8 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
+var _ HashWalker = (*Hasher)(nil)
+
 var (
 	// ErrIncorrectByteSize means that the byte size is incorrect
 	ErrIncorrectByteSize = fmt.Errorf("incorrect byte size")
@@ -282,6 +284,10 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 
 	input = h.doHash(input, input, output)
 	h.buf = append(h.buf[:indx], input...)
+}
+
+func (h *Hasher) Hash() []byte {
+	return h.buf[len(h.buf)-32:]
 }
 
 // HashRoot creates the hash final hash root

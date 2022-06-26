@@ -13,6 +13,26 @@ type Unmarshaler interface {
 }
 
 type HashRoot interface {
+	GetTree() (*Node, error)
 	HashTreeRoot() ([32]byte, error)
-	HashTreeRootWith(hh *Hasher) error
+	HashTreeRootWith(hh HashWalker) error
+}
+
+type HashWalker interface {
+	// Intended for testing purposes to know the latest hash generated during merkleize
+	Hash() []byte
+	AppendUint8(i uint8)
+	AppendUint64(i uint64)
+	AppendBytes32(b []byte)
+	PutUint64(i uint64)
+	PutUint16(i uint16)
+	PutUint8(i uint8)
+	FillUpTo32()
+	Append(i []byte)
+	PutBitlist(bb []byte, maxSize uint64)
+	PutBool(b bool)
+	PutBytes(b []byte)
+	Index() int
+	Merkleize(indx int)
+	MerkleizeWithMixin(indx int, num, limit uint64)
 }

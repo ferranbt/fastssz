@@ -38,9 +38,15 @@ func (v *Value) unmarshal(dst string) string {
 			// dynamic bytes, we need to validate the size of the buffer
 			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
 		}
+
+		refName := ""
+		if v.ref != "" {
+			refName = v.ref + "." + v.obj
+		}
+
 		// both fixed and dynamic are decoded equally
 		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
-			::.{{.name}} = make([]byte, 0, len({{.dst}}))
+			{{if .refName}} ::.{{.name}} = {{ .refName }}(make([]byte, 0, len({{.dst}}))) {{ else }} ::.{{.name}} = make([]byte, 0, len({{.dst}})) {{ end }}
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{
@@ -48,6 +54,7 @@ func (v *Value) unmarshal(dst string) string {
 			"name":     v.name,
 			"dst":      dst,
 			"size":     v.m,
+			"refName":  refName,
 		})
 
 	case TypeUint:

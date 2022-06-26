@@ -13,7 +13,7 @@ func (e *env) hashTreeRoot(name string, v *Value) string {
 	}
 	
 	// HashTreeRootWith ssz hashes the {{.name}} object with a hasher	
-	func (:: *{{.name}}) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	func (:: *{{.name}}) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 		{{.hashTreeRoot}}
 		return
 	}`

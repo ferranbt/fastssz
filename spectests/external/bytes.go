@@ -20,7 +20,7 @@ func (s *Signature) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 // HashTreeRootWith implements the fastssz HashRoot interface
-func (s *Signature) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (s *Signature) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutBytes(s.Data[:])
 	return
 }
@@ -54,7 +54,7 @@ func (d *DynamicBytes) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 // HashTreeRootWith implements the fastssz HashRoot interface
-func (d *DynamicBytes) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (d *DynamicBytes) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	if len(*d) > 256 {
 		err = ssz.ErrBytesLength
 		return

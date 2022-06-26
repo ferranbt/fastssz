@@ -80,7 +80,7 @@ func (c *Case1A) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Case1A object with a hasher
-func (c *Case1A) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (c *Case1A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Foo'
@@ -97,6 +97,11 @@ func (c *Case1A) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Case1A object
+func (c *Case1A) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(c)
 }
 
 // MarshalSSZ ssz marshals the Case1B object
@@ -173,7 +178,7 @@ func (c *Case1B) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Case1B object with a hasher
-func (c *Case1B) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+func (c *Case1B) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Bar'
@@ -190,4 +195,9 @@ func (c *Case1B) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 
 	hh.Merkleize(indx)
 	return
+}
+
+// GetTree ssz hashes the Case1B object
+func (c *Case1B) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(c)
 }
