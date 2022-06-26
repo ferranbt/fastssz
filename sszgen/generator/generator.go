@@ -812,7 +812,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 			size, _ := getTagsInt(tags, "ssz-size")
 			v = &Value{t: TypeReference, s: size, noPtr: raw.obj == nil}
 		} else if raw.obj != nil {
-			v, err = e.parseASTStructType(name, raw.obj)
+			v, err = e.parseASTStructType(name)
 		} else {
 			v, err = e.parseASTFieldType(name, tags, raw.typ)
 		}
@@ -832,38 +832,76 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 }
 
 // parse the Go AST struct
-func (e *env) parseASTStructType(name string, typ *ast.StructType) (*Value, error) {
+func (e *env) parseASTStructType(name string) (*Value, error) {
 	v := &Value{
 		name: name,
 		t:    TypeContainer,
 		o:    []*Value{},
 	}
 
-	for _, f := range typ.Fields.List {
-		if len(f.Names) != 1 {
-			continue
+	visited := map[string]struct{}{}
+
+	var getFields func(subName string) ([]*ast.Field, error)
+	getFields = func(subName string) ([]*ast.Field, error) {
+		if _, ok := visited[subName]; ok {
+			return nil, fmt.Errorf("loop in embed types %s", subName)
 		}
-		name := f.Names[0].Name
-		if !isExportedField(name) {
-			continue
+		visited[subName] = struct{}{}
+
+		var fields []*ast.Field
+
+		item, ok := e.getRawItemByName(subName)
+		if !ok {
+			return nil, fmt.Errorf("struct %s not found", subName)
 		}
-		if strings.HasPrefix(name, "XXX_") {
-			// skip protobuf methods
-			continue
+		for _, f := range item.obj.Fields.List {
+			if len(f.Names) == 1 {
+				// normal type
+				fieldName := f.Names[0].Name
+				if !isExportedField(fieldName) {
+					continue
+				}
+				if strings.HasPrefix(fieldName, "XXX_") {
+					// skip protobuf methods
+					continue
+				}
+				fields = append(fields, f)
+			} else if len(f.Names) == 0 {
+				// embed item in the same package, resolve it recursively
+				ident, ok := f.Type.(*ast.Ident)
+				if !ok {
+					return nil, fmt.Errorf("embed type expects a typed object in same package but %s found", reflect.TypeOf(f.Type))
+				}
+				subFields, err := getFields(ident.Name)
+				if err != nil {
+					return nil, err
+				}
+				fields = append(fields, subFields...)
+			}
 		}
+		return fields, nil
+	}
+
+	fields, err := getFields(name)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range fields {
+		fieldName := f.Names[0].Name
+
 		var tags string
 		if f.Tag != nil {
 			tags = f.Tag.Value
 		}
 
-		elem, err := e.parseASTFieldType(name, tags, f.Type)
+		elem, err := e.parseASTFieldType(fieldName, tags, f.Type)
 		if err != nil {
 			return nil, err
 		}
 		if elem == nil {
 			continue
 		}
-		elem.name = name
+		elem.name = fieldName
 		v.o = append(v.o, elem)
 	}
 
