@@ -1,5 +1,7 @@
 package ssz
 
+var _ HashWalker = (*Wrapper)(nil)
+
 // ProofTree hashes a HashRoot object with a Hasher from
 // the default HasherPool
 func ProofTree(v HashRoot) (*Node, error) {
