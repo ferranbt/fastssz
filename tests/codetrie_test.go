@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	ssz "github.com/bboris-dev/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/minio/sha256-simd"
 )
 

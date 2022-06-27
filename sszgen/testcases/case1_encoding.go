@@ -3,7 +3,7 @@
 package testcases
 
 import (
-	ssz "github.com/bboris-dev/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // MarshalSSZ ssz marshals the Case1A object

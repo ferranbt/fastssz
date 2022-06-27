@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/bboris-dev/fastssz/sszgen/generator"
+	"github.com/ferranbt/fastssz/sszgen/generator"
 )
 
 const version = "0.1.1"

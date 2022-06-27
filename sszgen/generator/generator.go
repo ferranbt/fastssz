@@ -330,7 +330,7 @@ func (e *env) print(order []string) (string, bool, error) {
 	package {{.package}}
 
 	import (
-		ssz "github.com/bboris-dev/fastssz" {{ if .imports }}{{ range $value := .imports }}
+		ssz "github.com/ferranbt/fastssz" {{ if .imports }}{{ range $value := .imports }}
 			{{ $value }} {{ end }}
 		{{ end }}
 	)
