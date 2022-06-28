@@ -98,6 +98,10 @@ func (w *Wrapper) PutUint8(i uint8) {
 	w.AddUint8(i)
 }
 
+func (w *Wrapper) PutUint32(i uint32) {
+	w.AddUint32(i)
+}
+
 /// --- legacy ones ---
 
 func min(i, j int) int {
