@@ -196,16 +196,8 @@ type BeaconBlockBodyAltair struct {
 }
 
 type BeaconBlockBodyBellatrix struct {
-	RandaoReveal      []byte                 `json:"randao_reveal" ssz-size:"96"`
-	Eth1Data          *Eth1Data              `json:"eth1_data"`
-	Graffiti          [32]byte               `json:"graffiti" ssz-size:"32"`
-	ProposerSlashings []*ProposerSlashing    `json:"proposer_slashings" ssz-max:"16"`
-	AttesterSlashings []*AttesterSlashing    `json:"attester_slashings" ssz-max:"2"`
-	Attestations      []*Attestation         `json:"attestations" ssz-max:"128"`
-	Deposits          []*Deposit             `json:"deposits" ssz-max:"16"`
-	VoluntaryExits    []*SignedVoluntaryExit `json:"voluntary_exits" ssz-max:"16"`
-	SyncAggregate     *SyncAggregate         `json:"sync_aggregate"`
-	ExecutionPayload  *ExecutionPayload      `json:"execution_payload"`
+	BeaconBlockBodyAltair `json:",squash"`
+	ExecutionPayload      *ExecutionPayload `json:"execution_payload"`
 }
 
 type BeaconStateAltair struct {
