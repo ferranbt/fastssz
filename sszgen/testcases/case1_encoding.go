@@ -21,8 +21,8 @@ func (c *Case1A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset += len(c.Foo)
 
 	// Field (0) 'Foo'
-	if len(c.Foo) > 2048 {
-		err = ssz.ErrBytesLength
+	if size := len(c.Foo); size > 2048 {
+		err = ssz.ErrBytesLengthFn("Case1A.Foo", size, 2048)
 		return
 	}
 	dst = append(dst, c.Foo...)
@@ -119,8 +119,8 @@ func (c *Case1B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset += len(c.Bar)
 
 	// Field (0) 'Bar'
-	if len(c.Bar) > 32 {
-		err = ssz.ErrBytesLength
+	if size := len(c.Bar); size > 32 {
+		err = ssz.ErrBytesLengthFn("Case1B.Bar", size, 32)
 		return
 	}
 	dst = append(dst, c.Bar...)

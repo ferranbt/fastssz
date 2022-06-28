@@ -12,6 +12,8 @@ jobs:
           go-version: '1.15.10'
       - name: Validate spec
         run: ./scripts/ci-validate-specs.sh
+      - name: Validate testcases
+        run: ./scripts/ci-validate-testcases.sh
       - name: Download spec tests
         run: make get-spec-tests
       - name: Unit tests
