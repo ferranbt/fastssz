@@ -196,8 +196,8 @@ type BeaconBlockBodyAltair struct {
 }
 
 type BeaconBlockBodyBellatrix struct {
-	BeaconBlockBodyAltair
-	ExecutionPayload *ExecutionPayload `json:"execution_payload"`
+	BeaconBlockBodyAltair `json:",squash"`
+	ExecutionPayload      *ExecutionPayload `json:"execution_payload"`
 }
 
 type BeaconStateAltair struct {
