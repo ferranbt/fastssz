@@ -1,6 +1,7 @@
 
 # 0.1.1 (Unreleased)
 
+- Struct field not as a pointer [[GH-54](https://github.com/ferranbt/fastssz/issues/54)]
 - Embed container structs [[GH-86](https://github.com/ferranbt/fastssz/issues/86)]
 - Introduce `GetTree` to return the tree proof of the generated object [[GH-64](https://github.com/ferranbt/fastssz/issues/64)]
 - Update to go `1.8` version [[GH-80](https://github.com/ferranbt/fastssz/issues/80)]
