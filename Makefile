@@ -10,4 +10,4 @@ get-spec-tests:
 
 .PHONY:
 generate-testcases:
-	cd sszgen/testcases && go generate
+	go generate ./...

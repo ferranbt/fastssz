@@ -1,6 +1,6 @@
 package testcases
 
-//go:generate go run ../main.go --path case1.go
+//go:generate go run ../main.go --path case2.go
 
 type Case2A struct {
 	A uint64

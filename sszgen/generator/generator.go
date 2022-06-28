@@ -1047,6 +1047,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if err != nil {
 				return nil, fmt.Errorf("failed to encode %s: %v", obj.Name, err)
 			}
+			vv.noPtr = true
 			return vv, nil
 		}
 		return v, nil
