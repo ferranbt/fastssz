@@ -9,7 +9,7 @@ import (
 	"github.com/ferranbt/fastssz/sszgen/generator"
 )
 
-const version = "0.1.1"
+const version = "0.1.2"
 
 func main() {
 	args := os.Args[1:]
