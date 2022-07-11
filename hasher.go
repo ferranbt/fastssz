@@ -67,9 +67,6 @@ type Hasher struct {
 	// tmp array used for uint64 and bitlist processing
 	tmp []byte
 
-	// tmp array used during the merkleize process
-	merkleizeTmp []byte
-
 	// sha256 hash function
 	hash hash.Hash
 }
@@ -365,56 +362,31 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 		return append(dst, zeroBytes...)
 	}
 
-	depth := getDepth(count)
-	h.merkleizeTmp = extendByteSlice(h.merkleizeTmp[:0], int(depth+2)*32)
-
-	// reset tmp
-	j := uint8(0)
-	hh := h.merkleizeTmp[0:32]
-
-	getTmp := func(i uint8) []byte {
-		indx := (uint64(i) + 1) * 32
-		return h.merkleizeTmp[indx : indx+32]
+	depth := getDepth(limit)
+	if len(input) == 0 {
+		return append(dst, zeroHashes[depth][:]...)
 	}
 
-	merge := func(i uint64, val []byte) {
-		hh = append(hh[:0], val...)
+	getPos := func(i int) []byte {
+		return input[i*32 : i*32+32]
+	}
 
-		// merge back up from bottom to top, as far as we can
-		for j = 0; ; j++ {
-			// stop merging when we are in the left side of the next combi
-			if i&(uint64(1)<<j) == 0 {
-				// if we are at the count, we want to merge in zero-hashes for padding
-				if i == count && j < depth {
-					h.doHash(hh, hh, zeroHashes[j][:])
-				} else {
-					// store the merge result (may be no merge, i.e. bottom leaf node)
-					copy(getTmp(j), hh)
-					break
-				}
-			} else {
-				// keep merging up if we are the right side
-				h.doHash(hh, getTmp(j), hh)
-			}
+	for i := uint8(0); i < depth; i++ {
+		layerLen := len(input) / 32
+		oddNodeLength := layerLen%2 == 1
+
+		if oddNodeLength {
+			// is odd length
+			input = append(input, zeroHashes[i][:]...)
+			layerLen++
 		}
+
+		outputLen := (layerLen / 2) * 32
+		for i := 0; i < layerLen; i += 2 {
+			h.doHash(getPos(i/2), getPos(i), getPos(i+1))
+		}
+		input = input[:outputLen]
 	}
 
-	// merge in leaf by leaf.
-	for i := uint64(0); i < count; i++ {
-		indx := i * 32
-		merge(i, input[indx:indx+32])
-	}
-
-	// complement with 0 if empty, or if not the right power of 2
-	if (uint64(1) << depth) != count {
-		merge(count, zeroHashes[0][:])
-	}
-
-	// the next power of two may be smaller than the ultimate virtual size,
-	// complement with zero-hashes at each depth.
-	res := getTmp(depth)
-	for j := depth; j < getDepth(limit); j++ {
-		res = h.doHash(res, res, zeroHashes[j][:])[:32]
-	}
-	return append(dst, res...)
+	return append(dst, input...)
 }
