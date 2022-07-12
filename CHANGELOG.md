@@ -1,5 +1,9 @@
 
-# 0.1.1 (Unreleased)
+# 0.1.2 (Unreleased)
+
+- feat: Simplify the logic of the merkleizer [[GH-94](https://github.com/ferranbt/fastssz/issues/94)]
+
+# 0.1.1 (1 July, 2022)
 
 - Struct field not as a pointer [[GH-54](https://github.com/ferranbt/fastssz/issues/54)]
 - Embed container structs [[GH-86](https://github.com/ferranbt/fastssz/issues/86)]
