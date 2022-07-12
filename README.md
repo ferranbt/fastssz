@@ -58,13 +58,17 @@ $ go test -v ./spectests/... -run=XXX -bench=.
 goos: linux
 goarch: amd64
 pkg: github.com/ferranbt/fastssz/spectests
-BenchmarkMarshalGoSSZ-4       	    1366	    753160 ns/op	  115112 B/op	    8780 allocs/op
-BenchmarkMarshalFast-4        	  240765	      5093 ns/op	   18432 B/op	       1 allocs/op
-BenchmarkMarshalSuperFast-4   	  377835	      3041 ns/op	       0 B/op	       0 allocs/op
-BenchmarkUnMarshalGoSSZ-4     	     847	   1395097 ns/op	  144608 B/op	    8890 allocs/op
-BenchmarkUnMarshalFast-4      	   43824	     27190 ns/op	   31024 B/op	     577 allocs/op
+cpu: AMD Ryzen 5 2400G with Radeon Vega Graphics    
+BenchmarkMarshalFast
+BenchmarkMarshalFast-8        	  268454	      4166 ns/op	    8192 B/op	       1 allocs/op
+BenchmarkMarshalSuperFast
+BenchmarkMarshalSuperFast-8   	  883546	      1226 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUnMarshalFast
+BenchmarkUnMarshalFast-8      	   67159	     17772 ns/op	   11900 B/op	     210 allocs/op
+BenchmarkHashTreeRootFast
+BenchmarkHashTreeRootFast-8   	   24508	     45571 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	github.com/ferranbt/fastssz/spectests	6.608s
+ok  	github.com/ferranbt/fastssz/spectests	5.501s
 ```
 
 # Package reference
