@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 
 	"github.com/minio/sha256-simd"
+	"github.com/prysmaticlabs/gohashtree"
 )
 
 var _ HashWalker = (*Hasher)(nil)
@@ -367,9 +368,9 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 		return append(dst, zeroHashes[depth][:]...)
 	}
 
-	getPos := func(i int) []byte {
-		return input[i*32 : i*32+32]
-	}
+	//getPos := func(i int) []byte {
+	//	return input[i*32 : i*32+32]
+	//}
 
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(input) / 32
@@ -382,8 +383,8 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 		}
 
 		outputLen := (layerLen / 2) * 32
-		for i := 0; i < layerLen; i += 2 {
-			h.doHash(getPos(i/2), getPos(i), getPos(i+1))
+		if err := gohashtree.Hash(input, input); err != nil {
+			panic(err)
 		}
 		input = input[:outputLen]
 	}
