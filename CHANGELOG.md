@@ -1,6 +1,6 @@
-
 # 0.1.2 (Unreleased)
 
+- fix: Allocate uint slice if len is 0 instead of nil [[GH-96](https://github.com/ferranbt/fastssz/issues/96)]
 - feat: Simplify the logic of the merkleizer [[GH-94](https://github.com/ferranbt/fastssz/issues/94)]
 
 # 0.1.1 (1 July, 2022)
