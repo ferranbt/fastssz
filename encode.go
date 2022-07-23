@@ -140,6 +140,9 @@ func extendByteSlice(b []byte, needLen int) []byte {
 
 // ExtendUint64 extends a uint64 buffer to a given size
 func ExtendUint64(b []uint64, needLen int) []uint64 {
+	if b == nil {
+		b = []uint64{}
+	}
 	b = b[:cap(b)]
 	if n := needLen - cap(b); n > 0 {
 		b = append(b, make([]uint64, n)...)
@@ -149,6 +152,9 @@ func ExtendUint64(b []uint64, needLen int) []uint64 {
 
 // ExtendUint16 extends a uint16 buffer to a given size
 func ExtendUint16(b []uint16, needLen int) []uint16 {
+	if b == nil {
+		b = []uint16{}
+	}
 	b = b[:cap(b)]
 	if n := needLen - cap(b); n > 0 {
 		b = append(b, make([]uint16, n)...)
@@ -158,6 +164,9 @@ func ExtendUint16(b []uint16, needLen int) []uint16 {
 
 // ExtendUint16 extends a uint16 buffer to a given size
 func ExtendUint8(b []uint8, needLen int) []uint8 {
+	if b == nil {
+		b = []uint8{}
+	}
 	b = b[:cap(b)]
 	if n := needLen - cap(b); n > 0 {
 		b = append(b, make([]uint8, n)...)
