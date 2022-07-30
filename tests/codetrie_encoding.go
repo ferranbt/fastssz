@@ -271,6 +271,9 @@ func (c *CodeTrieSmall) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Metadata'
+	if c.Metadata == nil {
+		c.Metadata = new(Metadata)
+	}
 	if err = c.Metadata.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -404,6 +407,9 @@ func (c *CodeTrieBig) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Metadata'
+	if c.Metadata == nil {
+		c.Metadata = new(Metadata)
+	}
 	if err = c.Metadata.HashTreeRootWith(hh); err != nil {
 		return
 	}

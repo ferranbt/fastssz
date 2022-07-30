@@ -103,6 +103,9 @@ func (c *Case4) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	}
 
 	// Field (1) 'B'
+	if c.B == nil {
+		c.B = new(other.Case4Interface)
+	}
 	if err = c.B.HashTreeRootWith(hh); err != nil {
 		return
 	}
