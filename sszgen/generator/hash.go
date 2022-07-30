@@ -216,7 +216,25 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 
 func (v *Value) hashTreeRootContainer(start bool) string {
 	if !start {
-		return fmt.Sprintf("if err = ::.%s.HashTreeRootWith(hh); err != nil {\n return\n}", v.name)
+		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
+			::.{{.name}} = new({{.obj}})
+		}
+		{{ end }}if err = ::.{{.name}}.HashTreeRootWith(hh); err != nil {
+			return
+		}`
+		// validate only for fixed structs
+		check := v.isFixed()
+		if v.isListElem() {
+			check = false
+		}
+		if v.noPtr {
+			check = false
+		}
+		return execTmpl(tmpl, map[string]interface{}{
+			"name":  v.name,
+			"obj":   v.objRef(),
+			"check": check,
+		})
 	}
 
 	out := []string{}
