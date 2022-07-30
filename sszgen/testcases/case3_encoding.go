@@ -150,6 +150,9 @@ func (c *Case3A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	}
 
 	// Field (1) 'B'
+	if c.B == nil {
+		c.B = new(Case3B)
+	}
 	if err = c.B.HashTreeRootWith(hh); err != nil {
 		return
 	}
@@ -160,6 +163,9 @@ func (c *Case3A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	}
 
 	// Field (3) 'D'
+	if c.D == nil {
+		c.D = new(other.Case3B)
+	}
 	if err = c.D.HashTreeRootWith(hh); err != nil {
 		return
 	}

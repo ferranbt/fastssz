@@ -1,5 +1,8 @@
-
 # FastSSZ
+
+The FastSSZ project in this reposity is a combination of two things: a high performant low level library to work with SSZ encodings (root of this project) and the ([sszgen](./sszgen)) code generator that generates the SSZ encodings for Go structs using the SSZ library. By combining both, this library achieves peak Go native performance and zero memory allocation. The repository uses as test the official Ethereum SSZ tests ([spectests](./spectests/)) for the Consensus Spec data structures.
+
+If you are only looking for the Consensus data structures and types with the SSZ support, it is recommended to use [go-eth-consensus](https://github.com/umbracle/go-eth-consensus) instead, since it is already integrated with other parts of the Consensus stack, like the Beacon http API.
 
 Clone:
 
@@ -27,7 +30,7 @@ $ go run sszgen/*.go --path ./ethereumapis/eth/v1alpha1 [--objs BeaconBlock,Eth1
 
 Optionally, you can specify the objs you want to generate. Otherwise, it will generate encodings for all structs in the package. Note that if a struct does not have 'ssz' tags when required (i.e size of arrays), the generator will fail.
 
-By default, it generates a file with the prefix '_encoding.go' for each file that contains a generated struct. Optionally, you can combine all the outputs in a single file with the 'output' flag.
+By default, it generates a file with the prefix '\_encoding.go' for each file that contains a generated struct. Optionally, you can combine all the outputs in a single file with the 'output' flag.
 
 ```
 $ go run sszgen/*.go --path ./ethereumapis/eth/v1alpha1 --output ./ethereumapis/eth/v1alpha1/encoding.go
@@ -58,7 +61,7 @@ $ go test -v ./spectests/... -run=XXX -bench=.
 goos: linux
 goarch: amd64
 pkg: github.com/ferranbt/fastssz/spectests
-cpu: AMD Ryzen 5 2400G with Radeon Vega Graphics    
+cpu: AMD Ryzen 5 2400G with Radeon Vega Graphics
 BenchmarkMarshalFast
 BenchmarkMarshalFast-8        	  268454	      4166 ns/op	    8192 B/op	       1 allocs/op
 BenchmarkMarshalSuperFast
@@ -79,11 +82,12 @@ Example:
 
 ```
 $ go run sszgen/*.go --path ./example2
-$ go run sszgen/*.go --path ./example 
+$ go run sszgen/*.go --path ./example
 [ERR]: could not find struct with name 'Checkpoint'
 $ go run sszgen/*.go --path ./example --include ./example2
 ```
 
 There are some caveats required to use this functionality.
+
 - If multiple input paths import the same package, all of them need to import it with the same alias if any.
 - If the folder of the package is not the same as the name of the package, any input file that imports this package needs to do it with an alias.
