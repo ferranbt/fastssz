@@ -209,6 +209,9 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			"htrCall": htrCall,
 		})
 
+	case TypeTime:
+		return fmt.Sprintf("hh.PutUint64(uint64(%s.Unix()))", name)
+
 	default:
 		panic(fmt.Errorf("hash not implemented for type %s", v.t.String()))
 	}

@@ -77,6 +77,9 @@ func (v *Value) marshal() string {
 	case TypeList:
 		return v.marshalList()
 
+	case TypeTime:
+		return fmt.Sprintf("dst = ssz.MarshalUint64(dst, uint64(::.%s.Unix()))", v.name)
+
 	default:
 		panic(fmt.Errorf("marshal not implemented for type %s", v.t.String()))
 	}

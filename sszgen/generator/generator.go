@@ -209,6 +209,8 @@ const (
 	TypeContainer
 	// TypeReference is a SSZ reference
 	TypeReference
+	// TypeTime is a timestamp
+	TypeTime
 )
 
 func (t Type) String() string {
@@ -231,6 +233,8 @@ func (t Type) String() string {
 		return "container"
 	case TypeReference:
 		return "reference"
+	case TypeTime:
+		return "time.Time"
 	default:
 		panic("not found")
 	}
@@ -1056,7 +1060,9 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		name := obj.X.(*ast.Ident).Name
 		sel := obj.Sel.Name
 
-		if sel == "Bitlist" {
+		if name == "time" && sel == "Time" {
+			return &Value{t: TypeTime, s: 8}, nil
+		} else if sel == "Bitlist" {
 			// go-bitfield/Bitlist
 			maxSize, ok := getTagsInt(tags, "ssz-max")
 			if !ok {
@@ -1174,6 +1180,8 @@ func (v *Value) isFixed() bool {
 			return true
 		}
 		return false
+	case TypeTime:
+		return true
 	default:
 		// TypeUndefined should be the only type to fallthrough to this case
 		// TypeUndefined always means there is a fatal error in the parsing logic
