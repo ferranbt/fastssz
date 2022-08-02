@@ -1061,7 +1061,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		sel := obj.Sel.Name
 
 		if name == "time" && sel == "Time" {
-			return &Value{t: TypeTime, s: 8}, nil
+			return &Value{t: TypeTime, s: 8, ref: "time"}, nil
 		} else if sel == "Bitlist" {
 			// go-bitfield/Bitlist
 			maxSize, ok := getTagsInt(tags, "ssz-max")
