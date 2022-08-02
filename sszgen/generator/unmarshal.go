@@ -105,7 +105,7 @@ func (v *Value) unmarshal(dst string) string {
 		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
 
 	case TypeTime:
-		return fmt.Sprintf("::.%s = time.Unix(int64(ssz.UnmarshallUint64(%s)), 0).UTC()", v.name, dst)
+		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
 
 	default:
 		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
