@@ -69,7 +69,7 @@ func UnmarshalBool(src []byte) bool {
 
 // UnmarshalTime unmarshals a time.Time from the src input
 func UnmarshalTime(src []byte) time.Time {
-	return time.Unix(int64(binary.LittleEndian.Uint64(src)), 0).UTC()
+	return time.Unix(int64(UnmarshallUint64(src)), 0).UTC()
 }
 
 // ---- Marshal functions ----
@@ -116,10 +116,7 @@ func MarshalBool(dst []byte, b bool) []byte {
 
 // MarshalTime marshals a time to dst
 func MarshalTime(dst []byte, t time.Time) []byte {
-	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, uint64(t.Unix()))
-	dst = append(dst, buf...)
-	return dst
+	return MarshalUint64(dst, uint64(t.Unix()))
 }
 
 // ---- offset functions ----
