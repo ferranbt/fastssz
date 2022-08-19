@@ -352,7 +352,11 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		if v.e.c {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
 		}
-		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
+		ref := v.e.objRef()
+		if ref == "" {
+			ref = "[]byte"
+		}
+		return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
 
 	default:
 		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, v.e.t.String()))
