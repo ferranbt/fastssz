@@ -69,21 +69,34 @@ type Hasher struct {
 	tmp []byte
 
 	// sha256 hash function
+	hash Hash
+}
+
+type Hash interface {
+	Hash(dst []byte, src []byte) []byte
+}
+
+type NativeHashWrapper struct {
 	hash hash.Hash
+}
+
+func (n *NativeHashWrapper) Hash(dst []byte, src []byte) []byte {
+	n.hash.Write(src[:32])
+	n.hash.Write(src[32:64])
+	n.hash.Sum(dst)
+	n.hash.Reset()
+	return dst
 }
 
 // NewHasher creates a new Hasher object
 func NewHasher() *Hasher {
-	return &Hasher{
-		hash: sha256.New(),
-		tmp:  make([]byte, 32),
-	}
+	return NewHasherWithHash(sha256.New())
 }
 
 // NewHasher creates a new Hasher object with a custom hash function
 func NewHasherWithHash(hh hash.Hash) *Hasher {
 	return &Hasher{
-		hash: hh,
+		hash: &NativeHashWrapper{hash: hh},
 		tmp:  make([]byte, 32),
 	}
 }
@@ -91,7 +104,6 @@ func NewHasherWithHash(hh hash.Hash) *Hasher {
 // Reset resets the Hasher obj
 func (h *Hasher) Reset() {
 	h.buf = h.buf[:0]
-	h.hash.Reset()
 }
 
 func (h *Hasher) AppendBytes32(b []byte) {
@@ -282,7 +294,7 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 	input = append(input, output...)
 
 	// input is of the form [<input><size>] of 64 bytes
-	input = h.doHash(input[:0], input)
+	input = h.hash.Hash(input[:0], input)
 	h.buf = append(h.buf[:indx], input[:32]...)
 }
 
@@ -339,14 +351,6 @@ func getDepth(d uint64) uint8 {
 	return 64 - uint8(bits.LeadingZeros(i)) - 1
 }
 
-func (h *Hasher) doHash(dst []byte, a []byte) []byte {
-	h.hash.Write(a[:32])
-	h.hash.Write(a[32:64])
-	h.hash.Sum(dst)
-	h.hash.Reset()
-	return dst
-}
-
 func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 	count := uint64(len(input) / 32)
 	if limit == 0 {
@@ -369,10 +373,6 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 	if len(input) == 0 {
 		return append(dst, zeroHashes[depth][:]...)
 	}
-
-	//getPos := func(i int) []byte {
-	//	return input[i*32 : i*32+32]
-	//}
 
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(input) / 32
