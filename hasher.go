@@ -279,9 +279,11 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 		output[indx] = 0
 	}
 	MarshalUint64(output[:0], num)
+	input = append(input, output...)
 
-	input = h.doHash(input, input, output)
-	h.buf = append(h.buf[:indx], input...)
+	// input is of the form [<input><size>] of 64 bytes
+	input = h.doHash(input[:0], input)
+	h.buf = append(h.buf[:indx], input[:32]...)
 }
 
 func (h *Hasher) Hash() []byte {
@@ -337,10 +339,10 @@ func getDepth(d uint64) uint8 {
 	return 64 - uint8(bits.LeadingZeros(i)) - 1
 }
 
-func (h *Hasher) doHash(dst []byte, a []byte, b []byte) []byte {
-	h.hash.Write(a)
-	h.hash.Write(b)
-	h.hash.Sum(dst[:0])
+func (h *Hasher) doHash(dst []byte, a []byte) []byte {
+	h.hash.Write(a[:32])
+	h.hash.Write(a[32:64])
+	h.hash.Sum(dst)
 	h.hash.Reset()
 	return dst
 }

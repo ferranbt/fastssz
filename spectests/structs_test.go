@@ -165,9 +165,13 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 		fatal("HashTreeRoot", err)
 	}
 	if !bytes.Equal(root[:], output.root) {
+		//fmt.Println("- bad root -")
 		fatal("HashTreeRoot_equal", fmt.Errorf("bad root"))
 	}
 
+	//if fileName == "../eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/AggregateAndProof/ssz_random/case_0" {
+	//	panic("x")
+	//}
 	if structName == "BeaconState" || structName == "BeaconBlockBody" || structName == "ExecutionPayload" {
 		// this gets to expensive, BeaconState even crashes with out-of-bounds memory allocation
 		return
