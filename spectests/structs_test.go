@@ -11,6 +11,7 @@ import (
 
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/golang/snappy"
+	"github.com/prysmaticlabs/gohashtree"
 
 	"gopkg.in/yaml.v2"
 )
@@ -165,6 +166,7 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 		fatal("HashTreeRoot", err)
 	}
 	if !bytes.Equal(root[:], output.root) {
+		//fmt.Println("- bad root -")
 		fatal("HashTreeRoot_equal", fmt.Errorf("bad root"))
 	}
 
@@ -186,7 +188,7 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 
 const benchmarkTestCase = "../eth2.0-spec-tests/tests/mainnet/phase0/ssz_static/BeaconBlock/ssz_random/case_4"
 
-func BenchmarkMarshalFast(b *testing.B) {
+func BenchmarkMarshal_Fast(b *testing.B) {
 	obj := new(BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
@@ -198,7 +200,7 @@ func BenchmarkMarshalFast(b *testing.B) {
 	}
 }
 
-func BenchmarkMarshalSuperFast(b *testing.B) {
+func BenchmarkMarshal_SuperFast(b *testing.B) {
 	obj := new(BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
@@ -212,7 +214,7 @@ func BenchmarkMarshalSuperFast(b *testing.B) {
 	}
 }
 
-func BenchmarkUnMarshalFast(b *testing.B) {
+func BenchmarkUnMarshal_Fast(b *testing.B) {
 	obj := new(BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
@@ -232,14 +234,28 @@ func BenchmarkUnMarshalFast(b *testing.B) {
 	}
 }
 
-func BenchmarkHashTreeRootFast(b *testing.B) {
+func BenchmarkHashTreeRoot_Fast(b *testing.B) {
 	obj := new(BeaconBlock)
 	readValidGenericSSZ(nil, benchmarkTestCase, obj)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	hh := ssz.DefaultHasherPool.Get()
+	hh := ssz.NewHasher()
+	for i := 0; i < b.N; i++ {
+		obj.HashTreeRootWith(hh)
+		hh.Reset()
+	}
+}
+
+func BenchmarkHashTreeRoot_SuperFast(b *testing.B) {
+	obj := new(BeaconBlock)
+	readValidGenericSSZ(nil, benchmarkTestCase, obj)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	hh := ssz.NewHasherWithHashFn(gohashtree.Hash)
 	for i := 0; i < b.N; i++ {
 		obj.HashTreeRootWith(hh)
 		hh.Reset()

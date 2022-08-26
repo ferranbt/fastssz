@@ -62,19 +62,21 @@ goos: linux
 goarch: amd64
 pkg: github.com/ferranbt/fastssz/spectests
 cpu: AMD Ryzen 5 2400G with Radeon Vega Graphics
-BenchmarkMarshalFast
-BenchmarkMarshalFast-8        	  268454	      4166 ns/op	    8192 B/op	       1 allocs/op
-BenchmarkMarshalSuperFast
-BenchmarkMarshalSuperFast-8   	  883546	      1226 ns/op	       0 B/op	       0 allocs/op
-BenchmarkUnMarshalFast
-BenchmarkUnMarshalFast-8      	   67159	     17772 ns/op	   11900 B/op	     210 allocs/op
-BenchmarkHashTreeRootFast
-BenchmarkHashTreeRootFast-8   	   24508	     45571 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMarshal_Fast
+BenchmarkMarshal_Fast-8             	  291054	      4088 ns/op	    8192 B/op	       1 allocs/op
+BenchmarkMarshal_SuperFast
+BenchmarkMarshal_SuperFast-8        	  798883	      1354 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUnMarshal_Fast
+BenchmarkUnMarshal_Fast-8           	   64065	     17614 ns/op	   11900 B/op	     210 allocs/op
+BenchmarkHashTreeRoot_Fast
+BenchmarkHashTreeRoot_Fast-8        	   25863	     45932 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHashTreeRoot_SuperFast
+BenchmarkHashTreeRoot_SuperFast-8   	   54078	     21999 ns/op	       0 B/op	       0 allocs/op
 PASS
 ok  	github.com/ferranbt/fastssz/spectests	5.501s
 ```
 
-# Package reference
+## Package reference
 
 To reference a struct from another package use the '--include' flag to point to that package.
 
@@ -91,3 +93,9 @@ There are some caveats required to use this functionality.
 
 - If multiple input paths import the same package, all of them need to import it with the same alias if any.
 - If the folder of the package is not the same as the name of the package, any input file that imports this package needs to do it with an alias.
+
+## Fast HashTreeRoot
+
+`Fastssz` integrates with Prysm [gohashtree](https://github.com/prysmaticlabs/gohashtree) library to do high performance and concurrent Sha256 hashing. It achieves a 2x performance improvement with respect to the normal sequential hashing. As of now, this feature is not yet enabled by default since it does not use the `gohashtree` main branch. You can track the updates on [this](https://github.com/prysmaticlabs/gohashtree/issues/4) issue.
+
+In order to use this feature, enable manually the hash function in the Hasher like in the benchmark example.

@@ -1,5 +1,6 @@
 # 0.1.2 (Unreleased)
 
+- feat: Add `HashFn` abstraction and introduce `gohashtree` hashing [[GH-95](https://github.com/ferranbt/fastssz/issues/95)]
 - feat: `sszgen` for alias to byte array [[GH-55](https://github.com/ferranbt/fastssz/issues/55)]
 - feat: `sszgen` include version in generated header file [[GH-101](https://github.com/ferranbt/fastssz/issues/101)]
 - feat: support `time.Time` type as native object [[GH-100](https://github.com/ferranbt/fastssz/issues/100)]

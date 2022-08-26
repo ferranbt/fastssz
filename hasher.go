@@ -68,19 +68,21 @@ type Hasher struct {
 	tmp []byte
 
 	// sha256 hash function
-	hash hash.Hash
+	hash HashFn
 }
 
-// NewHasher creates a new Hasher object
+// NewHasher creates a new Hasher object with sha256 hash
 func NewHasher() *Hasher {
-	return &Hasher{
-		hash: sha256.New(),
-		tmp:  make([]byte, 32),
-	}
+	return NewHasherWithHash(sha256.New())
 }
 
-// NewHasher creates a new Hasher object with a custom hash function
+// NewHasherWithHash creates a new Hasher object with a custom hash.Hash function
 func NewHasherWithHash(hh hash.Hash) *Hasher {
+	return NewHasherWithHashFn(NativeHashWrapper(hh))
+}
+
+// NewHasherWithHashFn creates a new Hasher object with a custom HashFn function
+func NewHasherWithHashFn(hh HashFn) *Hasher {
 	return &Hasher{
 		hash: hh,
 		tmp:  make([]byte, 32),
@@ -90,7 +92,6 @@ func NewHasherWithHash(hh hash.Hash) *Hasher {
 // Reset resets the Hasher obj
 func (h *Hasher) Reset() {
 	h.buf = h.buf[:0]
-	h.hash.Reset()
 }
 
 func (h *Hasher) AppendBytes32(b []byte) {
@@ -278,9 +279,11 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 		output[indx] = 0
 	}
 	MarshalUint64(output[:0], num)
+	input = append(input, output...)
 
-	input = h.doHash(input, input, output)
-	h.buf = append(h.buf[:indx], input...)
+	// input is of the form [<input><size>] of 64 bytes
+	h.hash(input, input)
+	h.buf = append(h.buf[:indx], input[:32]...)
 }
 
 func (h *Hasher) Hash() []byte {
@@ -336,14 +339,6 @@ func getDepth(d uint64) uint8 {
 	return 64 - uint8(bits.LeadingZeros(i)) - 1
 }
 
-func (h *Hasher) doHash(dst []byte, a []byte, b []byte) []byte {
-	h.hash.Write(a)
-	h.hash.Write(b)
-	h.hash.Sum(dst[:0])
-	h.hash.Reset()
-	return dst
-}
-
 func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 	count := uint64(len(input) / 32)
 	if limit == 0 {
@@ -367,10 +362,6 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 		return append(dst, zeroHashes[depth][:]...)
 	}
 
-	getPos := func(i int) []byte {
-		return input[i*32 : i*32+32]
-	}
-
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(input) / 32
 		oddNodeLength := layerLen%2 == 1
@@ -382,9 +373,8 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 		}
 
 		outputLen := (layerLen / 2) * 32
-		for i := 0; i < layerLen; i += 2 {
-			h.doHash(getPos(i/2), getPos(i), getPos(i+1))
-		}
+
+		h.hash(input, input)
 		input = input[:outputLen]
 	}
 
