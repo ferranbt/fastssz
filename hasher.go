@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 
 	"github.com/minio/sha256-simd"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 var _ HashWalker = (*Hasher)(nil)
@@ -69,34 +68,23 @@ type Hasher struct {
 	tmp []byte
 
 	// sha256 hash function
-	hash Hash
+	hash HashFn
 }
 
-type Hash interface {
-	Hash(dst []byte, src []byte) []byte
-}
-
-type NativeHashWrapper struct {
-	hash hash.Hash
-}
-
-func (n *NativeHashWrapper) Hash(dst []byte, src []byte) []byte {
-	n.hash.Write(src[:32])
-	n.hash.Write(src[32:64])
-	n.hash.Sum(dst)
-	n.hash.Reset()
-	return dst
-}
-
-// NewHasher creates a new Hasher object
+// NewHasher creates a new Hasher object with sha256 hash
 func NewHasher() *Hasher {
 	return NewHasherWithHash(sha256.New())
 }
 
-// NewHasher creates a new Hasher object with a custom hash function
+// NewHasherWithHash creates a new Hasher object with a custom hash.Hash function
 func NewHasherWithHash(hh hash.Hash) *Hasher {
+	return NewHasherWithHashFn(NativeHashWrapper(hh))
+}
+
+// NewHasherWithHashFn creates a new Hasher object with a custom HashFn function
+func NewHasherWithHashFn(hh HashFn) *Hasher {
 	return &Hasher{
-		hash: &NativeHashWrapper{hash: hh},
+		hash: hh,
 		tmp:  make([]byte, 32),
 	}
 }
@@ -294,7 +282,7 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 	input = append(input, output...)
 
 	// input is of the form [<input><size>] of 64 bytes
-	input = h.hash.Hash(input[:0], input)
+	h.hash(input, input)
 	h.buf = append(h.buf[:indx], input[:32]...)
 }
 
@@ -385,9 +373,8 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 		}
 
 		outputLen := (layerLen / 2) * 32
-		if err := gohashtree.Hash(input, input); err != nil {
-			panic(err)
-		}
+
+		h.hash(input, input)
 		input = input[:outputLen]
 	}
 
