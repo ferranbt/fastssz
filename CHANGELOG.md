@@ -1,5 +1,8 @@
 # 0.1.2 (Unreleased)
 
+- feat: `sszgen` for alias to byte array [[GH-55](https://github.com/ferranbt/fastssz/issues/55)]
+- feat: `sszgen` include version in generated header file [[GH-101](https://github.com/ferranbt/fastssz/issues/101)]
+- feat: support `time.Time` type as native object [[GH-100](https://github.com/ferranbt/fastssz/issues/100)]
 - fix: Allocate nil data structures in HTR [[GH-98](https://github.com/ferranbt/fastssz/issues/98)]
 - fix: Allocate uint slice if len is 0 instead of nil [[GH-96](https://github.com/ferranbt/fastssz/issues/96)]
 - feat: Simplify the logic of the merkleizer [[GH-94](https://github.com/ferranbt/fastssz/issues/94)]

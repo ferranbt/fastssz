@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/bits"
+	"time"
 )
 
 // MarshalSSZ marshals an object
@@ -66,6 +67,11 @@ func UnmarshalBool(src []byte) bool {
 	return false
 }
 
+// UnmarshalTime unmarshals a time.Time from the src input
+func UnmarshalTime(src []byte) time.Time {
+	return time.Unix(int64(UnmarshallUint64(src)), 0).UTC()
+}
+
 // ---- Marshal functions ----
 
 // MarshalUint64 marshals a little endian uint64 to dst
@@ -106,6 +112,11 @@ func MarshalBool(dst []byte, b bool) []byte {
 		dst = append(dst, 0)
 	}
 	return dst
+}
+
+// MarshalTime marshals a time to dst
+func MarshalTime(dst []byte, t time.Time) []byte {
+	return MarshalUint64(dst, uint64(t.Unix()))
 }
 
 // ---- offset functions ----

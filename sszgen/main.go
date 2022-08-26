@@ -7,9 +7,8 @@ import (
 	"strings"
 
 	"github.com/ferranbt/fastssz/sszgen/generator"
+	"github.com/ferranbt/fastssz/sszgen/version"
 )
-
-const version = "0.1.2-dev"
 
 func main() {
 	args := os.Args[1:]
@@ -20,7 +19,7 @@ func main() {
 	}
 	switch cmd {
 	case "version":
-		fmt.Println(version)
+		fmt.Println(version.Version)
 	default:
 		generate()
 	}

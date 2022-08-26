@@ -104,6 +104,9 @@ func (v *Value) unmarshal(dst string) string {
 	case TypeBool:
 		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
 
+	case TypeTime:
+		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
+
 	default:
 		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
 	}
@@ -349,9 +352,13 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		if v.e.c {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
 		}
-		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
+		ref := v.e.objRef()
+		if ref == "" {
+			ref = "[]byte"
+		}
+		return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
 
 	default:
-		panic(fmt.Sprintf("create not implemented for type %s", v.e.t.String()))
+		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, v.e.t.String()))
 	}
 }
