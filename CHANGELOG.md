@@ -1,4 +1,4 @@
-# 0.1.2 (Unreleased)
+# 0.1.2 (26 Aug, 2022)
 
 - feat: Add `HashFn` abstraction and introduce `gohashtree` hashing [[GH-95](https://github.com/ferranbt/fastssz/issues/95)]
 - feat: `sszgen` for alias to byte array [[GH-55](https://github.com/ferranbt/fastssz/issues/55)]
