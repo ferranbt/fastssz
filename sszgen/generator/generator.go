@@ -334,8 +334,16 @@ func (e *env) generateEncodings() (map[string]string, error) {
 }
 
 func (e *env) hashSource() (string, error) {
+	filenames := []string{}
+	for name := range e.files {
+		filenames = append(filenames, name)
+	}
+	sort.Strings(filenames)
+
 	content := ""
-	for _, f := range e.files {
+	for _, name := range filenames {
+		f := e.files[name]
+
 		var buf bytes.Buffer
 		if err := format.Node(&buf, token.NewFileSet(), f); err != nil {
 			return "", err
