@@ -49,6 +49,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 			// we need to use PutBytes in order to hash the result since
 			// is higher than 32 bytes
 			appendFn = "PutBytes"
+			elemSize = v.e.s
 		} else {
 			appendFn = "Append"
 			elemSize = 32
