@@ -1,5 +1,7 @@
 # 0.1.3 (Unreleased)
 
+- fix: Add support for non-literal array lengths [[GH-108](https://github.com/ferranbt/fastssz/issues/108)]
+
 # 0.1.2 (26 Aug, 2022)
 
 - feat: Add `HashFn` abstraction and introduce `gohashtree` hashing [[GH-95](https://github.com/ferranbt/fastssz/issues/95)]
