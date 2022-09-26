@@ -1,5 +1,6 @@
 # 0.1.3 (Unreleased)
 
+- feat: Skip unit tests and `ssz` generate objects during parsing [[GH-114](https://github.com/ferranbt/fastssz/issues/114)]
 - fix: Add support for non-literal array lengths [[GH-108](https://github.com/ferranbt/fastssz/issues/108)]
 
 # 0.1.2 (26 Aug, 2022)
