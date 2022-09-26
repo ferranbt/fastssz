@@ -31,12 +31,14 @@ func generate() {
 	var output string
 	var include string
 	var excludeObjs string
+	var suffix string
 
 	flag.StringVar(&source, "path", "", "")
 	flag.StringVar(&objsStr, "objs", "", "")
 	flag.StringVar(&excludeObjs, "exclude-objs", "", "Comma-separated list of types to exclude from output")
 	flag.StringVar(&output, "output", "", "")
 	flag.StringVar(&include, "include", "", "")
+	flag.StringVar(&suffix, "suffix", "encoding", "")
 
 	flag.Parse()
 
@@ -47,7 +49,14 @@ func generate() {
 		excludeTypeNames[name] = true
 	}
 
-	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames); err != nil {
+	if !strings.HasPrefix(suffix, "_") {
+		suffix = fmt.Sprintf("_%s", suffix)
+	}
+	if !strings.HasSuffix(suffix, ".go") {
+		suffix = fmt.Sprintf("%s.go", suffix)
+	}
+
+	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames, suffix); err != nil {
 		fmt.Printf("[ERR]: %v\n", err)
 		os.Exit(1)
 	}
