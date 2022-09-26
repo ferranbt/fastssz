@@ -262,6 +262,8 @@ type env struct {
 	imports []*astImport
 	// excludeTypeNames is a map of type names to leave out of output
 	excludeTypeNames map[string]bool
+	// result is the list of raw astResult objects
+	results []*astResult
 }
 
 const encodingPrefix = "_encoding.go"
@@ -499,9 +501,15 @@ func (a *astStruct) isAlias() bool {
 	return a.typ != nil
 }
 
+type aliasRef struct {
+	name  string
+	value uint64
+}
+
 type astResult struct {
 	objs     []*astStruct
 	funcs    []string
+	alias    []*aliasRef
 	packName string
 }
 
@@ -511,6 +519,7 @@ func decodeASTStruct(file *ast.File) *astResult {
 	res := &astResult{
 		objs:     []*astStruct{},
 		funcs:    []string{},
+		alias:    []*aliasRef{},
 		packName: packName,
 	}
 
@@ -535,6 +544,29 @@ func decodeASTStruct(file *ast.File) *astResult {
 					}
 					if obj.obj != nil || obj.typ != nil {
 						res.objs = append(res.objs, obj)
+					}
+				} else if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+					// alias value, only consider int numbers. Note that this
+					// only works if the alias is of the type (var Length = 1)
+					// and it will not work for (var Length = uint64(1))
+					names := valueSpec.Names
+					if len(names) != 1 {
+						continue
+					}
+					if vals := valueSpec.Values; len(vals) == 1 {
+						raw := vals[0]
+						if val, ok := raw.(*ast.BasicLit); ok {
+							if val.Kind == token.INT {
+								num, err := strconv.ParseUint(val.Value, 0, 64)
+								if err != nil {
+									panic(fmt.Errorf("BUG: expected int: %v", err))
+								}
+								res.alias = append(res.alias, &aliasRef{
+									name:  names[0].Name,
+									value: num,
+								})
+							}
+						}
 					}
 				}
 			}
@@ -772,6 +804,7 @@ func (e *env) generateIR() error {
 		}
 	}
 
+	e.results = astResults
 	for _, obj := range e.raw {
 		// If the user does not want to generate a struct we should skip it right away
 		if e.excludeTypeNames[obj.name] {
@@ -806,6 +839,17 @@ func contains(i string, j []string) bool {
 		}
 	}
 	return false
+}
+
+func (e *env) resolveAlias(name string) (uint64, bool) {
+	for _, i := range e.results {
+		for _, j := range i.alias {
+			if j.name == name {
+				return j.value, true
+			}
+		}
+	}
+	return 0, false
 }
 
 func (e *env) encodeItem(name, tags string) (*Value, error) {
@@ -972,15 +1016,22 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			var astSize *uint64
 			// if .Len is nil, this is a slice, not a fixed length array
 			if collectionExpr.Len != nil {
-				arrayLen, ok := collectionExpr.Len.(*ast.BasicLit)
-				if !ok {
-					return nil, fmt.Errorf("failed to parse field %s. byte array definition not understood by go/ast", name)
+				switch obj := collectionExpr.Len.(type) {
+				case *ast.BasicLit:
+					// fixed array with explicit len
+					a, err := strconv.ParseUint(obj.Value, 0, 64)
+					if err != nil {
+						return nil, fmt.Errorf("could not parse array length for field %s", name)
+					}
+					astSize = &a
+				case *ast.Ident:
+					// fixed array with alias len
+					num, ok := e.resolveAlias(obj.Name)
+					if !ok {
+						return nil, fmt.Errorf("alias ref not found: %s", obj.Name)
+					}
+					astSize = &num
 				}
-				a, err := strconv.ParseUint(arrayLen.Value, 0, 64)
-				if err != nil {
-					return nil, fmt.Errorf("could not parse array length for field %s", name)
-				}
-				astSize = &a
 			}
 			if astSize != nil {
 				collection.c = true
