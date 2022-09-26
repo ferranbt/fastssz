@@ -30,7 +30,7 @@ const bytesPerLengthOffset = 4
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool) error {
+func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
@@ -62,6 +62,7 @@ func Encode(source string, targets []string, output string, includePaths []strin
 		packName:         packName,
 		targets:          targets,
 		excludeTypeNames: excludeTypeNames,
+		suffix:           suffix,
 	}
 
 	if err := e.generateIR(); err != nil { // 2.
@@ -284,9 +285,9 @@ type env struct {
 	excludeTypeNames map[string]bool
 	// result is the list of raw astResult objects
 	results []*astResult
+	// suffix is the suffix to append to codec files.
+	suffix string
 }
-
-const encodingPrefix = "_encoding.go"
 
 func (e *env) generateOutputEncodings(output string) (map[string]string, error) {
 	out := map[string]string{}
@@ -320,7 +321,7 @@ func (e *env) generateEncodings() (map[string]string, error) {
 		// remove .go prefix and replace if with our own
 		ext := filepath.Ext(name)
 		name = strings.TrimSuffix(name, ext)
-		name += encodingPrefix
+		name += e.suffix
 
 		vvv, ok, err := e.print(order)
 		if err != nil {
@@ -1286,7 +1287,7 @@ func execTmpl(tpl string, input interface{}) string {
 
 func uintVToName(v *Value) string {
 	if v.t != TypeUint {
-		panic("not expected")
+		panic(fmt.Sprintf("type %v for %s not expected", v.t, v.name))
 	}
 	switch v.s {
 	case 8:
