@@ -109,7 +109,7 @@ func (c *Case7) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 			hh.PutBytes(i)
 		}
 		numItems := uint64(len(c.BlobKzgs))
-		hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit(16, numItems, 48))
+		hh.MerkleizeWithMixin(subIndx, numItems, 16)
 	}
 
 	hh.Merkleize(indx)
