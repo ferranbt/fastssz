@@ -165,7 +165,7 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 	}
 
 	if !isPowerOfTwo(numLeaves) {
-		return nil, errors.New("Number of leaves should be a power of 2")
+		return nil, errors.New("number of leaves should be a power of 2")
 	}
 
 	numNodes := numLeaves*2 - 1
@@ -186,7 +186,7 @@ func TreeFromNodes(leaves []*Node) (*Node, error) {
 func TreeFromNodesWithMixin(leaves []*Node, num, limit int) (*Node, error) {
 	numLeaves := len(leaves)
 	if !isPowerOfTwo(limit) {
-		return nil, errors.New("Size of tree should be a power of 2")
+		return nil, errors.New("size of tree should be a power of 2")
 	}
 
 	allLeaves := make([]*Node, limit)

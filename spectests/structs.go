@@ -303,18 +303,18 @@ type ExecutionPayload struct {
 }
 
 type ExecutionPayloadHeader struct {
-	ParentHash       []byte `protobuf:"bytes,1,opt,name=parent_hash,json=parentHash,proto3" json:"parent_hash" ssz-size:"32"`
-	FeeRecipient     []byte `protobuf:"bytes,2,opt,name=fee_recipient,json=feeRecipient,proto3" json:"fee_recipient" ssz-size:"20"`
-	StateRoot        []byte `protobuf:"bytes,3,opt,name=state_root,json=stateRoot,proto3" json:"state_root" ssz-size:"32"`
-	ReceiptsRoot     []byte `protobuf:"bytes,4,opt,name=receipts_root,json=receiptsRoot,proto3" json:"receipts_root" ssz-size:"32"`
-	LogsBloom        []byte `protobuf:"bytes,5,opt,name=logs_bloom,json=logsBloom,proto3" json:"logs_bloom" ssz-size:"256"`
-	PrevRandao       []byte `protobuf:"bytes,6,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao" ssz-size:"32"`
-	BlockNumber      uint64 `protobuf:"varint,7,opt,name=block_number,json=blockNumber,proto3" json:"block_number"`
-	GasLimit         uint64 `protobuf:"varint,8,opt,name=gas_limit,json=gasLimit,proto3" json:"gas_limit"`
-	GasUsed          uint64 `protobuf:"varint,9,opt,name=gas_used,json=gasUsed,proto3" json:"gas_used"`
-	Timestamp        uint64 `protobuf:"varint,10,opt,name=timestamp,proto3" json:"timestamp"`
-	ExtraData        []byte `protobuf:"bytes,11,opt,name=extra_data,json=extraData,proto3" json:"extra_data" ssz-max:"32"`
-	BaseFeePerGas    []byte `protobuf:"bytes,12,opt,name=base_fee_per_gas,json=baseFeePerGas,proto3" json:"base_fee_per_gas" ssz-size:"32"`
-	BlockHash        []byte `protobuf:"bytes,13,opt,name=block_hash,json=blockHash,proto3" json:"block_hash" ssz-size:"32"`
-	TransactionsRoot []byte `protobuf:"bytes,14,opt,name=transactions_root,json=transactionsRoot,proto3" json:"transactions_root" ssz-size:"32"`
+	ParentHash       []byte `json:"parent_hash" ssz-size:"32"`
+	FeeRecipient     []byte `json:"fee_recipient" ssz-size:"20"`
+	StateRoot        []byte `json:"state_root" ssz-size:"32"`
+	ReceiptsRoot     []byte `json:"receipts_root" ssz-size:"32"`
+	LogsBloom        []byte `json:"logs_bloom" ssz-size:"256"`
+	PrevRandao       []byte `json:"prev_randao" ssz-size:"32"`
+	BlockNumber      uint64 `json:"block_number"`
+	GasLimit         uint64 `json:"gas_limit"`
+	GasUsed          uint64 `json:"gas_used"`
+	Timestamp        uint64 `json:"timestamp"`
+	ExtraData        []byte `json:"extra_data" ssz-max:"32"`
+	BaseFeePerGas    []byte `json:"base_fee_per_gas" ssz-size:"32"`
+	BlockHash        []byte `json:"block_hash" ssz-size:"32"`
+	TransactionsRoot []byte `json:"transactions_root" ssz-size:"32"`
 }

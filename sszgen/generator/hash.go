@@ -49,6 +49,7 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 			// we need to use PutBytes in order to hash the result since
 			// is higher than 32 bytes
 			appendFn = "PutBytes"
+			elemSize = v.e.s
 		} else {
 			appendFn = "Append"
 			elemSize = 32
@@ -61,13 +62,24 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 
 	var merkleize string
 	if isList {
+		// the limit for merkleize with mixin depends on the internal type
+		// if the type is basic, the size depends on CalculateLimit
+		// if the type is complex (TypeVector), the limit is the size.
+		// TODO: Generalize a list of complex objects
+		isComplex := false
+		if v.e.t == TypeBytes {
+			// TypeVector alias
+			isComplex = true
+		}
+
 		tmpl := `numItems := uint64(len(::.{{.name}}))
-		hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit({{.listSize}}, numItems, {{.elemSize}}))`
+		hh.MerkleizeWithMixin(subIndx, numItems, {{if .isComplex}} {{.listSize}} {{ else }} ssz.CalculateLimit({{.listSize}}, numItems, {{.elemSize}}) {{ end }})`
 
 		merkleize = execTmpl(tmpl, map[string]interface{}{
-			"name":     v.name,
-			"listSize": v.s,
-			"elemSize": elemSize,
+			"name":      v.name,
+			"listSize":  v.s,
+			"elemSize":  elemSize,
+			"isComplex": isComplex,
 		})
 
 		// when doing []uint64 we need to round up the Hasher bytes to 32
