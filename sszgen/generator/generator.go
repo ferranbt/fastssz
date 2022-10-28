@@ -9,7 +9,6 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -30,10 +29,10 @@ const bytesPerLengthOffset = 4
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string) error {
+func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string) (map[string]string, error) {
 	files, err := parseInput(source) // 1.
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// parse all the include paths as well
@@ -41,7 +40,7 @@ func Encode(source string, targets []string, output string, includePaths []strin
 	for _, i := range includePaths {
 		files, err := parseInput(i)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		for k, v := range files {
 			include[k] = v
@@ -66,7 +65,7 @@ func Encode(source string, targets []string, output string, includePaths []strin
 	}
 
 	if err := e.generateIR(); err != nil { // 2.
-		return err
+		return nil, err
 	}
 
 	// 3.
@@ -85,18 +84,7 @@ func Encode(source string, targets []string, output string, includePaths []strin
 		panic("No files to generate")
 	}
 
-	for name, str := range out {
-		output := []byte(str)
-
-		output, err = format.Source(output)
-		if err != nil {
-			return err
-		}
-		if err := ioutil.WriteFile(name, output, 0644); err != nil {
-			return err
-		}
-	}
-	return nil
+	return out, nil
 }
 
 func isDir(path string) (bool, error) {
@@ -310,7 +298,11 @@ func (e *env) generateOutputEncodings(output string) (map[string]string, error) 
 	if !ok {
 		return nil, nil
 	}
-	out[output] = res
+	formatted, err := format.Source([]byte(res))
+	if err != nil {
+		return nil, err
+	}
+	out[output] = string(formatted)
 	return out, nil
 }
 
@@ -328,7 +320,11 @@ func (e *env) generateEncodings() (map[string]string, error) {
 			return nil, err
 		}
 		if ok {
-			outs[name] = vvv
+			formatted, err := format.Source([]byte(vvv))
+			if err != nil {
+				return nil, err
+			}
+			outs[name] = string(formatted)
 		}
 	}
 	return outs, nil
