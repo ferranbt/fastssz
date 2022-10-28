@@ -8,6 +8,5 @@ type Case2A struct {
 
 type Case2B struct {
 	Case2A
-
 	B uint64
 }

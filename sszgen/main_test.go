@@ -21,7 +21,13 @@ type config struct {
 
 func TestGolden(t *testing.T) {
 	tests := []config{
-		{Source: "exclude-objects/single.go", ExcludeTypeNames: []string{"Bytes"}},
+		{Source: "exclude_obj.go", ExcludeTypeNames: []string{"Bytes"}},
+		{Source: "exclude_objs.go", ExcludeTypeNames: []string{"Case5Bytes", "Case5Roots"}},
+		{Source: "anonymous_field.go"},
+		{Source: "resolve-packages/single.go"},
+		{Source: "resolve-packages/multiple.go", IncludePaths: []string{"resolve-packages/other", "resolve-packages/other2"}},
+		{Source: "alias_array_size.go"},
+		{Source: "time.go"},
 	}
 	for _, test := range tests {
 		test := test
@@ -37,8 +43,7 @@ func runGoldenTest(t *testing.T, test config) {
 	for _, name := range test.ExcludeTypeNames {
 		excludeTypeNames[name] = true
 	}
-
-	out, err := generator.Encode(path.Join("testcases", test.Source), test.Targets, test.Output, test.IncludePaths, excludeTypeNames, "_encoding.go")
+	out, err := generator.Encode(prefixPath(test.Source), test.Targets, test.Output, prefixPaths(test.IncludePaths), excludeTypeNames, "_encoding.go")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,4 +57,16 @@ func runGoldenTest(t *testing.T, test config) {
 			t.Fatalf("\n%s",gotextdiff.ToUnified("got", "want", string(want), edits))
 		}
 	}
+}
+
+func prefixPaths(s []string) (out []string) {
+	out = make([]string, len(s))
+	for i, s := range s {
+		out[i] = prefixPath(s)
+	}
+	return out
+}
+
+func prefixPath(s string) string {
+	return path.Join("testcases", s)
 }

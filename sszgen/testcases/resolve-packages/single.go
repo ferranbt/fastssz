@@ -1,7 +1,7 @@
 package testcases
 
 import (
-	"github.com/ferranbt/fastssz/sszgen/testcases/other"
+	"github.com/ferranbt/fastssz/sszgen/testcases/resolve-packages/other"
 )
 
 //go:generate go run ../main.go --path case3.go
