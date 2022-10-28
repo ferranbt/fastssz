@@ -1,6 +1,6 @@
 package testcases
 
-//go:generate go run ../main.go --path case5.go --exclude-objs Case5Bytes,Case5Roots
+//go:generate go run ../main.go --path exclude_objs.go --exclude-objs Case5Bytes,Case5Roots
 
 type Case5Bytes []byte
 

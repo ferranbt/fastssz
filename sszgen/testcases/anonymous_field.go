@@ -1,6 +1,6 @@
 package testcases
 
-//go:generate go run ../main.go --path case2.go
+//go:generate go run ../main.go --path anonymous_field.go
 
 type Case2A struct {
 	A uint64

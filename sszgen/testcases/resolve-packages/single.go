@@ -4,7 +4,7 @@ import (
 	"github.com/ferranbt/fastssz/sszgen/testcases/resolve-packages/other"
 )
 
-//go:generate go run ../main.go --path case3.go
+//go:generate go run ../../main.go --path single.go
 
 type Case3B struct {
 }

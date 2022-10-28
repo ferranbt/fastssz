@@ -1,6 +1,6 @@
 package testcases
 
-//go:generate go run ../main.go --path case1.go --exclude-objs Bytes
+//go:generate go run ../main.go --path exclude_obj.go --exclude-objs Bytes
 
 type Bytes []byte
 
