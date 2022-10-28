@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -56,9 +57,15 @@ func generate() {
 		suffix = fmt.Sprintf("%s.go", suffix)
 	}
 
-	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames, suffix); err != nil {
-		fmt.Printf("[ERR]: %v\n", err)
-		os.Exit(1)
+	out, err := generator.Encode(source, targets, output, includeList, excludeTypeNames, suffix)
+	if err != nil {
+		exit(err)
+	}
+
+	for name, str := range out {
+		if err := ioutil.WriteFile(name, []byte(str), 0644); err != nil {
+			exit(err)
+		}
 	}
 }
 
@@ -67,4 +74,9 @@ func decodeList(input string) []string {
 		return []string{}
 	}
 	return strings.Split(strings.TrimSpace(input), ",")
+}
+
+func exit(err error) {
+	fmt.Printf("[ERR]: %v\n", err)
+	os.Exit(1)
 }
