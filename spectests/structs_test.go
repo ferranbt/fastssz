@@ -28,6 +28,8 @@ const (
 	phase0    fork = "phase0"
 	altair    fork = "altair"
 	bellatrix fork = "bellatrix"
+	eip4844   fork = "eip4844"
+	capella   fork = "capella"
 )
 
 type testCallback func(fork fork) codec
@@ -94,7 +96,19 @@ var codecs = map[string]testCallback{
 		return new(SyncAggregate)
 	},
 	"ExecutionPayload": func(fork fork) codec {
+		if fork == eip4844 {
+			return new(ExecutionPayloadEIP4844)
+		}
 		return new(ExecutionPayload)
+	},
+	"ExecutionPayloadHeader": func(fork fork) codec {
+		if fork == eip4844 {
+			return new(ExecutionPayloadHeaderEIP4844)
+		}
+		return new(ExecutionPayloadHeader)
+	},
+	"Withdrawal": func(fork fork) codec {
+		return new(Withdrawal)
 	},
 }
 
@@ -106,6 +120,7 @@ func testSpecFork(t *testing.T, fork fork) {
 
 		base, ok := codecs[name]
 		if !ok {
+			t.Logf("Test %s-%s not covered", fork, name)
 			continue
 		}
 
@@ -128,6 +143,14 @@ func TestSpec_Altair(t *testing.T) {
 
 func TestSpec_Bellatrix(t *testing.T) {
 	testSpecFork(t, bellatrix)
+}
+
+func TestSpec_EIP4844(t *testing.T) {
+	testSpecFork(t, eip4844)
+}
+
+func TestSpec_Capella(t *testing.T) {
+	testSpecFork(t, capella)
 }
 
 func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base testCallback) {

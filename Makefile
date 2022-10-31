@@ -6,7 +6,7 @@ build-spec-tests:
 
 .PHONY:
 get-spec-tests:
-	./scripts/download-spec-tests.sh v1.1.10
+	./scripts/download-spec-tests.sh v1.3.0-alpha.0
 
 .PHONY:
 generate-testcases:
