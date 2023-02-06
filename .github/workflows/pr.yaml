@@ -14,6 +14,8 @@ jobs:
         run: ./scripts/ci-validate-specs.sh
       - name: Validate testcases
         run: ./scripts/ci-validate-testcases.sh
+      - name: Download vendor dependencies
+        run: go mod vendor
       - name: Download spec tests
         run: make get-spec-tests
       - name: Unit tests
