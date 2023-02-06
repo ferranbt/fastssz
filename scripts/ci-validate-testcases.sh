@@ -5,6 +5,7 @@ make generate-testcases
 
 # check differences
 cd sszgen/testcases
+git status --porcelain
 if [[ `git status --porcelain` ]]; then
   echo "Testcases have not been generated."
   exit 1
