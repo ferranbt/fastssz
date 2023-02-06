@@ -270,6 +270,11 @@ func (h *Hasher) Merkleize(indx int) {
 func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 	input := h.buf[indx:]
 
+	if rest := len(input) % 32; rest != 0 {
+		// pad zero bytes to the left
+		input = append(input, zeroBytes[:32-rest]...)
+	}
+
 	// merkleize the input
 	input = h.merkleizeImpl(input[:0], input, limit)
 
