@@ -2,6 +2,7 @@ package spectests
 
 import (
 	"encoding/hex"
+	"fmt"
 	"os"
 	"testing"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const TestFileName = "fixtures/beacon_state_bellatrix.ssz"
+const TestFileName = "fixtures/beacon_state_bellatrix.ssz" // https://goerli.beaconcha.in/slot/4744352
 
 func TestBeaconHeader_SingleProof(t *testing.T) {
 	data, err := os.ReadFile(TestFileName)
@@ -132,10 +133,13 @@ func TestBeaconStateTree_HashTreeRoot(t *testing.T) {
 	err = sszState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
+	fmt.Println(sszState.Slot)
+
 	tree, err := sszState.GetTree()
 	require.NoError(t, err)
 
 	hash := tree.Hash()
 
+	// taken from https://goerli.beaconcha.in/slot/4744352 - stateRoot field
 	require.Equal(t, "c4a9c5ebf637c089db599574b568bb679b385c1984f08410707db08e03d7ae52", hex.EncodeToString(hash))
 }
