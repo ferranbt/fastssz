@@ -3,7 +3,7 @@
 [![Chat Badge]][chat link]
 
 [chat badge]: https://img.shields.io/badge/chat-discord-%237289da
-[chat link]: https://discord.com/invite/85U6593geJ
+[chat link]: https://discord.gg/85U6593geJ
 
 The FastSSZ project in this reposity is a combination of two things: a high performant low level library to work with SSZ encodings (root of this project) and the ([sszgen](./sszgen)) code generator that generates the SSZ encodings for Go structs using the SSZ library. By combining both, this library achieves peak Go native performance and zero memory allocation. The repository uses as test the official Ethereum SSZ tests ([spectests](./spectests/)) for the Consensus Spec data structures.
 
