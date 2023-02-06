@@ -176,6 +176,7 @@ func (w *Wrapper) Commit(i int) {
 }
 
 func (w *Wrapper) CommitWithMixin(i, num, limit int) {
+	// create tree from nodes
 	res, err := TreeFromNodesWithMixin(w.nodes[i:], num, limit)
 	if err != nil {
 		panic(err)
