@@ -268,6 +268,7 @@ func (h *Hasher) Merkleize(indx int) {
 
 // MerkleizeWithMixin is used to merkleize the last group of the hasher
 func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
+	h.FillUpTo32()
 	input := h.buf[indx:]
 
 	// merkleize the input

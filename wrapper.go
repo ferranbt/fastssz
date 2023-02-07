@@ -72,6 +72,14 @@ func (w *Wrapper) PutBitlist(bb []byte, maxSize uint64) {
 }
 
 func (w *Wrapper) appendBytesAsNodes(b []byte) {
+	// if byte list is empty, fill with zeros
+	if len(b) == 0 {
+		b = append(b, zeroBytes[:32]...)
+	}
+	// if byte list isn't filled with 32-bytes padded, pad
+	if rest := len(b) % 32; rest != 0 {
+		b = append(b, zeroBytes[:32-rest]...)
+	}
 	for i := 0; i < len(b); i += 32 {
 		val := append([]byte{}, b[i:min(len(b), i+32)]...)
 		w.nodes = append(w.nodes, LeafFromBytes(val))
@@ -156,9 +164,8 @@ func (w *Wrapper) Hash() []byte {
 }
 
 func (w *Wrapper) Commit(i int) {
-	w.fillEmptyNodes(i)
-
-	res, err := TreeFromNodes(w.nodes[i:])
+	// create tree from nodes
+	res, err := TreeFromNodes(w.nodes[i:], w.getLimit(i))
 	if err != nil {
 		panic(err)
 	}
@@ -169,13 +176,14 @@ func (w *Wrapper) Commit(i int) {
 }
 
 func (w *Wrapper) CommitWithMixin(i, num, limit int) {
-	w.fillEmptyNodes(i)
+	// create tree from nodes
 	res, err := TreeFromNodesWithMixin(w.nodes[i:], num, limit)
 	if err != nil {
 		panic(err)
 	}
 	// remove the old nodes
 	w.nodes = w.nodes[:i]
+
 	// add the new node
 	w.AddNode(res)
 }
@@ -184,9 +192,7 @@ func (w *Wrapper) AddEmpty() {
 	w.AddNode(EmptyLeaf())
 }
 
-func (w *Wrapper) fillEmptyNodes(i int) {
+func (w *Wrapper) getLimit(i int) int {
 	size := len(w.nodes[i:])
-	for i := size; i < int(nextPowerOfTwo(uint64(size))); i++ {
-		w.nodes = append(w.nodes, EmptyLeaf())
-	}
+	return int(nextPowerOfTwo(uint64(size)))
 }

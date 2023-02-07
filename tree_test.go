@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTreeFromChunks(t *testing.T) {
@@ -27,6 +29,74 @@ func TestTreeFromChunks(t *testing.T) {
 			t.Errorf("Incorrect leaf at index %d\n", i)
 		}
 	}
+}
+
+func TestParseTree(t *testing.T) {
+	chunk1, err := hex.DecodeString("9a4aaa9f8c50cdb565a05ed94a0019cbea56349bdb4c5b639a26bcfed855c790")
+	require.NoError(t, err)
+	chunk2, err := hex.DecodeString("632a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+	chunk3, err := hex.DecodeString("6314fea8253a30f23d5af34b0b2e675d4c0d475e4f66e4392c535f2ca5c3ae32")
+	require.NoError(t, err)
+
+	chunks := [][]byte{chunk1, chunk2, chunk3}
+
+	nodes := []*Node{}
+	for _, chunk := range chunks {
+		nodes = append(nodes, LeafFromBytes(chunk[:]))
+	}
+
+	r, err := TreeFromNodesWithMixin(nodes, len(nodes), 8)
+	require.NoError(t, err, "failed to construct tree")
+	require.Equal(t, "850f07566ebef9934782eec2db35b997a44a37aa4eab01a4d25f02e807602136", hex.EncodeToString(r.Hash()))
+}
+
+func TestSparseTreeWithLeavesWithOtherNodes(t *testing.T) {
+	valueIndex2, err := hex.DecodeString("452a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+	valueIndex3, err := hex.DecodeString("ef2a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+	valueIndex4, err := hex.DecodeString("842a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+	valueIndex5, err := hex.DecodeString("722a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+	valueIndex6, err := hex.DecodeString("982a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+	valueIndex7, err := hex.DecodeString("632a7e04caca67eed732cd670409acf2daaf88aed3977689446ba6f7d3e43aa4")
+	require.NoError(t, err)
+
+	nodes := []*Node{
+		{
+			left: &Node{
+				value: valueIndex2,
+			},
+			right: &Node{
+				value: valueIndex3,
+			},
+		},
+		{
+			left: &Node{
+				value: valueIndex4,
+			},
+			right: &Node{
+				value: valueIndex5,
+			},
+		},
+		{
+			left: &Node{
+				value: valueIndex6,
+			},
+			right: &Node{
+				value: valueIndex7,
+			},
+		},
+	}
+
+	limit := 8
+
+	r, err := TreeFromNodesWithMixin(nodes, len(nodes), limit)
+	require.NoError(t, err, "failed to construct tree")
+	require.Equal(t, "8162efcb0b2e5da308a6a6fb2d4c5c8b65a77a475247d7f751ef998f9a70f294", hex.EncodeToString(r.Hash()))
 }
 
 func TestHashTree(t *testing.T) {

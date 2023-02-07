@@ -92,7 +92,7 @@ func (c *Case1A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 			err = ssz.ErrIncorrectListSize
 			return
 		}
-		hh.PutBytes(c.Foo)
+		hh.Append(c.Foo)
 		hh.MerkleizeWithMixin(elemIndx, byteLen, (2048+31)/32)
 	}
 
@@ -190,7 +190,7 @@ func (c *Case1B) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 			err = ssz.ErrIncorrectListSize
 			return
 		}
-		hh.PutBytes(c.Bar)
+		hh.Append(c.Bar)
 		hh.MerkleizeWithMixin(elemIndx, byteLen, (32+31)/32)
 	}
 

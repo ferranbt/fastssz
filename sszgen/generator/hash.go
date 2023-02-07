@@ -138,7 +138,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			})
 		} else {
 			// dynamic bytes require special handling, need length mixed in
-			hMethod := "PutBytes"
+			hMethod := "Append"
 			if appendBytes {
 				hMethod = "AppendBytes32"
 			}
