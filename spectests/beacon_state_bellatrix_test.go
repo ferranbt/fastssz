@@ -92,6 +92,7 @@ func TestBeaconState_BlockRootAtIndexProof(t *testing.T) {
 	require.Equal(t, expectedLeaf, proof.Leaf)
 
 	root, err := sszState.HashTreeRoot()
+	require.NoError(t, err)
 
 	ok, err := ssz.VerifyProof(root[:], proof)
 	require.NoError(t, err, "failed to verify proof")
@@ -112,6 +113,7 @@ func TestBeaconState_BlockRootsProof(t *testing.T) {
 	require.NoError(t, err)
 
 	root, err := sszState.HashTreeRoot()
+	require.NoError(t, err)
 
 	// This is required to set the node values as the tree is hashed. Ideally should be done as part of GetTree() or Prove()
 	tree.Hash()

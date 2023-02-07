@@ -77,6 +77,8 @@ BenchmarkHashTreeRoot_Fast
 BenchmarkHashTreeRoot_Fast-8        	   25863	     45932 ns/op	       0 B/op	       0 allocs/op
 BenchmarkHashTreeRoot_SuperFast
 BenchmarkHashTreeRoot_SuperFast-8   	   54078	     21999 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProof_Tree
+BenchmarkProof_Tree-8               	    3649	    312761 ns/op	  118145 B/op	    1605 allocs/op
 PASS
 ok  	github.com/ferranbt/fastssz/spectests	5.501s
 ```
