@@ -2,7 +2,6 @@ package spectests
 
 import (
 	"encoding/hex"
-	"fmt"
 	"os"
 	"testing"
 
@@ -132,7 +131,6 @@ func TestBeaconStateTree_HashTreeRoot(t *testing.T) {
 	sszState := BeaconStateBellatrix{}
 	err = sszState.UnmarshalSSZ(data)
 	require.NoError(t, err)
-
 
 	tree, err := sszState.GetTree()
 	require.NoError(t, err)
