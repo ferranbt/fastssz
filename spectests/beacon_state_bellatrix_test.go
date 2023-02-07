@@ -133,7 +133,6 @@ func TestBeaconStateTree_HashTreeRoot(t *testing.T) {
 	err = sszState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	fmt.Println(sszState.Slot)
 
 	tree, err := sszState.GetTree()
 	require.NoError(t, err)
