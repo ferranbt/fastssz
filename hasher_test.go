@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/prysmaticlabs/gohashtree"
+	"github.com/umbracle/gohashtree"
 )
 
 func TestDepth(t *testing.T) {
