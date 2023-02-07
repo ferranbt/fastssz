@@ -269,6 +269,18 @@ func BenchmarkHashTreeRoot_SuperFast(b *testing.B) {
 	}
 }
 
+func BenchmarkProof_Tree(b *testing.B) {
+	obj := new(BeaconBlock)
+	readValidGenericSSZ(nil, benchmarkTestCase, obj)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		obj.GetTree()
+	}
+}
+
 const (
 	testsPath      = "../eth2.0-spec-tests/tests"
 	serializedFile = "serialized.ssz_snappy"
