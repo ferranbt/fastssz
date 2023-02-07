@@ -11,7 +11,7 @@ import (
 
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/golang/snappy"
-	"github.com/prysmaticlabs/gohashtree"
+	"github.com/umbracle/gohashtree"
 
 	"gopkg.in/yaml.v2"
 )
@@ -166,8 +166,20 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 		fatal("HashTreeRoot", err)
 	}
 	if !bytes.Equal(root[:], output.root) {
-		//fmt.Println("- bad root -")
 		fatal("HashTreeRoot_equal", fmt.Errorf("bad root"))
+	}
+
+	// Root with gohashtree
+	hh := ssz.NewHasherWithHashFn(gohashtree.Hash)
+	if err := obj.HashTreeRootWith(hh); err != nil {
+		fatal("GohashtreeRoot", err)
+	}
+	gohashTreeRoot, err := hh.HashRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(gohashTreeRoot[:], output.root) {
+		fatal("GohashtreeRoot_equal", fmt.Errorf("bad root"))
 	}
 
 	// Proof
