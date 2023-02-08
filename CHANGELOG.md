@@ -1,4 +1,6 @@
-# 0.1.3 (Unreleased)
+# 0.1.4 (Unreleased)
+
+# 0.1.3 (8 Feb, 2023)
 
 - fix: Tree proof memory out of bounds [[GH-119](https://github.com/ferranbt/fastssz/issues/119)]
 - fix: Double merkleization of `BeaconState` bytes field [[GH-119](https://github.com/ferranbt/fastssz/issues/119)]
