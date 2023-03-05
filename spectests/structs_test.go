@@ -28,6 +28,7 @@ const (
 	phase0    fork = "phase0"
 	altair    fork = "altair"
 	bellatrix fork = "bellatrix"
+	capella   fork = "capella"
 )
 
 type testCallback func(fork fork) codec
@@ -45,12 +46,16 @@ var codecs = map[string]testCallback{
 			return new(BeaconStateAltair)
 		} else if fork == bellatrix {
 			return new(BeaconStateBellatrix)
+		} else if fork == capella {
+			return new(BeaconStateCapella)
 		}
 		return nil
 	},
 	"BeaconBlock": func(fork fork) codec {
 		if fork == phase0 {
 			return new(BeaconBlock)
+		} else if fork == capella {
+			return new(BeaconBlockCapella)
 		}
 		return nil
 	},
@@ -61,6 +66,8 @@ var codecs = map[string]testCallback{
 			return new(BeaconBlockBodyAltair)
 		} else if fork == bellatrix {
 			return new(BeaconBlockBodyBellatrix)
+		} else if fork == capella {
+			return new(BeaconBlockBodyCapella)
 		}
 		return nil
 	},
@@ -78,6 +85,8 @@ var codecs = map[string]testCallback{
 	"SignedBeaconBlock": func(fork fork) codec {
 		if fork == phase0 {
 			return new(SignedBeaconBlock)
+		} else if fork == capella {
+			return new(SignedBeaconBlockCapella)
 		}
 		return nil
 	},
@@ -94,8 +103,21 @@ var codecs = map[string]testCallback{
 		return new(SyncAggregate)
 	},
 	"ExecutionPayload": func(fork fork) codec {
+		if fork == capella {
+			return new(ExecutionPayloadCapella)
+		}
 		return new(ExecutionPayload)
 	},
+	"ExecutionPayloadHeader": func(fork fork) codec {
+		if fork == capella {
+			return new(ExecutionPayloadHeaderCapella)
+		}
+		return new(ExecutionPayloadHeader)
+	},
+	"BLSToExecutionChange":       func(f fork) codec { return new(BLSToExecutionChange) },
+	"HistoricalSummary":          func(f fork) codec { return new(HistoricalSummary) },
+	"SignedBLSToExecutionChange": func(f fork) codec { return new(SignedBLSToExecutionChange) },
+	"Withdrawal":                 func(f fork) codec { return new(Withdrawal) },
 }
 
 func testSpecFork(t *testing.T, fork fork) {
@@ -128,6 +150,10 @@ func TestSpec_Altair(t *testing.T) {
 
 func TestSpec_Bellatrix(t *testing.T) {
 	testSpecFork(t, bellatrix)
+}
+
+func TestSpec_Capella(t *testing.T) {
+	testSpecFork(t, capella)
 }
 
 func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base testCallback) {
