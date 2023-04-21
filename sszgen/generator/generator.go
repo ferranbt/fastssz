@@ -1141,10 +1141,10 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		return v, nil
 
 	case *ast.SelectorExpr:
-		name := obj.X.(*ast.Ident).Name
+		exprName := obj.X.(*ast.Ident).Name
 		sel := obj.Sel.Name
 
-		if name == "time" && sel == "Time" {
+		if exprName == "time" && sel == "Time" {
 			return &Value{t: TypeTime, s: 8}, nil
 		} else if sel == "Bitlist" {
 			// go-bitfield/Bitlist
@@ -1173,7 +1173,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode %s: %v", sel, err)
 		}
-		vv.ref = name
+		vv.ref = exprName
 		vv.noPtr = true
 		return vv, nil
 
