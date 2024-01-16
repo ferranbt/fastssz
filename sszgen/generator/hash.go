@@ -232,7 +232,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 func (v *Value) hashTreeRootContainer(start bool) string {
 	if !start {
 		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
-			::.{{.name}} = new({{.obj}})
+			::.{{.name}} = new({{ref .obj}})
 		}
 		{{ end }}if err = ::.{{.name}}.HashTreeRootWith(hh); err != nil {
 			return
@@ -247,7 +247,7 @@ func (v *Value) hashTreeRootContainer(start bool) string {
 		}
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":  v.name,
-			"obj":   v.objRef(),
+			"obj":   v,
 			"check": check,
 		})
 	}

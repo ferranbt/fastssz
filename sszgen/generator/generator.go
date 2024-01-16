@@ -188,12 +188,43 @@ func (v *Value) isListElem() bool {
 	return strings.HasSuffix(v.name, "]")
 }
 
+func appendWithoutRepeated(s []string, i []string) []string {
+	for _, j := range i {
+		if !contains(j, s) {
+			s = append(s, j)
+		}
+	}
+	return s
+}
+
+func detectImports(v *Value) string {
+	// for sure v is a container
+	var ref string
+	switch v.t {
+	case TypeReference:
+		if !v.noPtr {
+			// it is not a typed reference
+			ref = v.ref
+		}
+	case TypeContainer:
+		ref = v.ref
+	case TypeList, TypeVector:
+		ref = v.e.ref
+	default:
+		ref = v.ref
+	}
+
+	return ref
+}
+
 func (v *Value) objRef() string {
 	// global reference of the object including the package if the reference
 	// is from an external package
 	if v.ref == "" {
 		return v.obj
 	}
+
+	valuesImported = append(valuesImported, v)
 	return v.ref + "." + v.obj
 }
 
@@ -356,6 +387,8 @@ func (e *env) hashSource() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
+var valuesImported []*Value
+
 func (e *env) print(order []string) (string, bool, error) {
 	hash, err := e.hashSource()
 	if err != nil {
@@ -393,7 +426,6 @@ func (e *env) print(order []string) (string, bool, error) {
 	}
 
 	objs := []*Obj{}
-	imports := []string{}
 
 	// Print the objects in the order in which they appear on the file.
 	for _, name := range order {
@@ -406,9 +438,6 @@ func (e *env) print(order []string) (string, bool, error) {
 		}
 
 		// detect the imports required to unmarshal this objects
-		refs := detectImports(obj)
-		imports = appendWithoutRepeated(imports, refs)
-
 		if obj.isFixed() && isBasicType(obj) {
 			// we have an alias of a basic type (uint, bool). These objects
 			// will be encoded/decoded inside their parent container and do not
@@ -428,6 +457,11 @@ func (e *env) print(order []string) (string, bool, error) {
 		return "", false, nil
 	}
 	data["objs"] = objs
+
+	imports := []string{}
+	for _, v := range valuesImported {
+		imports = appendWithoutRepeated(imports, []string{detectImports(v)})
+	}
 
 	// insert any required imports
 	importsStr, err := e.buildImports(imports)
@@ -463,41 +497,6 @@ func (e *env) findImport(name string) string {
 		}
 	}
 	return ""
-}
-
-func appendWithoutRepeated(s []string, i []string) []string {
-	for _, j := range i {
-		if !contains(j, s) {
-			s = append(s, j)
-		}
-	}
-	return s
-}
-
-func detectImports(v *Value) []string {
-	// for sure v is a container
-	// check if any of the fields in the container has an import
-	refs := []string{}
-	for _, i := range v.o {
-		var ref string
-		switch i.t {
-		case TypeReference:
-			if !i.noPtr {
-				// it is not a typed reference
-				ref = i.ref
-			}
-		case TypeContainer:
-			ref = i.ref
-		case TypeList, TypeVector:
-			ref = i.e.ref
-		default:
-			ref = i.ref
-		}
-		if ref != "" {
-			refs = append(refs, ref)
-		}
-	}
-	return refs
 }
 
 // All the generated functions use the '::' string to represent the pointer receiver
@@ -1274,7 +1273,13 @@ func (v *Value) isFixed() bool {
 }
 
 func execTmpl(tpl string, input interface{}) string {
-	tmpl, err := template.New("tmpl").Parse(tpl)
+	funcs := template.FuncMap{
+		"ref": func(v *Value) string {
+			return v.objRef()
+		},
+	}
+
+	tmpl, err := template.New("tmpl").Funcs(funcs).Parse(tpl)
 	if err != nil {
 		panic(err)
 	}
