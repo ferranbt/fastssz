@@ -188,6 +188,35 @@ func (v *Value) isListElem() bool {
 	return strings.HasSuffix(v.name, "]")
 }
 
+func appendWithoutRepeated(s []string, i []string) []string {
+	for _, j := range i {
+		if !contains(j, s) {
+			s = append(s, j)
+		}
+	}
+	return s
+}
+
+func detectImports(v *Value) string {
+	// for sure v is a container
+	var ref string
+	switch v.t {
+	case TypeReference:
+		if !v.noPtr {
+			// it is not a typed reference
+			ref = v.ref
+		}
+	case TypeContainer:
+		ref = v.ref
+	case TypeList, TypeVector:
+		ref = v.e.ref
+	default:
+		ref = v.ref
+	}
+
+	return ref
+}
+
 func (v *Value) objRef() string {
 	// global reference of the object including the package if the reference
 	// is from an external package
@@ -195,16 +224,7 @@ func (v *Value) objRef() string {
 		return v.obj
 	}
 
-	var found bool
-	for _, i := range imports {
-		if i == v.ref {
-			found = true
-			break
-		}
-	}
-	if !found {
-		imports = append(imports, v.ref)
-	}
+	valuesImported = append(valuesImported, v)
 	return v.ref + "." + v.obj
 }
 
@@ -367,7 +387,7 @@ func (e *env) hashSource() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-var imports []string
+var valuesImported []*Value
 
 func (e *env) print(order []string) (string, bool, error) {
 	hash, err := e.hashSource()
@@ -437,6 +457,11 @@ func (e *env) print(order []string) (string, bool, error) {
 		return "", false, nil
 	}
 	data["objs"] = objs
+
+	imports := []string{}
+	for _, v := range valuesImported {
+		imports = appendWithoutRepeated(imports, []string{detectImports(v)})
+	}
 
 	// insert any required imports
 	importsStr, err := e.buildImports(imports)

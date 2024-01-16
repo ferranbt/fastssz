@@ -60,7 +60,7 @@ func (v *Value) unmarshal(dst string) string {
 	case TypeUint:
 		if v.ref != "" {
 			// alias, we need to cast the value
-			return fmt.Sprintf("::.%s = %s.%s(ssz.Unmarshall%s(%s))", v.name, v.ref, v.obj, uintVToName(v), dst)
+			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.objRef(), uintVToName(v), dst)
 		}
 		if v.obj != "" {
 			// alias to a type on the same package
