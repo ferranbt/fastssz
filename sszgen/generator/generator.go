@@ -1021,7 +1021,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 	case *ast.ArrayType:
 		outer := &Value{}
 
-		// for _, dim := range dims {
 		// If we're looking at a fixed-size array, attempt to grab the parsed size value. from go/ast
 		// Ellipsis node for [...]T array types, nil for slice types
 		// so when a `[]byte` expression is parsed, Len will be nil:
@@ -1159,7 +1158,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			// go-bitfield/Bitvector, fixed bytes
 			dims, err := extractSSZDimensions(tags)
 			if err != nil {
-				panic(err)
 				return nil, fmt.Errorf("failed to parse ssz-size tag for bitvector %s, err=%s", name, err)
 			}
 			if len(dims) < 1 {
