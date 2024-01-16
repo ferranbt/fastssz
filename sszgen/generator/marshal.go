@@ -142,7 +142,7 @@ func (v *Value) marshalVector() (str string) {
 func (v *Value) marshalContainer(start bool) string {
 	if !start {
 		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
-			::.{{.name}} = new({{.obj}})
+			::.{{.name}} = new({{ref .obj}})
 		}
 		{{ end }}if dst, err = ::.{{.name}}.MarshalSSZTo(dst); err != nil {
 			return
@@ -157,7 +157,7 @@ func (v *Value) marshalContainer(start bool) string {
 		}
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":  v.name,
-			"obj":   v.objRef(),
+			"obj":   v,
 			"check": check,
 		})
 	}

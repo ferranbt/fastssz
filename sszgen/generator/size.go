@@ -62,7 +62,7 @@ func (v *Value) fixedSize() uint64 {
 func (v *Value) sizeContainer(name string, start bool) string {
 	if !start {
 		tmpl := `{{if .check}} if ::.{{.name}} == nil {
-			::.{{.name}} = new({{.obj}})
+			::.{{.name}} = new({{ref .obj}})
 		}
 		{{end}} {{ .dst }} += ::.{{.name}}.SizeSSZ()`
 
@@ -76,7 +76,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":  v.name,
 			"dst":   name,
-			"obj":   v.objRef(),
+			"obj":   v,
 			"check": check,
 		})
 	}

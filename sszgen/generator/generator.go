@@ -194,6 +194,17 @@ func (v *Value) objRef() string {
 	if v.ref == "" {
 		return v.obj
 	}
+
+	var found bool
+	for _, i := range imports {
+		if i == v.ref {
+			found = true
+			break
+		}
+	}
+	if !found {
+		imports = append(imports, v.ref)
+	}
 	return v.ref + "." + v.obj
 }
 
@@ -356,6 +367,8 @@ func (e *env) hashSource() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
+var imports []string
+
 func (e *env) print(order []string) (string, bool, error) {
 	hash, err := e.hashSource()
 	if err != nil {
@@ -393,7 +406,6 @@ func (e *env) print(order []string) (string, bool, error) {
 	}
 
 	objs := []*Obj{}
-	imports := []string{}
 
 	// Print the objects in the order in which they appear on the file.
 	for _, name := range order {
@@ -406,9 +418,6 @@ func (e *env) print(order []string) (string, bool, error) {
 		}
 
 		// detect the imports required to unmarshal this objects
-		refs := detectImports(obj)
-		imports = appendWithoutRepeated(imports, refs)
-
 		if obj.isFixed() && isBasicType(obj) {
 			// we have an alias of a basic type (uint, bool). These objects
 			// will be encoded/decoded inside their parent container and do not
@@ -463,41 +472,6 @@ func (e *env) findImport(name string) string {
 		}
 	}
 	return ""
-}
-
-func appendWithoutRepeated(s []string, i []string) []string {
-	for _, j := range i {
-		if !contains(j, s) {
-			s = append(s, j)
-		}
-	}
-	return s
-}
-
-func detectImports(v *Value) []string {
-	// for sure v is a container
-	// check if any of the fields in the container has an import
-	refs := []string{}
-	for _, i := range v.o {
-		var ref string
-		switch i.t {
-		case TypeReference:
-			if !i.noPtr {
-				// it is not a typed reference
-				ref = i.ref
-			}
-		case TypeContainer:
-			ref = i.ref
-		case TypeList, TypeVector:
-			ref = i.e.ref
-		default:
-			ref = i.ref
-		}
-		if ref != "" {
-			refs = append(refs, ref)
-		}
-	}
-	return refs
 }
 
 // All the generated functions use the '::' string to represent the pointer receiver
@@ -1274,7 +1248,13 @@ func (v *Value) isFixed() bool {
 }
 
 func execTmpl(tpl string, input interface{}) string {
-	tmpl, err := template.New("tmpl").Parse(tpl)
+	funcs := template.FuncMap{
+		"ref": func(v *Value) string {
+			return v.objRef()
+		},
+	}
+
+	tmpl, err := template.New("tmpl").Funcs(funcs).Parse(tpl)
 	if err != nil {
 		panic(err)
 	}

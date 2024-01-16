@@ -165,7 +165,7 @@ func (v *Value) unmarshalList() string {
 func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	if !start {
 		tmpl := `{{ if .check }}if ::.{{.name}} == nil {
-			::.{{.name}} = new({{.obj}})
+			::.{{.name}} = new({{ref .obj}})
 		}
 		{{ end }}if err = ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
 			return err
@@ -176,7 +176,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 		}
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":  v.name,
-			"obj":   v.objRef(),
+			"obj":   v,
 			"dst":   dst,
 			"check": check,
 		})
