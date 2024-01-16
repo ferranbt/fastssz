@@ -1019,101 +1019,103 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 
 	case *ast.ArrayType:
+		outer := &Value{}
+
+		// If we're looking at a fixed-size array, attempt to grab the parsed size value. from go/ast
+		// Ellipsis node for [...]T array types, nil for slice types
+		// so when a `[]byte` expression is parsed, Len will be nil:
+		var astSize *uint64
+		// if .Len is nil, this is a slice, not a fixed length array
+		if obj.Len != nil {
+			switch obj := obj.Len.(type) {
+			case *ast.BasicLit:
+				// fixed array with explicit len
+				a, err := strconv.ParseUint(obj.Value, 0, 64)
+				if err != nil {
+					return nil, fmt.Errorf("could not parse array length for field %s", name)
+				}
+				astSize = &a
+			case *ast.Ident:
+				// fixed array with alias len
+				num, ok := e.resolveAlias(obj.Name)
+				if !ok {
+					return nil, fmt.Errorf("alias ref not found: %s", obj.Name)
+				}
+				astSize = &num
+			}
+		}
+		if astSize != nil {
+			outer.c = true
+		}
+		if astSize != nil {
+			outer.s = *astSize
+		}
+
+		switch eeType := obj.Elt.(type) {
+		case *ast.Ident:
+			if eeType.Name == "byte" {
+				outer.t = TypeBytes
+			} else {
+				val, err := e.parseASTFieldType(name, "", eeType)
+				if err != nil {
+					return nil, err
+				}
+				outer.e = val
+			}
+		default:
+			element, err := e.parseASTFieldType(name, "", eeType)
+			if err != nil {
+				return nil, err
+			}
+			outer.e = element
+		}
+
+		if tags == "" {
+			// the type was part of a nested array/slice (i.e. []byte of [][]byte).
+			return outer, nil
+		}
+
 		dims, err := extractSSZDimensions(tags)
 		if err != nil {
 			return nil, err
 		}
 
-		collectionExpr := obj
-		outer := &Value{}
-		collection := outer
+		// try to validate the dimensions
+		outerRef := outer
 		for _, dim := range dims {
+			// upsert the types of the value depending on
+			// what the dimension says
+			if outerRef.t == TypeBytes {
+				if dim.IsVector() {
+					// this is how we differentiate byte lists from byte vectors, rather than the usual approach
+					// of nesting a Value for the element within the .e attribute
+					outerRef.fixed = true
+				}
+				if dim.IsBitlist() {
+					outerRef.t = TypeBitList
+				}
+			} else {
+				if dim.IsVector() {
+					outerRef.t = TypeVector
+				}
+				if dim.IsList() {
+					outerRef.t = TypeList
+				}
+			}
+
+			// update the sizes of the value
 			if dim.IsVector() {
-				collection.t = TypeVector
-				collection.s = uint64(dim.VectorLen())
+				outerRef.s = uint64(dim.VectorLen())
 			}
 			if dim.IsList() {
-				collection.t = TypeList
-				collection.m = uint64(dim.ListLen())
-				collection.s = uint64(dim.ListLen())
+				outerRef.m = uint64(dim.ListLen())
+				outerRef.s = uint64(dim.ListLen())
 			}
-
-			// If we're looking at a fixed-size array, attempt to grab the parsed size value. from go/ast
-			// Ellipsis node for [...]T array types, nil for slice types
-			// so when a `[]byte` expression is parsed, Len will be nil:
-			var astSize *uint64
-			// if .Len is nil, this is a slice, not a fixed length array
-			if collectionExpr.Len != nil {
-				switch obj := collectionExpr.Len.(type) {
-				case *ast.BasicLit:
-					// fixed array with explicit len
-					a, err := strconv.ParseUint(obj.Value, 0, 64)
-					if err != nil {
-						return nil, fmt.Errorf("could not parse array length for field %s", name)
-					}
-					astSize = &a
-				case *ast.Ident:
-					// fixed array with alias len
-					num, ok := e.resolveAlias(obj.Name)
-					if !ok {
-						return nil, fmt.Errorf("alias ref not found: %s", obj.Name)
-					}
-					astSize = &num
-				}
-			}
-			if astSize != nil {
-				collection.c = true
-			}
-			if astSize != nil {
-				if collection.t != TypeVector {
-					return nil, fmt.Errorf("unexpected type for fixed size array, name=%s, type=%s", name, collection.t.String())
-				}
-				if collection.s != *astSize {
-					return nil, fmt.Errorf("unexpected mismatch between ssz-size and array fixed size, name=%s, ssz-size=%d, fixed=%d", name, collection.s, *astSize)
-				}
-			}
-
-			switch eeType := collectionExpr.Elt.(type) {
-			case *ast.ArrayType:
-				// we expect there to a subsequent dimension when the element type is an ArrayType
-				// so we update the expression and value container in preparation for the next iteration
-				collectionExpr = eeType
-				collection.e = &Value{}
-				collection = collection.e
-				continue
-			case *ast.Ident:
-				// this condition is preserving the special nesting of byte,
-				// because byte has special handling in the code generator templates.
-				if eeType.Name == "byte" {
-					// note that we are overwriting the list/vector types and replacing them with TypeBytes
-					// TypeBytes can either be a list or vector (determined by looking at the isFixed result)
-					collection.t = TypeBytes
-					if dim.IsVector() {
-						// this is how we differentiate byte lists from byte vectors, rather than the usual approach
-						// of nesting a Value for the element within the .e attribute
-						collection.fixed = true
-					}
-					if dim.IsBitlist() {
-						collection.t = TypeBitList
-					}
-					continue
-				} else {
-					// anything else should recurse to the basic *ast.Ident case defined just below this ArrayType case
-					element, err := e.parseASTFieldType(name, tags, eeType)
-					if err != nil {
-						return nil, err
-					}
-					collection.e = element
-				}
-			default:
-				element, err := e.parseASTFieldType(name, tags, eeType)
-				if err != nil {
-					return nil, err
-				}
-				collection.e = element
-			}
+			outerRef = outerRef.e
 		}
+
 		return outer, nil
+
 	case *ast.Ident:
 		// basic type
 		var v *Value
