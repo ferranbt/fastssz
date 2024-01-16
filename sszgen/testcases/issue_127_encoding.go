@@ -25,8 +25,8 @@ func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (0) 'T1'
-	if size := len(o.T1); size > 256 {
-		err = ssz.ErrListTooBigFn("Obj2.T1", size, 256)
+	if size := len(o.T1); size > 1024 {
+		err = ssz.ErrListTooBigFn("Obj2.T1", size, 1024)
 		return
 	}
 	{
@@ -70,7 +70,7 @@ func (o *Obj2) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'T1'
 	{
 		buf = tail[o0:]
-		num, err := ssz.DecodeDynamicLength(buf, 256)
+		num, err := ssz.DecodeDynamicLength(buf, 1024)
 		if err != nil {
 			return err
 		}
@@ -118,7 +118,7 @@ func (o *Obj2) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	{
 		subIndx := hh.Index()
 		num := uint64(len(o.T1))
-		if num > 256 {
+		if num > 1024 {
 			err = ssz.ErrIncorrectListSize
 			return
 		}
@@ -134,7 +134,7 @@ func (o *Obj2) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 				hh.MerkleizeWithMixin(elemIndx, byteLen, (256+31)/32)
 			}
 		}
-		hh.MerkleizeWithMixin(subIndx, num, 256)
+		hh.MerkleizeWithMixin(subIndx, num, 1024)
 	}
 
 	hh.Merkleize(indx)
