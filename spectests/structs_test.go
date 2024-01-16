@@ -29,6 +29,7 @@ const (
 	altair    fork = "altair"
 	bellatrix fork = "bellatrix"
 	capella   fork = "capella"
+	deneb     fork = "deneb"
 )
 
 type testCallback func(fork fork) codec
@@ -103,13 +104,17 @@ var codecs = map[string]testCallback{
 		return new(SyncAggregate)
 	},
 	"ExecutionPayload": func(fork fork) codec {
-		if fork == capella {
+		if fork == deneb {
+			return new(ExecutionPayloadDeneb)
+		} else if fork == capella {
 			return new(ExecutionPayloadCapella)
 		}
 		return new(ExecutionPayload)
 	},
 	"ExecutionPayloadHeader": func(fork fork) codec {
-		if fork == capella {
+		if fork == deneb {
+			return new(ExecutionPayloadHeaderDeneb)
+		} else if fork == capella {
 			return new(ExecutionPayloadHeaderCapella)
 		}
 		return new(ExecutionPayloadHeader)
@@ -154,6 +159,10 @@ func TestSpec_Bellatrix(t *testing.T) {
 
 func TestSpec_Capella(t *testing.T) {
 	testSpecFork(t, capella)
+}
+
+func TestSpec_Deneb(t *testing.T) {
+	testSpecFork(t, deneb)
 }
 
 func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base testCallback) {
