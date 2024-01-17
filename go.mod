@@ -7,7 +7,7 @@ require (
 	github.com/minio/sha256-simd v1.0.0
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/stretchr/testify v1.8.1
-	github.com/umbracle/gohashtree v0.0.2-alpha.0.20230207094856-5b775a815c10
+	github.com/umbracle/gohashtree v0.0.2-alpha.0.20240116220325-8d974894cac9
 	gopkg.in/yaml.v2 v2.3.0
 )
 

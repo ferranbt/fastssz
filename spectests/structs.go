@@ -439,3 +439,45 @@ type BeaconBlockBodyCapella struct {
 	ExecutionPayload      *ExecutionPayloadCapella      `json:"execution_payload"`
 	BlsToExecutionChanges []*SignedBLSToExecutionChange `json:"bls_to_execution_changes" ssz-max:"16"`
 }
+
+// -- deneb --
+
+type ExecutionPayloadDeneb struct {
+	ParentHash    [32]byte      `ssz-size:"32" json:"parent_hash"`
+	FeeRecipient  [20]byte      `ssz-size:"20" json:"fee_recipient"`
+	StateRoot     [32]byte      `ssz-size:"32" json:"state_root"`
+	ReceiptsRoot  [32]byte      `ssz-size:"32" json:"receipts_root"`
+	LogsBloom     [256]byte     `ssz-size:"256" json:"logs_bloom"`
+	PrevRandao    [32]byte      `ssz-size:"32" json:"prev_randao"`
+	BlockNumber   uint64        `json:"block_number"`
+	GasLimit      uint64        `json:"gas_limit"`
+	GasUsed       uint64        `json:"gas_used"`
+	Timestamp     uint64        `json:"timestamp"`
+	ExtraData     []byte        `ssz-max:"32" json:"extra_data"`
+	BaseFeePerGas Uint256       `ssz-size:"32" json:"base_fee_per_gas"`
+	BlockHash     [32]byte      `ssz-size:"32" json:"block_hash"`
+	Transactions  [][]byte      `ssz-max:"1048576,1073741824" ssz-size:"?,?" json:"transactions"`
+	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"16"`
+	BlobGasUsed   uint64        `json:"blob_gas_used"`
+	ExcessBlobGas uint64        `json:"excess_blob_gas"`
+}
+
+type ExecutionPayloadHeaderDeneb struct {
+	ParentHash       [32]byte  `json:"parent_hash" ssz-size:"32"`
+	FeeRecipient     [20]byte  `json:"fee_recipient" ssz-size:"20"`
+	StateRoot        [32]byte  `json:"state_root" ssz-size:"32"`
+	ReceiptsRoot     [32]byte  `json:"receipts_root" ssz-size:"32"`
+	LogsBloom        [256]byte `json:"logs_bloom" ssz-size:"256"`
+	PrevRandao       [32]byte  `json:"prev_randao" ssz-size:"32"`
+	BlockNumber      uint64    `json:"block_number"`
+	GasLimit         uint64    `json:"gas_limit"`
+	GasUsed          uint64    `json:"gas_used"`
+	Timestamp        uint64    `json:"timestamp"`
+	ExtraData        []byte    `json:"extra_data" ssz-max:"32"`
+	BaseFeePerGas    Uint256   `json:"base_fee_per_gas" ssz-size:"32"`
+	BlockHash        [32]byte  `json:"block_hash" ssz-size:"32"`
+	TransactionsRoot [32]byte  `json:"transactions_root" ssz-size:"32"`
+	WithdrawalRoot   [32]byte  `json:"withdrawals_root" ssz-size:"32"`
+	BlobGasUsed      uint64    `json:"blob_gas_used"`
+	ExcessBlobGas    uint64    `json:"excess_blob_gas"`
+}
