@@ -110,6 +110,26 @@ func (w *Wrapper) PutUint32(i uint32) {
 	w.AddUint32(i)
 }
 
+func (w *Wrapper) PutUint64Array(b []uint64, maxCapacity ...uint64) {
+	indx := w.Index()
+	for _, i := range b {
+		w.AppendUint64(i)
+	}
+
+	// pad zero bytes to the left
+	w.FillUpTo32()
+
+	if len(maxCapacity) == 0 {
+		// Array with fixed size
+		w.Merkleize(indx)
+	} else {
+		numItems := uint64(len(b))
+		limit := CalculateLimit(maxCapacity[0], numItems, 8)
+
+		w.MerkleizeWithMixin(indx, numItems, limit)
+	}
+}
+
 /// --- legacy ones ---
 
 func min(i, j int) int {
