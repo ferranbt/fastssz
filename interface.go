@@ -24,6 +24,7 @@ type HashWalker interface {
 	AppendUint8(i uint8)
 	AppendUint64(i uint64)
 	AppendBytes32(b []byte)
+	PutUint64Array(b []uint64, maxCapacity ...uint64)
 	PutUint64(i uint64)
 	PutUint32(i uint32)
 	PutUint16(i uint16)
