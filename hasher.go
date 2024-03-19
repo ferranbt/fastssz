@@ -350,6 +350,7 @@ func (h *Hasher) merkleizeImpl(dst []byte, input []byte, limit uint64) []byte {
 	} else if count > limit {
 		panic(fmt.Sprintf("BUG: count '%d' higher than limit '%d'", count, limit))
 	}
+
 	if limit == 0 {
 		return append(dst, zeroBytes...)
 	}
