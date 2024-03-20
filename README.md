@@ -103,6 +103,6 @@ There are some caveats required to use this functionality.
 
 ## Fast HashTreeRoot
 
-`Fastssz` integrates with Prysm [gohashtree](https://github.com/prysmaticlabs/gohashtree) library to do high performance and concurrent Sha256 hashing. It achieves a 2x performance improvement with respect to the normal sequential hashing. As of now, this feature is not yet enabled by default since it does not use the `gohashtree` main branch. Thus, a [fork](https://github.com/umbracle/gohashtree) of `gohashtree` with that branch is used. You can track the updates on [this](https://github.com/prysmaticlabs/gohashtree/issues/4) issue.
+`Fastssz` integrates with Prysm [gohashtree](github.com/prysmaticlabs/gohashtree) library to do high performance and concurrent Sha256 hashing. It achieves a 2x performance improvement with respect to the normal sequential hashing.
 
 In order to use this feature, enable manually the hash function in the Hasher like in the benchmark example.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/umbracle/gohashtree"
+	"github.com/prysmaticlabs/gohashtree"
 )
 
 func TestDepth(t *testing.T) {
@@ -68,7 +68,7 @@ func TestHashGoHashTree(t *testing.T) {
 	buf = append(buf, a...)
 	buf = append(buf, b...)
 
-	gohashtree.Hash(buf, buf)
+	gohashtree.HashByteSlice(buf, buf)
 
 	fmt.Println(buf)
 }

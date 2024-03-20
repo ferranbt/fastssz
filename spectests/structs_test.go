@@ -11,7 +11,7 @@ import (
 
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/golang/snappy"
-	"github.com/umbracle/gohashtree"
+	"github.com/prysmaticlabs/gohashtree"
 
 	"gopkg.in/yaml.v2"
 )
@@ -205,7 +205,7 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 	}
 
 	// Root with gohashtree
-	hh := ssz.NewHasherWithHashFn(gohashtree.Hash)
+	hh := ssz.NewHasherWithHashFn(gohashtree.HashByteSlice)
 	if err := obj.HashTreeRootWith(hh); err != nil {
 		fatal("GohashtreeRoot", err)
 	}
@@ -297,7 +297,7 @@ func BenchmarkHashTreeRoot_SuperFast(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	hh := ssz.NewHasherWithHashFn(gohashtree.Hash)
+	hh := ssz.NewHasherWithHashFn(gohashtree.HashByteSlice)
 	for i := 0; i < b.N; i++ {
 		obj.HashTreeRootWith(hh)
 		hh.Reset()
