@@ -161,6 +161,18 @@ func ExtendUint64(b []uint64, needLen int) []uint64 {
 	return b[:needLen]
 }
 
+// ExtendUint32 extends a uint32 buffer to a given size
+func ExtendUint32(b []uint32, needLen int) []uint32 {
+	if b == nil {
+		b = []uint32{}
+	}
+	b = b[:cap(b)]
+	if n := needLen - cap(b); n > 0 {
+		b = append(b, make([]uint32, n)...)
+	}
+	return b[:needLen]
+}
+
 // ExtendUint16 extends a uint16 buffer to a given size
 func ExtendUint16(b []uint16, needLen int) []uint16 {
 	if b == nil {
