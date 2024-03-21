@@ -8,6 +8,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81
 	gopkg.in/yaml.v2 v2.3.0
 )
 

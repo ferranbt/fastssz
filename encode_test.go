@@ -1,12 +1,16 @@
 package ssz
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 func TestBitlist(t *testing.T) {
@@ -105,4 +109,92 @@ func TestEncode_ExtendUint(t *testing.T) {
 	if v2 := ExtendUint8(nil, 0); v2 == nil {
 		t.Fatal("uint8 cannot be nil")
 	}
+}
+
+func BenchmarkExtendNew(b *testing.B) {
+	b.ReportAllocs()
+
+	dst := []byte{}
+	for i := 0; i < b.N; i++ {
+		dst = MarshalUint64(dst[:0], 100)
+	}
+}
+
+func BenchmarkExtendOld(b *testing.B) {
+	b.ReportAllocs()
+
+	dst := []byte{}
+	for i := 0; i < b.N; i++ {
+		dst = MarshalUint(dst[:0], 100)
+	}
+}
+
+func MarshalUint[T constraints.Integer](dst []byte, value T) []byte {
+	var zero [0]T
+
+	tt := reflect.TypeOf(zero).Elem()
+	vt := reflect.TypeOf(value)
+
+	fmt.Println(tt.Kind(), vt.Kind())
+
+	return dst
+}
+
+/*
+// MarshalUint64 marshals a little endian uint64 to dst
+func MarshalUint64(dst []byte, i uint64) []byte {
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, i)
+	dst = append(dst, buf...)
+	return dst
+}
+
+// MarshalUint32 marshals a little endian uint32 to dst
+func MarshalUint32(dst []byte, i uint32) []byte {
+	buf := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf, i)
+	dst = append(dst, buf...)
+	return dst
+}
+
+// MarshalUint16 marshals a little endian uint16 to dst
+func MarshalUint16(dst []byte, i uint16) []byte {
+	buf := make([]byte, 2)
+	binary.LittleEndian.PutUint16(buf, i)
+	dst = append(dst, buf...)
+	return dst
+}
+
+// MarshalUint8 marshals a little endian uint8 to dst
+func MarshalUint8(dst []byte, i uint8) []byte {
+	dst = append(dst, byte(i))
+	return dst
+}
+*/
+
+/*
+type MyGeneric[T any] struct {
+}
+
+func (mG MyGeneric[T]) canHandle(value any) bool {
+	var zero [0]T
+	tt := reflect.TypeOf(zero).Elem()
+	vt := reflect.TypeOf(value)
+
+	// fmt.Printf("-> %v covers %v\n", tt, vt)
+	return vt.AssignableTo(tt)
+}
+
+type empty struct{}
+*/
+
+func ExtendUint[T constraints.Integer](b []T, needLen int) []T {
+	if b == nil {
+		b = []T{}
+	}
+	b = b[:cap(b)]
+	if n := needLen - cap(b); n > 0 {
+		b = append(b, make([]T, n)...)
+	}
+	return b[:needLen]
 }
