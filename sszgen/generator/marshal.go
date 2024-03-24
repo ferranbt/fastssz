@@ -178,8 +178,9 @@ func (v *Value) marshalContainer(start bool) string {
 		} else {
 			// write the offset
 			str = fmt.Sprintf("// Offset (%d) '%s'\ndst = ssz.WriteOffset(dst, offset)\n", indx, i.name)
-			// We don't need to update the offset after
-			// the last variable field in the container.
+			// Update the offset for the next variable field.
+			// We don't need to update the offset if the current
+			// field is the last variable field in the container.
 			if indx != lastVariableIndx {
 				str += fmt.Sprintf("%s\n", i.size("offset"))
 			}
