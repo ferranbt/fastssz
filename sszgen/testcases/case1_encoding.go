@@ -19,7 +19,6 @@ func (c *Case1A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'Foo'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.Foo)
 
 	// Field (0) 'Foo'
 	if size := len(c.Foo); size > 2048 {
@@ -117,7 +116,6 @@ func (c *Case1B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'Bar'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.Bar)
 
 	// Field (0) 'Bar'
 	if size := len(c.Bar); size > 32 {

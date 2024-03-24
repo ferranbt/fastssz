@@ -162,9 +162,14 @@ func (v *Value) marshalContainer(start bool) string {
 		})
 	}
 
-	offset := v.fixedSize()
 	out := []string{}
 
+	lastVariableIndx := -1
+	for indx, i := range v.o {
+		if !i.isFixed() {
+			lastVariableIndx = indx
+		}
+	}
 	for indx, i := range v.o {
 		var str string
 		if i.isFixed() {
@@ -172,8 +177,13 @@ func (v *Value) marshalContainer(start bool) string {
 			str = fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.marshal())
 		} else {
 			// write the offset
-			str = fmt.Sprintf("// Offset (%d) '%s'\ndst = ssz.WriteOffset(dst, offset)\n%s\n", indx, i.name, i.size("offset"))
-			offset += i.fixedSize()
+			str = fmt.Sprintf("// Offset (%d) '%s'\ndst = ssz.WriteOffset(dst, offset)\n", indx, i.name)
+			// Update the offset for the next variable field.
+			// We don't need to update the offset if the current
+			// field is the last variable field in the container.
+			if indx != lastVariableIndx {
+				str += fmt.Sprintf("%s\n", i.size("offset"))
+			}
 		}
 		out = append(out, str)
 	}

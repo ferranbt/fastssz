@@ -188,7 +188,6 @@ func (c *CodeTrieSmall) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (1) 'Chunks'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.Chunks) * 33
 
 	// Field (1) 'Chunks'
 	if size := len(c.Chunks); size > 4 {
@@ -324,7 +323,6 @@ func (c *CodeTrieBig) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (1) 'Chunks'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.Chunks) * 33
 
 	// Field (1) 'Chunks'
 	if size := len(c.Chunks); size > 1024 {

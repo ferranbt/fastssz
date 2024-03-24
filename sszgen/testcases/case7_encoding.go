@@ -19,7 +19,6 @@ func (c *Case7) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'BlobKzgs'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.BlobKzgs) * 48
 
 	// Field (0) 'BlobKzgs'
 	if size := len(c.BlobKzgs); size > 16 {
