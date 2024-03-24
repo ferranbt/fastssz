@@ -19,10 +19,6 @@ func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'T1'
 	dst = ssz.WriteOffset(dst, offset)
-	for ii := 0; ii < len(o.T1); ii++ {
-		offset += 4
-		offset += len(o.T1[ii])
-	}
 
 	// Field (0) 'T1'
 	if size := len(o.T1); size > 1024 {

@@ -94,7 +94,6 @@ func (v *Vec2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'Values2'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(v.Values2) * 4
 
 	// Field (0) 'Values2'
 	if size := len(v.Values2); size > 100 {
