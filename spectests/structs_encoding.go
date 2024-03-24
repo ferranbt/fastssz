@@ -22,10 +22,6 @@ func (a *AggregateAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (1) 'Aggregate'
 	dst = ssz.WriteOffset(dst, offset)
-	if a.Aggregate == nil {
-		a.Aggregate = new(Attestation)
-	}
-	offset += a.Aggregate.SizeSSZ()
 
 	// Field (2) 'SelectionProof'
 	dst = append(dst, a.SelectionProof[:]...)
@@ -329,7 +325,6 @@ func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(a.AggregationBits)
 
 	// Field (1) 'Data'
 	if a.Data == nil {
@@ -755,7 +750,6 @@ func (i *IndexedAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'AttestationIndices'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(i.AttestationIndices) * 8
 
 	// Field (1) 'Data'
 	if i.Data == nil {
@@ -903,7 +897,6 @@ func (p *PendingAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(p.AggregationBits)
 
 	// Field (1) 'Data'
 	if p.Data == nil {
@@ -1893,10 +1886,6 @@ func (a *AttesterSlashing) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (1) 'Attestation2'
 	dst = ssz.WriteOffset(dst, offset)
-	if a.Attestation2 == nil {
-		a.Attestation2 = new(IndexedAttestation)
-	}
-	offset += a.Attestation2.SizeSSZ()
 
 	// Field (0) 'Attestation1'
 	if dst, err = a.Attestation1.MarshalSSZTo(dst); err != nil {
@@ -2039,10 +2028,6 @@ func (b *BeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (4) 'Body'
 	dst = ssz.WriteOffset(dst, offset)
-	if b.Body == nil {
-		b.Body = new(BeaconBlockBodyPhase0)
-	}
-	offset += b.Body.SizeSSZ()
 
 	// Field (4) 'Body'
 	if dst, err = b.Body.MarshalSSZTo(dst); err != nil {
@@ -2171,10 +2156,6 @@ func (s *SignedBeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
-	if s.Block == nil {
-		s.Block = new(BeaconBlock)
-	}
-	offset += s.Block.SizeSSZ()
 
 	// Field (1) 'Signature'
 	if size := len(s.Signature); size != 96 {
@@ -2528,10 +2509,6 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (16) 'CurrentEpochAttestations'
 	dst = ssz.WriteOffset(dst, offset)
-	for ii := 0; ii < len(b.CurrentEpochAttestations); ii++ {
-		offset += 4
-		offset += b.CurrentEpochAttestations[ii].SizeSSZ()
-	}
 
 	// Field (17) 'JustificationBits'
 	if size := len(b.JustificationBits); size != 1 {
@@ -3238,7 +3215,6 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.VoluntaryExits) * 112
 
 	// Field (3) 'ProposerSlashings'
 	if size := len(b.ProposerSlashings); size > 16 {
@@ -3665,7 +3641,6 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.VoluntaryExits) * 112
 
 	// Field (8) 'SyncAggregate'
 	if b.SyncAggregate == nil {
@@ -4128,10 +4103,6 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 	// Offset (9) 'ExecutionPayload'
 	dst = ssz.WriteOffset(dst, offset)
-	if b.ExecutionPayload == nil {
-		b.ExecutionPayload = new(ExecutionPayload)
-	}
-	offset += b.ExecutionPayload.SizeSSZ()
 
 	// Field (3) 'ProposerSlashings'
 	if size := len(b.ProposerSlashings); size > 16 {
@@ -4709,7 +4680,6 @@ func (b *BeaconStateAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (21) 'InactivityScores'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.InactivityScores) * 8
 
 	// Field (22) 'CurrentSyncCommittee'
 	if b.CurrentSyncCommittee == nil {
@@ -5545,10 +5515,6 @@ func (b *BeaconStateBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 	// Offset (24) 'LatestExecutionPayloadHeader'
 	dst = ssz.WriteOffset(dst, offset)
-	if b.LatestExecutionPayloadHeader == nil {
-		b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeader)
-	}
-	offset += b.LatestExecutionPayloadHeader.SizeSSZ()
 
 	// Field (7) 'HistoricalRoots'
 	if size := len(b.HistoricalRoots); size > 16777216 {
@@ -6453,7 +6419,6 @@ func (e *ErrorResponse) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (0) 'Message'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.Message)
 
 	// Field (0) 'Message'
 	if size := len(e.Message); size > 256 {
@@ -6809,10 +6774,6 @@ func (e *ExecutionPayload) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (13) 'Transactions'
 	dst = ssz.WriteOffset(dst, offset)
-	for ii := 0; ii < len(e.Transactions); ii++ {
-		offset += 4
-		offset += len(e.Transactions[ii])
-	}
 
 	// Field (10) 'ExtraData'
 	if size := len(e.ExtraData); size > 32 {
@@ -7113,7 +7074,6 @@ func (e *ExecutionPayloadHeader) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 	// Offset (10) 'ExtraData'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.ExtraData)
 
 	// Field (11) 'BaseFeePerGas'
 	if size := len(e.BaseFeePerGas); size != 32 {
@@ -7420,7 +7380,6 @@ func (e *ExecutionPayloadCapella) MarshalSSZTo(buf []byte) (dst []byte, err erro
 
 	// Offset (14) 'Withdrawals'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.Withdrawals) * 44
 
 	// Field (10) 'ExtraData'
 	if size := len(e.ExtraData); size > 32 {
@@ -7750,7 +7709,6 @@ func (e *ExecutionPayloadHeaderCapella) MarshalSSZTo(buf []byte) (dst []byte, er
 
 	// Offset (10) 'ExtraData'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.ExtraData)
 
 	// Field (11) 'BaseFeePerGas'
 	dst = append(dst, e.BaseFeePerGas[:]...)
@@ -8390,7 +8348,6 @@ func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (27) 'HistoricalSummaries'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.HistoricalSummaries) * 64
 
 	// Field (7) 'HistoricalRoots'
 	if size := len(b.HistoricalRoots); size > 16777216 {
@@ -9097,10 +9054,6 @@ func (s *SignedBeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
-	if s.Block == nil {
-		s.Block = new(BeaconBlockCapella)
-	}
-	offset += s.Block.SizeSSZ()
 
 	// Field (1) 'Signature'
 	if size := len(s.Signature); size != 96 {
@@ -9223,10 +9176,6 @@ func (b *BeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (4) 'Body'
 	dst = ssz.WriteOffset(dst, offset)
-	if b.Body == nil {
-		b.Body = new(BeaconBlockBodyCapella)
-	}
-	offset += b.Body.SizeSSZ()
 
 	// Field (4) 'Body'
 	if dst, err = b.Body.MarshalSSZTo(dst); err != nil {
@@ -9400,7 +9349,6 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 	// Offset (10) 'BlsToExecutionChanges'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.BlsToExecutionChanges) * 172
 
 	// Field (3) 'ProposerSlashings'
 	if size := len(b.ProposerSlashings); size > 16 {
@@ -9935,7 +9883,6 @@ func (e *ExecutionPayloadDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (14) 'Withdrawals'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.Withdrawals) * 44
 
 	// Field (15) 'BlobGasUsed'
 	dst = ssz.MarshalUint64(dst, e.BlobGasUsed)
@@ -10283,7 +10230,6 @@ func (e *ExecutionPayloadHeaderDeneb) MarshalSSZTo(buf []byte) (dst []byte, err 
 
 	// Offset (10) 'ExtraData'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(e.ExtraData)
 
 	// Field (11) 'BaseFeePerGas'
 	dst = append(dst, e.BaseFeePerGas[:]...)
