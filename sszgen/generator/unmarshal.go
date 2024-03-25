@@ -342,7 +342,11 @@ func (v *Value) createSlice(useNumVariable bool) string {
 
 	case TypeContainer:
 		// []*(ref.)Struct{}
-		return fmt.Sprintf("::.%s = make([]*%s, %s)", v.name, v.e.objRef(), size)
+		ptr := "*"
+		if v.e.noPtr {
+			ptr = ""
+		}
+		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, v.e.objRef(), size)
 
 	case TypeBytes:
 		// [][]byte
