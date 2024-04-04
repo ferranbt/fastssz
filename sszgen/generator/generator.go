@@ -210,6 +210,8 @@ func detectImports(v *Value) string {
 		ref = v.ref
 	case TypeList, TypeVector:
 		ref = v.e.ref
+	case TypeBytes:
+		ref = v.ref
 	default:
 		ref = v.ref
 	}
@@ -223,7 +225,6 @@ func (v *Value) objRef() string {
 	if v.ref == "" {
 		return v.obj
 	}
-
 	valuesImported = append(valuesImported, v)
 	return v.ref + "." + v.obj
 }
@@ -322,7 +323,6 @@ type env struct {
 
 func (e *env) generateOutputEncodings(output string) (map[string]string, error) {
 	out := map[string]string{}
-
 	keys := make([]string, 0, len(e.order))
 	for k := range e.order {
 		keys = append(keys, k)
@@ -444,6 +444,7 @@ func (e *env) print(order []string) (string, bool, error) {
 			// require the sszgen functions.
 			continue
 		}
+
 		objs = append(objs, &Obj{
 			HashTreeRoot: e.hashTreeRoot(name, obj),
 			GetTree:      e.getTree(name, obj),

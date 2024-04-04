@@ -349,7 +349,6 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, v.e.objRef(), size)
 
 	case TypeBytes:
-		// [][]byte
 		if v.c {
 			return ""
 		}
