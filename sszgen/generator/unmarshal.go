@@ -353,13 +353,22 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		if v.c {
 			return ""
 		}
-		if v.e.c {
+
+		// Check for a type alias.
+		ref := v.e.objRef()
+
+		// If we did not find a type alias and we are fixed size, use a fixed size
+		// byte array.
+		if ref == "" && v.e.c {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
 		}
-		ref := v.e.objRef()
-		if ref == "" {
+
+		// If we did not find a type alias and we are not fixed size, use a slice of bytes.
+		if ref != "" && !v.e.c {
 			ref = "[]byte"
 		}
+
+		// Then we create the slice based on the `ref` that will be either `[]byte` or `[]MyStruct`
 		return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
 
 	default:
