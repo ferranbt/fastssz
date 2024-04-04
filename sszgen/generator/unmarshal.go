@@ -356,20 +356,15 @@ func (v *Value) createSlice(useNumVariable bool) string {
 
 		// Check for a type alias.
 		ref := v.e.objRef()
+		if ref != "" {
+			return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
+		}
 
-		// If we did not find a type alias and we are fixed size, use a fixed size
-		// byte array.
-		if ref == "" && v.e.c {
+		if v.e.c {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
 		}
 
-		// If we did not find a type alias and we are not fixed size, use a slice of bytes.
-		if ref != "" && !v.e.c {
-			ref = "[]byte"
-		}
-
-		// Then we create the slice based on the `ref` that will be either `[]byte` or `[]MyStruct`
-		return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
+		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
 		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, v.e.t.String()))
