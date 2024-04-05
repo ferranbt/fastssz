@@ -349,18 +349,21 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, v.e.objRef(), size)
 
 	case TypeBytes:
-		// [][]byte
 		if v.c {
 			return ""
 		}
+
+		// Check for a type alias.
+		ref := v.e.objRef()
+		if ref != "" {
+			return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
+		}
+
 		if v.e.c {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
 		}
-		ref := v.e.objRef()
-		if ref == "" {
-			ref = "[]byte"
-		}
-		return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
+
+		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
 		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, v.e.t.String()))
