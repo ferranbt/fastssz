@@ -25,13 +25,6 @@ func (p *PR1512) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		err = ssz.ErrListTooBigFn("PR1512.D", size, 32)
 		return
 	}
-	{
-		offset = 4 * len(p.D)
-		for ii := 0; ii < len(p.D); ii++ {
-			dst = ssz.WriteOffset(dst, offset)
-			offset += len(p.D[ii])
-		}
-	}
 	for ii := 0; ii < len(p.D); ii++ {
 		dst = append(dst, p.D[ii][:]...)
 	}
@@ -62,17 +55,13 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'D'
 	{
 		buf = tail[o0:]
-		num, err := ssz.DecodeDynamicLength(buf, 32)
+		num, err := ssz.DivideInt2(len(buf), 48, 32)
 		if err != nil {
 			return err
 		}
 		p.D = make([]Data152, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			copy(p.D[indx][:], buf)
-			return nil
-		})
-		if err != nil {
-			return err
+		for ii := 0; ii < num; ii++ {
+			copy(p.D[ii][:], buf[ii*48:(ii+1)*48])
 		}
 	}
 	return err
@@ -83,10 +72,7 @@ func (p *PR1512) SizeSSZ() (size int) {
 	size = 4
 
 	// Field (0) 'D'
-	for ii := 0; ii < len(p.D); ii++ {
-		size += 4
-		size += len(p.D[ii])
-	}
+	size += len(p.D) * 48
 
 	return
 }
@@ -102,25 +88,16 @@ func (p *PR1512) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (0) 'D'
 	{
-		subIndx := hh.Index()
-		num := uint64(len(p.D))
-		if num > 32 {
-			err = ssz.ErrIncorrectListSize
+		if size := len(p.D); size > 32 {
+			err = ssz.ErrListTooBigFn("PR1512.D", size, 32)
 			return
 		}
-		for _, elem := range p.D {
-			{
-				elemIndx := hh.Index()
-				byteLen := uint64(len(elem[:]))
-				if byteLen > 0 {
-					err = ssz.ErrIncorrectListSize
-					return
-				}
-				hh.AppendBytes32(elem[:])
-				hh.MerkleizeWithMixin(elemIndx, byteLen, (0+31)/32)
-			}
+		subIndx := hh.Index()
+		for _, i := range p.D {
+			hh.PutBytes(i[:])
 		}
-		hh.MerkleizeWithMixin(subIndx, num, 32)
+		numItems := uint64(len(p.D))
+		hh.MerkleizeWithMixin(subIndx, numItems, 32)
 	}
 
 	hh.Merkleize(indx)

@@ -1050,6 +1050,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 		if astSize != nil {
 			outer.s = *astSize
+			outer.fixed = true
 		}
 
 		switch eeType := obj.Elt.(type) {
