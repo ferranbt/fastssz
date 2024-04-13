@@ -1,9 +1,5 @@
 package testcases
 
-type Issue156Aux struct {
-	A uint64
-}
-
 //go:generate go run ../main.go --path issue_156.go
 type Issue156 struct {
 	A  [32]byte `ssz-size:"32"`
