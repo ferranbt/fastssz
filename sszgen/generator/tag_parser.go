@@ -95,6 +95,8 @@ func isBitList(tags map[string]string) bool {
 	return false
 }
 
+var errDimNotFound = fmt.Errorf("no ssz-size or ssz-max tags found for element")
+
 func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	// parse the ssz-max and ssz-size key/value pairs out of the tag
 	tags, err := GetSSZTags(tag)
@@ -104,7 +106,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	sszSizes, sizeDefined := tags["ssz-size"]
 	sszMax, maxDefined := tags["ssz-max"]
 	if !sizeDefined && !maxDefined {
-		return nil, fmt.Errorf("no ssz-size or ssz-max tags found for element. tag=%s", tag)
+		return nil, errDimNotFound
 	}
 
 	// split each tag by ",". each position in the csv represents a dimension of an n-dimensional array
@@ -132,16 +134,16 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 			mxi = maxSplit[i]
 		}
 		if szi == "?" && mxi == "?" {
-			return nil, fmt.Errorf("at dimension %d both ssz-size and ssz-max had a '?' value. For each dimension, either ssz-size or ssz-max must have a value. Ex: 'ssz-size:\"?,32\" ssz-max:\"100\" defines a List with 100 element limit, containing 32 byte fixed-sized vectors. tag=%s", i, tag)
+			return nil, fmt.Errorf("at dimension %d both ssz-size and ssz-max had a '?' value. For each dimension, either ssz-size or ssz-max must have a value. Ex: 'ssz-size:\"?,32\" ssz-max:\"100\" defines a List with 100 element limit, containing 32 byte fixed-sized vectors", i)
 		}
 		switch szi {
 		case "?", "":
 			if mxi == "?" || mxi == "" {
-				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimesion %d, tag=%s", i, tag)
+				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimesion %d", i)
 			}
 			m, err := strconv.Atoi(mxi)
 			if err != nil {
-				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d, tag=%s. err=%s", mxi, i, tag, err)
+				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d err=%s", mxi, i, err)
 			}
 			dims[i] = &SSZDimension{
 				isBitlist:  isbl,
@@ -150,7 +152,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 		default: // szi is not empty or "?"
 			s, err := strconv.Atoi(szi)
 			if err != nil {
-				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, tag=%s. err=%s", szi, i, tag, err)
+				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, err=%s", szi, i, err)
 			}
 			dims[i] = &SSZDimension{
 				isBitlist:    isbl,
