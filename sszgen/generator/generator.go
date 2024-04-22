@@ -1047,8 +1047,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 		if astSize != nil {
 			outer.c = true
-		}
-		if astSize != nil {
 			outer.s = *astSize
 			outer.fixed = true
 		}
@@ -1079,7 +1077,11 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 
 		dims, err := extractSSZDimensions(tags)
 		if err != nil {
-			return nil, err
+			if err == errDimNotFound && outer.isFixed() {
+				// if the item is fixed it does not need dimensions
+				return outer, nil
+			}
+			return nil, fmt.Errorf("%v, tag=%s", err, tags)
 		}
 
 		// try to validate the dimensions
