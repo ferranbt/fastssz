@@ -1313,3 +1313,21 @@ func uintVToName(v *Value) string {
 		panic(fmt.Sprintf("unknown uint size, %d bytes. field name=%s", v.s, v.name))
 	}
 }
+
+func uintVToLowerCaseName(v *Value) string {
+	if v.t != TypeUint {
+		panic(fmt.Sprintf("type %v for %s not expected", v.t, v.name))
+	}
+	switch v.s {
+	case 8:
+		return "uint64"
+	case 4:
+		return "uint32"
+	case 2:
+		return "uint16"
+	case 1:
+		return "uint8"
+	default:
+		panic(fmt.Sprintf("unknown uint size, %d bytes. field name=%s", v.s, v.name))
+	}
+}
