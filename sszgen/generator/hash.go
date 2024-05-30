@@ -161,8 +161,8 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 
 	case TypeUint:
 		if v.ref != "" || v.obj != "" {
-			// alias to Uint64
-			name = fmt.Sprintf("uint64(%s)", name)
+			// alias to uint*
+			name = fmt.Sprintf("%s(%s)", uintVToLowerCaseName(v), name)
 		}
 		bitLen := v.fixedSize() * 8
 		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
