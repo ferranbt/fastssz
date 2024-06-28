@@ -459,6 +459,9 @@ func (e *env) print(order []string) (string, bool, error) {
 	}
 	data["objs"] = objs
 
+	fmt.Println("----")
+	fmt.Println(valuesImported)
+
 	imports := []string{}
 	for _, v := range valuesImported {
 		imports = appendWithoutRepeated(imports, []string{detectImports(v)})
