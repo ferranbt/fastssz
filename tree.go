@@ -92,7 +92,6 @@ func (n *Node) Show(maxDepth int) {
 }
 
 func (n *Node) show(depth int, maxDepth int) {
-
 	space := ""
 	for i := 0; i < depth; i++ {
 		space += "\t"
@@ -287,6 +286,11 @@ func hashNode(n *Node) []byte {
 		panic("Tree incomplete")
 	}
 
+	if n.value != nil {
+		// This value has already been hashed, don't do the work again.
+		return n.value
+	}
+
 	if n.right.isEmpty {
 		result := hashFn(append(hashNode(n.left), n.right.value...))
 		n.value = result // Set the hash result on each node so that proofs can be generated for any level
@@ -337,6 +341,10 @@ func (n *Node) Prove(index int) (*Proof, error) {
 	}
 
 	proof.Hashes = hashes
+	if cur.value == nil {
+		// This is an intermediate node without a value; add the hash to it so that we're providing a suitable leaf value.
+		cur.value = hashNode(cur)
+	}
 	proof.Leaf = cur.value
 
 	return proof, nil

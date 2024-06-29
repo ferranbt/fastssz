@@ -2,7 +2,9 @@ package ssz
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -200,6 +202,90 @@ func TestGetRequiredIndices(t *testing.T) {
 	for i, r := range req {
 		if r != expected[i] {
 			t.Errorf("Invalid required index. Expected %d, got %d\n", expected[i], r)
+		}
+	}
+}
+
+func TestProveRepeated(t *testing.T) {
+	expectedProofHex := []string{
+		"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		"2dba5dbc339e7316aea2683faf839c1b7b1ee2313db792112588118df066aa35",
+		"5310a330e8f970388503c73349d80b45cd764db615f1bced2801dcd4524a2ff4",
+		"80d1bf4dd6c1f75bba022337a3f0842078f5c2e7f3f59dfd33ccbb8e963367b2",
+		"1492e66e89e186840231850712161255d203b5bbf48d21242f0b51519b5eb3d4",
+		"03a82289eea21de37e72ad6c07865dcab3f2cd681ad47c1cd0ea30e1751ad996",
+		"35603b6278eb5d320c99eeb68354d448493e1ab9857cb0bddb9f7fa72250a3a8",
+		"8ff9103704f4e7dfee6106551eb439d3ac6bc5cc4873ced8ec33eaf2d42f4c31",
+		"259ca0ef3ecb66bb9f02e2ca9de6c7ff13951ad824ece4c680555cfef4321d17",
+		"4f52a2051143520841633a6e53f1ad5948a584dcdbc8ea206d8008d1cfe104a9",
+		"7ef919cf6137226a4c132f3bcab47a11aa1dfe78a357c19c0c804508829f2623",
+		"cbafa51c68b69bc206500c4733c2cc4cc6b67f712cc5fbad5b2d365998ba37a0",
+		"e11746324aa6ce20024a6e4796ae38d2dce7d5e015071a4a2cc96c9b71fafb32",
+		"e3b4036e156dd6ccf9e41e36b011fd00f79645e361d02a9484eaba96e3be7179",
+		"a3cbeb34d17bf5aa47054abd93e0ea1c992eef8359ad6a0f596ea48e455d540a",
+		"d1f9c8fa1339b232013cc9585b380372614a869fd0fd2e3d07bec2f3c96b4c6d",
+		"162947673d0323a56dcccedf09d1c45dfe40c1ddcdb14f69880ae36f60ee434f",
+		"62c0a299966c9ec0a031d01d8bd5330b191461a5dd13a4ac5dd662097c6fc099",
+		"c324ca782716eac179133ee5f4b315c2a9e6e922aead7963a95302412f5e0001",
+		"dcb5df19b4aa726ff826a34a97704b11e111c3cc519ebbe9133f189e05766dfa",
+	}
+
+	chunks := make([][]byte, 1048576)
+	for i := uint32(0); i < 1048576; i++ {
+		x := make([]byte, 4)
+		binary.LittleEndian.PutUint32(x, i)
+		chunks = append(chunks, x)
+	}
+
+	r, err := TreeFromChunks(chunks)
+	if err != nil {
+		t.Errorf("Failed to construct tree: %v\n", err)
+		t.Fail()
+	}
+
+	// Repeatedly prove the same entry, to ensure that there are no mutations
+	// as a result of proving.
+	for i := 0; i < 1024; i++ {
+		p, err := r.Prove(1048576)
+		if err != nil {
+			t.Errorf("Failed to generate proof: %v\n", err)
+			t.Fail()
+		}
+
+		for i, n := range p.Hashes {
+			e, err := hex.DecodeString(expectedProofHex[i])
+			if err != nil {
+				t.Errorf("Failed to decode hex string: %v\n", err)
+				t.Fail()
+			}
+			if !bytes.Equal(e, n) {
+				t.Errorf("Invalid proof item. Expected %s, got %s\n", expectedProofHex[i], hex.EncodeToString(n))
+				t.Fail()
+			}
+		}
+	}
+}
+
+func BenchmarkProve(b *testing.B) {
+	chunks := make([][]byte, 1048576)
+	for i := uint32(0); i < 1048576; i++ {
+		x := make([]byte, 4)
+		binary.LittleEndian.PutUint32(x, i)
+		chunks = append(chunks, x)
+	}
+
+	r, err := TreeFromChunks(chunks)
+	if err != nil {
+		b.Errorf("Failed to construct tree: %v\n", err)
+		b.Fail()
+	}
+
+	for i := 0; i < b.N; i++ {
+		//nolint
+		_, err := r.Prove(rand.Intn(1048575) + 1)
+		if err != nil {
+			b.Errorf("Failed to generate proof: %v\n", err)
+			b.Fail()
 		}
 	}
 }
