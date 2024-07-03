@@ -268,8 +268,8 @@ func BenchmarkUnMarshal_Fast(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	obj2 := new(BeaconBlock)
 	for i := 0; i < b.N; i++ {
-		obj2 := new(BeaconBlock)
 		if err := obj2.UnmarshalSSZ(dst); err != nil {
 			b.Fatal(err)
 		}

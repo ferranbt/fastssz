@@ -37,7 +37,7 @@ func (v *Vec) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Values'
-	v.Values = ssz.ExtendUint64(v.Values, 6)
+	v.Values = ssz.ExtendSlice(v.Values, 6)
 	for ii := 0; ii < 6; ii++ {
 		v.Values[ii] = ssz.UnmarshallUint64(buf[0:48][ii*8 : (ii+1)*8])
 	}
@@ -134,7 +134,7 @@ func (v *Vec2) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		v.Values2 = ssz.ExtendUint32(v.Values2, num)
+		v.Values2 = ssz.ExtendSlice(v.Values2, num)
 		for ii := 0; ii < num; ii++ {
 			v.Values2[ii] = ssz.UnmarshallUint32(buf[ii*4 : (ii+1)*4])
 		}

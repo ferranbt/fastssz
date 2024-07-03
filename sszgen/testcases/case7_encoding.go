@@ -65,10 +65,7 @@ func (c *Case7) UnmarshalSSZ(buf []byte) error {
 		}
 		c.BlobKzgs = make([][]byte, num)
 		for ii := 0; ii < num; ii++ {
-			if cap(c.BlobKzgs[ii]) == 0 {
-				c.BlobKzgs[ii] = make([]byte, 0, len(buf[ii*48:(ii+1)*48]))
-			}
-			c.BlobKzgs[ii] = append(c.BlobKzgs[ii], buf[ii*48:(ii+1)*48]...)
+			c.BlobKzgs[ii] = ssz.ExtendSlice(c.BlobKzgs[ii][:0], len(buf[ii*48:(ii+1)*48]))
 		}
 	}
 	return err

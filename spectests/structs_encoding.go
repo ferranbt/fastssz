@@ -149,10 +149,7 @@ func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
 	c.Epoch = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'Root'
-	if cap(c.Root) == 0 {
-		c.Root = make([]byte, 0, len(buf[8:40]))
-	}
-	c.Root = append(c.Root, buf[8:40]...)
+	c.Root = ssz.ExtendSlice(c.Root[:0], len(buf[8:40]))
 
 	return err
 }
@@ -484,10 +481,7 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 	d.Amount = ssz.UnmarshallUint64(buf[80:88])
 
 	// Field (3) 'Signature'
-	if cap(d.Signature) == 0 {
-		d.Signature = make([]byte, 0, len(buf[88:184]))
-	}
-	d.Signature = append(d.Signature, buf[88:184]...)
+	d.Signature = ssz.ExtendSlice(d.Signature[:0], len(buf[88:184]))
 
 	return err
 }
@@ -576,10 +570,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Proof'
 	d.Proof = make([][]byte, 33)
 	for ii := 0; ii < 33; ii++ {
-		if cap(d.Proof[ii]) == 0 {
-			d.Proof[ii] = make([]byte, 0, len(buf[0:1056][ii*32:(ii+1)*32]))
-		}
-		d.Proof[ii] = append(d.Proof[ii], buf[0:1056][ii*32:(ii+1)*32]...)
+		d.Proof[ii] = ssz.ExtendSlice(d.Proof[ii][:0], len(buf[0:1056][ii*32:(ii+1)*32]))
 	}
 
 	// Field (1) 'Data'
@@ -680,16 +671,10 @@ func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Pubkey'
-	if cap(d.Pubkey) == 0 {
-		d.Pubkey = make([]byte, 0, len(buf[0:48]))
-	}
-	d.Pubkey = append(d.Pubkey, buf[0:48]...)
+	d.Pubkey = ssz.ExtendSlice(d.Pubkey[:0], len(buf[0:48]))
 
 	// Field (1) 'WithdrawalCredentials'
-	if cap(d.WithdrawalCredentials) == 0 {
-		d.WithdrawalCredentials = make([]byte, 0, len(buf[48:80]))
-	}
-	d.WithdrawalCredentials = append(d.WithdrawalCredentials, buf[48:80]...)
+	d.WithdrawalCredentials = ssz.ExtendSlice(d.WithdrawalCredentials[:0], len(buf[48:80]))
 
 	// Field (2) 'Amount'
 	d.Amount = ssz.UnmarshallUint64(buf[80:88])
@@ -807,10 +792,7 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Signature'
-	if cap(i.Signature) == 0 {
-		i.Signature = make([]byte, 0, len(buf[132:228]))
-	}
-	i.Signature = append(i.Signature, buf[132:228]...)
+	i.Signature = ssz.ExtendSlice(i.Signature[:0], len(buf[132:228]))
 
 	// Field (0) 'AttestationIndices'
 	{
@@ -819,7 +801,7 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		i.AttestationIndices = ssz.ExtendUint64(i.AttestationIndices, num)
+		i.AttestationIndices = ssz.ExtendSlice(i.AttestationIndices, num)
 		for ii := 0; ii < num; ii++ {
 			i.AttestationIndices[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -1057,16 +1039,10 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'PreviousVersion'
-	if cap(f.PreviousVersion) == 0 {
-		f.PreviousVersion = make([]byte, 0, len(buf[0:4]))
-	}
-	f.PreviousVersion = append(f.PreviousVersion, buf[0:4]...)
+	f.PreviousVersion = ssz.ExtendSlice(f.PreviousVersion[:0], len(buf[0:4]))
 
 	// Field (1) 'CurrentVersion'
-	if cap(f.CurrentVersion) == 0 {
-		f.CurrentVersion = make([]byte, 0, len(buf[4:8]))
-	}
-	f.CurrentVersion = append(f.CurrentVersion, buf[4:8]...)
+	f.CurrentVersion = ssz.ExtendSlice(f.CurrentVersion[:0], len(buf[4:8]))
 
 	// Field (2) 'Epoch'
 	f.Epoch = ssz.UnmarshallUint64(buf[8:16])
@@ -1168,16 +1144,10 @@ func (v *Validator) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Pubkey'
-	if cap(v.Pubkey) == 0 {
-		v.Pubkey = make([]byte, 0, len(buf[0:48]))
-	}
-	v.Pubkey = append(v.Pubkey, buf[0:48]...)
+	v.Pubkey = ssz.ExtendSlice(v.Pubkey[:0], len(buf[0:48]))
 
 	// Field (1) 'WithdrawalCredentials'
-	if cap(v.WithdrawalCredentials) == 0 {
-		v.WithdrawalCredentials = make([]byte, 0, len(buf[48:80]))
-	}
-	v.WithdrawalCredentials = append(v.WithdrawalCredentials, buf[48:80]...)
+	v.WithdrawalCredentials = ssz.ExtendSlice(v.WithdrawalCredentials[:0], len(buf[48:80]))
 
 	// Field (2) 'EffectiveBalance'
 	v.EffectiveBalance = ssz.UnmarshallUint64(buf[80:88])
@@ -1438,10 +1408,7 @@ func (e *Eth1Block) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'DepositRoot'
-	if cap(e.DepositRoot) == 0 {
-		e.DepositRoot = make([]byte, 0, len(buf[8:40]))
-	}
-	e.DepositRoot = append(e.DepositRoot, buf[8:40]...)
+	e.DepositRoot = ssz.ExtendSlice(e.DepositRoot[:0], len(buf[8:40]))
 
 	// Field (2) 'DepositCount'
 	e.DepositCount = ssz.UnmarshallUint64(buf[40:48])
@@ -1524,19 +1491,13 @@ func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'DepositRoot'
-	if cap(e.DepositRoot) == 0 {
-		e.DepositRoot = make([]byte, 0, len(buf[0:32]))
-	}
-	e.DepositRoot = append(e.DepositRoot, buf[0:32]...)
+	e.DepositRoot = ssz.ExtendSlice(e.DepositRoot[:0], len(buf[0:32]))
 
 	// Field (1) 'DepositCount'
 	e.DepositCount = ssz.UnmarshallUint64(buf[32:40])
 
 	// Field (2) 'BlockHash'
-	if cap(e.BlockHash) == 0 {
-		e.BlockHash = make([]byte, 0, len(buf[40:72]))
-	}
-	e.BlockHash = append(e.BlockHash, buf[40:72]...)
+	e.BlockHash = ssz.ExtendSlice(e.BlockHash[:0], len(buf[40:72]))
 
 	return err
 }
@@ -1617,16 +1578,10 @@ func (s *SigningRoot) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'ObjectRoot'
-	if cap(s.ObjectRoot) == 0 {
-		s.ObjectRoot = make([]byte, 0, len(buf[0:32]))
-	}
-	s.ObjectRoot = append(s.ObjectRoot, buf[0:32]...)
+	s.ObjectRoot = ssz.ExtendSlice(s.ObjectRoot[:0], len(buf[0:32]))
 
 	// Field (1) 'Domain'
-	if cap(s.Domain) == 0 {
-		s.Domain = make([]byte, 0, len(buf[32:40]))
-	}
-	s.Domain = append(s.Domain, buf[32:40]...)
+	s.Domain = ssz.ExtendSlice(s.Domain[:0], len(buf[32:40]))
 
 	return err
 }
@@ -2055,16 +2010,10 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	b.ProposerIndex = ssz.UnmarshallUint64(buf[8:16])
 
 	// Field (2) 'ParentRoot'
-	if cap(b.ParentRoot) == 0 {
-		b.ParentRoot = make([]byte, 0, len(buf[16:48]))
-	}
-	b.ParentRoot = append(b.ParentRoot, buf[16:48]...)
+	b.ParentRoot = ssz.ExtendSlice(b.ParentRoot[:0], len(buf[16:48]))
 
 	// Field (3) 'StateRoot'
-	if cap(b.StateRoot) == 0 {
-		b.StateRoot = make([]byte, 0, len(buf[48:80]))
-	}
-	b.StateRoot = append(b.StateRoot, buf[48:80]...)
+	b.StateRoot = ssz.ExtendSlice(b.StateRoot[:0], len(buf[48:80]))
 
 	// Offset (4) 'Body'
 	if o4 = ssz.ReadOffset(buf[80:84]); o4 > size {
@@ -2193,10 +2142,7 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	if cap(s.Signature) == 0 {
-		s.Signature = make([]byte, 0, len(buf[4:100]))
-	}
-	s.Signature = append(s.Signature, buf[4:100]...)
+	s.Signature = ssz.ExtendSlice(s.Signature[:0], len(buf[4:100]))
 
 	// Field (0) 'Block'
 	{
@@ -2319,16 +2265,10 @@ func (t *Transfer) UnmarshalSSZ(buf []byte) error {
 	t.Slot = ssz.UnmarshallUint64(buf[32:40])
 
 	// Field (5) 'Pubkey'
-	if cap(t.Pubkey) == 0 {
-		t.Pubkey = make([]byte, 0, len(buf[40:88]))
-	}
-	t.Pubkey = append(t.Pubkey, buf[40:88]...)
+	t.Pubkey = ssz.ExtendSlice(t.Pubkey[:0], len(buf[40:88]))
 
 	// Field (6) 'Signature'
-	if cap(t.Signature) == 0 {
-		t.Signature = make([]byte, 0, len(buf[88:184]))
-	}
-	t.Signature = append(t.Signature, buf[88:184]...)
+	t.Signature = ssz.ExtendSlice(t.Signature[:0], len(buf[88:184]))
 
 	return err
 }
@@ -2639,10 +2579,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'GenesisValidatorsRoot'
-	if cap(b.GenesisValidatorsRoot) == 0 {
-		b.GenesisValidatorsRoot = make([]byte, 0, len(buf[8:40]))
-	}
-	b.GenesisValidatorsRoot = append(b.GenesisValidatorsRoot, buf[8:40]...)
+	b.GenesisValidatorsRoot = ssz.ExtendSlice(b.GenesisValidatorsRoot[:0], len(buf[8:40]))
 
 	// Field (2) 'Slot'
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
@@ -2666,19 +2603,13 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'BlockRoots'
 	b.BlockRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		if cap(b.BlockRoots[ii]) == 0 {
-			b.BlockRoots[ii] = make([]byte, 0, len(buf[176:262320][ii*32:(ii+1)*32]))
-		}
-		b.BlockRoots[ii] = append(b.BlockRoots[ii], buf[176:262320][ii*32:(ii+1)*32]...)
+		b.BlockRoots[ii] = ssz.ExtendSlice(b.BlockRoots[ii][:0], len(buf[176:262320][ii*32:(ii+1)*32]))
 	}
 
 	// Field (6) 'StateRoots'
 	b.StateRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		if cap(b.StateRoots[ii]) == 0 {
-			b.StateRoots[ii] = make([]byte, 0, len(buf[262320:524464][ii*32:(ii+1)*32]))
-		}
-		b.StateRoots[ii] = append(b.StateRoots[ii], buf[262320:524464][ii*32:(ii+1)*32]...)
+		b.StateRoots[ii] = ssz.ExtendSlice(b.StateRoots[ii][:0], len(buf[262320:524464][ii*32:(ii+1)*32]))
 	}
 
 	// Offset (7) 'HistoricalRoots'
@@ -2719,14 +2650,11 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 65536)
 	for ii := 0; ii < 65536; ii++ {
-		if cap(b.RandaoMixes[ii]) == 0 {
-			b.RandaoMixes[ii] = make([]byte, 0, len(buf[524560:2621712][ii*32:(ii+1)*32]))
-		}
-		b.RandaoMixes[ii] = append(b.RandaoMixes[ii], buf[524560:2621712][ii*32:(ii+1)*32]...)
+		b.RandaoMixes[ii] = ssz.ExtendSlice(b.RandaoMixes[ii][:0], len(buf[524560:2621712][ii*32:(ii+1)*32]))
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.ExtendSlice(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -2742,10 +2670,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (17) 'JustificationBits'
-	if cap(b.JustificationBits) == 0 {
-		b.JustificationBits = make([]byte, 0, len(buf[2687256:2687257]))
-	}
-	b.JustificationBits = append(b.JustificationBits, buf[2687256:2687257]...)
+	b.JustificationBits = ssz.ExtendSlice(b.JustificationBits[:0], len(buf[2687256:2687257]))
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
 	if b.PreviousJustifiedCheckpoint == nil {
@@ -2780,10 +2705,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		}
 		b.HistoricalRoots = make([][]byte, num)
 		for ii := 0; ii < num; ii++ {
-			if cap(b.HistoricalRoots[ii]) == 0 {
-				b.HistoricalRoots[ii] = make([]byte, 0, len(buf[ii*32:(ii+1)*32]))
-			}
-			b.HistoricalRoots[ii] = append(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32]...)
+			b.HistoricalRoots[ii] = ssz.ExtendSlice(b.HistoricalRoots[ii][:0], len(buf[ii*32:(ii+1)*32]))
 		}
 	}
 
@@ -2830,7 +2752,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
+		b.Balances = ssz.ExtendSlice(b.Balances, num)
 		for ii := 0; ii < num; ii++ {
 			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -3300,10 +3222,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	var o3, o4, o5, o6, o7 uint64
 
 	// Field (0) 'RandaoReveal'
-	if cap(b.RandaoReveal) == 0 {
-		b.RandaoReveal = make([]byte, 0, len(buf[0:96]))
-	}
-	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
+	b.RandaoReveal = ssz.ExtendSlice(b.RandaoReveal[:0], len(buf[0:96]))
 
 	// Field (1) 'Eth1Data'
 	if b.Eth1Data == nil {
@@ -3734,10 +3653,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	var o3, o4, o5, o6, o7 uint64
 
 	// Field (0) 'RandaoReveal'
-	if cap(b.RandaoReveal) == 0 {
-		b.RandaoReveal = make([]byte, 0, len(buf[0:96]))
-	}
-	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
+	b.RandaoReveal = ssz.ExtendSlice(b.RandaoReveal[:0], len(buf[0:96]))
 
 	// Field (1) 'Eth1Data'
 	if b.Eth1Data == nil {
@@ -4193,10 +4109,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	var o3, o4, o5, o6, o7, o9 uint64
 
 	// Field (0) 'RandaoReveal'
-	if cap(b.RandaoReveal) == 0 {
-		b.RandaoReveal = make([]byte, 0, len(buf[0:96]))
-	}
-	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
+	b.RandaoReveal = ssz.ExtendSlice(b.RandaoReveal[:0], len(buf[0:96]))
 
 	// Field (1) 'Eth1Data'
 	if b.Eth1Data == nil {
@@ -4782,10 +4695,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'GenesisValidatorsRoot'
-	if cap(b.GenesisValidatorsRoot) == 0 {
-		b.GenesisValidatorsRoot = make([]byte, 0, len(buf[8:40]))
-	}
-	b.GenesisValidatorsRoot = append(b.GenesisValidatorsRoot, buf[8:40]...)
+	b.GenesisValidatorsRoot = ssz.ExtendSlice(b.GenesisValidatorsRoot[:0], len(buf[8:40]))
 
 	// Field (2) 'Slot'
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
@@ -4809,19 +4719,13 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'BlockRoots'
 	b.BlockRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		if cap(b.BlockRoots[ii]) == 0 {
-			b.BlockRoots[ii] = make([]byte, 0, len(buf[176:262320][ii*32:(ii+1)*32]))
-		}
-		b.BlockRoots[ii] = append(b.BlockRoots[ii], buf[176:262320][ii*32:(ii+1)*32]...)
+		b.BlockRoots[ii] = ssz.ExtendSlice(b.BlockRoots[ii][:0], len(buf[176:262320][ii*32:(ii+1)*32]))
 	}
 
 	// Field (6) 'StateRoots'
 	b.StateRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		if cap(b.StateRoots[ii]) == 0 {
-			b.StateRoots[ii] = make([]byte, 0, len(buf[262320:524464][ii*32:(ii+1)*32]))
-		}
-		b.StateRoots[ii] = append(b.StateRoots[ii], buf[262320:524464][ii*32:(ii+1)*32]...)
+		b.StateRoots[ii] = ssz.ExtendSlice(b.StateRoots[ii][:0], len(buf[262320:524464][ii*32:(ii+1)*32]))
 	}
 
 	// Offset (7) 'HistoricalRoots'
@@ -4862,14 +4766,11 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 65536)
 	for ii := 0; ii < 65536; ii++ {
-		if cap(b.RandaoMixes[ii]) == 0 {
-			b.RandaoMixes[ii] = make([]byte, 0, len(buf[524560:2621712][ii*32:(ii+1)*32]))
-		}
-		b.RandaoMixes[ii] = append(b.RandaoMixes[ii], buf[524560:2621712][ii*32:(ii+1)*32]...)
+		b.RandaoMixes[ii] = ssz.ExtendSlice(b.RandaoMixes[ii][:0], len(buf[524560:2621712][ii*32:(ii+1)*32]))
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.ExtendSlice(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -4885,10 +4786,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (17) 'JustificationBits'
-	if cap(b.JustificationBits) == 0 {
-		b.JustificationBits = make([]byte, 0, len(buf[2687256:2687257]))
-	}
-	b.JustificationBits = append(b.JustificationBits, buf[2687256:2687257]...)
+	b.JustificationBits = ssz.ExtendSlice(b.JustificationBits[:0], len(buf[2687256:2687257]))
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
 	if b.PreviousJustifiedCheckpoint == nil {
@@ -4944,10 +4842,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.HistoricalRoots = make([][]byte, num)
 		for ii := 0; ii < num; ii++ {
-			if cap(b.HistoricalRoots[ii]) == 0 {
-				b.HistoricalRoots[ii] = make([]byte, 0, len(buf[ii*32:(ii+1)*32]))
-			}
-			b.HistoricalRoots[ii] = append(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32]...)
+			b.HistoricalRoots[ii] = ssz.ExtendSlice(b.HistoricalRoots[ii][:0], len(buf[ii*32:(ii+1)*32]))
 		}
 	}
 
@@ -4994,7 +4889,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
+		b.Balances = ssz.ExtendSlice(b.Balances, num)
 		for ii := 0; ii < num; ii++ {
 			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -5006,10 +4901,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 1099511627776 {
 			return ssz.ErrBytesLength
 		}
-		if cap(b.PreviousEpochParticipation) == 0 {
-			b.PreviousEpochParticipation = make([]byte, 0, len(buf))
-		}
-		b.PreviousEpochParticipation = append(b.PreviousEpochParticipation, buf...)
+		b.PreviousEpochParticipation = ssz.ExtendSlice(b.PreviousEpochParticipation[:0], len(buf))
 	}
 
 	// Field (16) 'CurrentEpochParticipation'
@@ -5018,10 +4910,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 1099511627776 {
 			return ssz.ErrBytesLength
 		}
-		if cap(b.CurrentEpochParticipation) == 0 {
-			b.CurrentEpochParticipation = make([]byte, 0, len(buf))
-		}
-		b.CurrentEpochParticipation = append(b.CurrentEpochParticipation, buf...)
+		b.CurrentEpochParticipation = ssz.ExtendSlice(b.CurrentEpochParticipation[:0], len(buf))
 	}
 
 	// Field (21) 'InactivityScores'
@@ -5031,7 +4920,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.InactivityScores = ssz.ExtendUint64(b.InactivityScores, num)
+		b.InactivityScores = ssz.ExtendSlice(b.InactivityScores, num)
 		for ii := 0; ii < num; ii++ {
 			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -5606,10 +5495,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'GenesisValidatorsRoot'
-	if cap(b.GenesisValidatorsRoot) == 0 {
-		b.GenesisValidatorsRoot = make([]byte, 0, len(buf[8:40]))
-	}
-	b.GenesisValidatorsRoot = append(b.GenesisValidatorsRoot, buf[8:40]...)
+	b.GenesisValidatorsRoot = ssz.ExtendSlice(b.GenesisValidatorsRoot[:0], len(buf[8:40]))
 
 	// Field (2) 'Slot'
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
@@ -5633,19 +5519,13 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'BlockRoots'
 	b.BlockRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		if cap(b.BlockRoots[ii]) == 0 {
-			b.BlockRoots[ii] = make([]byte, 0, len(buf[176:262320][ii*32:(ii+1)*32]))
-		}
-		b.BlockRoots[ii] = append(b.BlockRoots[ii], buf[176:262320][ii*32:(ii+1)*32]...)
+		b.BlockRoots[ii] = ssz.ExtendSlice(b.BlockRoots[ii][:0], len(buf[176:262320][ii*32:(ii+1)*32]))
 	}
 
 	// Field (6) 'StateRoots'
 	b.StateRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		if cap(b.StateRoots[ii]) == 0 {
-			b.StateRoots[ii] = make([]byte, 0, len(buf[262320:524464][ii*32:(ii+1)*32]))
-		}
-		b.StateRoots[ii] = append(b.StateRoots[ii], buf[262320:524464][ii*32:(ii+1)*32]...)
+		b.StateRoots[ii] = ssz.ExtendSlice(b.StateRoots[ii][:0], len(buf[262320:524464][ii*32:(ii+1)*32]))
 	}
 
 	// Offset (7) 'HistoricalRoots'
@@ -5686,14 +5566,11 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 65536)
 	for ii := 0; ii < 65536; ii++ {
-		if cap(b.RandaoMixes[ii]) == 0 {
-			b.RandaoMixes[ii] = make([]byte, 0, len(buf[524560:2621712][ii*32:(ii+1)*32]))
-		}
-		b.RandaoMixes[ii] = append(b.RandaoMixes[ii], buf[524560:2621712][ii*32:(ii+1)*32]...)
+		b.RandaoMixes[ii] = ssz.ExtendSlice(b.RandaoMixes[ii][:0], len(buf[524560:2621712][ii*32:(ii+1)*32]))
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.ExtendSlice(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -5709,10 +5586,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (17) 'JustificationBits'
-	if cap(b.JustificationBits) == 0 {
-		b.JustificationBits = make([]byte, 0, len(buf[2687256:2687257]))
-	}
-	b.JustificationBits = append(b.JustificationBits, buf[2687256:2687257]...)
+	b.JustificationBits = ssz.ExtendSlice(b.JustificationBits[:0], len(buf[2687256:2687257]))
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
 	if b.PreviousJustifiedCheckpoint == nil {
@@ -5773,10 +5647,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.HistoricalRoots = make([][]byte, num)
 		for ii := 0; ii < num; ii++ {
-			if cap(b.HistoricalRoots[ii]) == 0 {
-				b.HistoricalRoots[ii] = make([]byte, 0, len(buf[ii*32:(ii+1)*32]))
-			}
-			b.HistoricalRoots[ii] = append(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32]...)
+			b.HistoricalRoots[ii] = ssz.ExtendSlice(b.HistoricalRoots[ii][:0], len(buf[ii*32:(ii+1)*32]))
 		}
 	}
 
@@ -5823,7 +5694,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
+		b.Balances = ssz.ExtendSlice(b.Balances, num)
 		for ii := 0; ii < num; ii++ {
 			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -5835,10 +5706,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 1099511627776 {
 			return ssz.ErrBytesLength
 		}
-		if cap(b.PreviousEpochParticipation) == 0 {
-			b.PreviousEpochParticipation = make([]byte, 0, len(buf))
-		}
-		b.PreviousEpochParticipation = append(b.PreviousEpochParticipation, buf...)
+		b.PreviousEpochParticipation = ssz.ExtendSlice(b.PreviousEpochParticipation[:0], len(buf))
 	}
 
 	// Field (16) 'CurrentEpochParticipation'
@@ -5847,10 +5715,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 1099511627776 {
 			return ssz.ErrBytesLength
 		}
-		if cap(b.CurrentEpochParticipation) == 0 {
-			b.CurrentEpochParticipation = make([]byte, 0, len(buf))
-		}
-		b.CurrentEpochParticipation = append(b.CurrentEpochParticipation, buf...)
+		b.CurrentEpochParticipation = ssz.ExtendSlice(b.CurrentEpochParticipation[:0], len(buf))
 	}
 
 	// Field (21) 'InactivityScores'
@@ -5860,7 +5725,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.InactivityScores = ssz.ExtendUint64(b.InactivityScores, num)
+		b.InactivityScores = ssz.ExtendSlice(b.InactivityScores, num)
 		for ii := 0; ii < num; ii++ {
 			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -6235,10 +6100,7 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	if cap(s.Signature) == 0 {
-		s.Signature = make([]byte, 0, len(buf[112:208]))
-	}
-	s.Signature = append(s.Signature, buf[112:208]...)
+	s.Signature = ssz.ExtendSlice(s.Signature[:0], len(buf[112:208]))
 
 	return err
 }
@@ -6336,22 +6198,13 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	b.ProposerIndex = ssz.UnmarshallUint64(buf[8:16])
 
 	// Field (2) 'ParentRoot'
-	if cap(b.ParentRoot) == 0 {
-		b.ParentRoot = make([]byte, 0, len(buf[16:48]))
-	}
-	b.ParentRoot = append(b.ParentRoot, buf[16:48]...)
+	b.ParentRoot = ssz.ExtendSlice(b.ParentRoot[:0], len(buf[16:48]))
 
 	// Field (3) 'StateRoot'
-	if cap(b.StateRoot) == 0 {
-		b.StateRoot = make([]byte, 0, len(buf[48:80]))
-	}
-	b.StateRoot = append(b.StateRoot, buf[48:80]...)
+	b.StateRoot = ssz.ExtendSlice(b.StateRoot[:0], len(buf[48:80]))
 
 	// Field (4) 'BodyRoot'
-	if cap(b.BodyRoot) == 0 {
-		b.BodyRoot = make([]byte, 0, len(buf[80:112]))
-	}
-	b.BodyRoot = append(b.BodyRoot, buf[80:112]...)
+	b.BodyRoot = ssz.ExtendSlice(b.BodyRoot[:0], len(buf[80:112]))
 
 	return err
 }
@@ -6456,10 +6309,7 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 256 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.Message) == 0 {
-			e.Message = make([]byte, 0, len(buf))
-		}
-		e.Message = append(e.Message, buf...)
+		e.Message = ssz.ExtendSlice(e.Message[:0], len(buf))
 	}
 	return err
 }
@@ -6590,10 +6440,7 @@ func (s *SyncCommittee) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'PubKeys'
 	s.PubKeys = make([][]byte, 512)
 	for ii := 0; ii < 512; ii++ {
-		if cap(s.PubKeys[ii]) == 0 {
-			s.PubKeys[ii] = make([]byte, 0, len(buf[0:24576][ii*48:(ii+1)*48]))
-		}
-		s.PubKeys[ii] = append(s.PubKeys[ii], buf[0:24576][ii*48:(ii+1)*48]...)
+		s.PubKeys[ii] = ssz.ExtendSlice(s.PubKeys[ii][:0], len(buf[0:24576][ii*48:(ii+1)*48]))
 	}
 
 	// Field (1) 'AggregatePubKey'
@@ -6677,10 +6524,7 @@ func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'SyncCommiteeBits'
-	if cap(s.SyncCommiteeBits) == 0 {
-		s.SyncCommiteeBits = make([]byte, 0, len(buf[0:64]))
-	}
-	s.SyncCommiteeBits = append(s.SyncCommiteeBits, buf[0:64]...)
+	s.SyncCommiteeBits = ssz.ExtendSlice(s.SyncCommiteeBits[:0], len(buf[0:64]))
 
 	// Field (1) 'SyncCommiteeSignature'
 	copy(s.SyncCommiteeSignature[:], buf[64:160])
@@ -6872,10 +6716,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.ExtraData) == 0 {
-			e.ExtraData = make([]byte, 0, len(buf))
-		}
-		e.ExtraData = append(e.ExtraData, buf...)
+		e.ExtraData = ssz.ExtendSlice(e.ExtraData[:0], len(buf))
 	}
 
 	// Field (13) 'Transactions'
@@ -6890,10 +6731,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
-			if cap(e.Transactions[indx]) == 0 {
-				e.Transactions[indx] = make([]byte, 0, len(buf))
-			}
-			e.Transactions[indx] = append(e.Transactions[indx], buf...)
+			e.Transactions[indx] = ssz.ExtendSlice(e.Transactions[indx][:0], len(buf))
 			return nil
 		})
 		if err != nil {
@@ -7118,40 +6956,22 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	var o10 uint64
 
 	// Field (0) 'ParentHash'
-	if cap(e.ParentHash) == 0 {
-		e.ParentHash = make([]byte, 0, len(buf[0:32]))
-	}
-	e.ParentHash = append(e.ParentHash, buf[0:32]...)
+	e.ParentHash = ssz.ExtendSlice(e.ParentHash[:0], len(buf[0:32]))
 
 	// Field (1) 'FeeRecipient'
-	if cap(e.FeeRecipient) == 0 {
-		e.FeeRecipient = make([]byte, 0, len(buf[32:52]))
-	}
-	e.FeeRecipient = append(e.FeeRecipient, buf[32:52]...)
+	e.FeeRecipient = ssz.ExtendSlice(e.FeeRecipient[:0], len(buf[32:52]))
 
 	// Field (2) 'StateRoot'
-	if cap(e.StateRoot) == 0 {
-		e.StateRoot = make([]byte, 0, len(buf[52:84]))
-	}
-	e.StateRoot = append(e.StateRoot, buf[52:84]...)
+	e.StateRoot = ssz.ExtendSlice(e.StateRoot[:0], len(buf[52:84]))
 
 	// Field (3) 'ReceiptsRoot'
-	if cap(e.ReceiptsRoot) == 0 {
-		e.ReceiptsRoot = make([]byte, 0, len(buf[84:116]))
-	}
-	e.ReceiptsRoot = append(e.ReceiptsRoot, buf[84:116]...)
+	e.ReceiptsRoot = ssz.ExtendSlice(e.ReceiptsRoot[:0], len(buf[84:116]))
 
 	// Field (4) 'LogsBloom'
-	if cap(e.LogsBloom) == 0 {
-		e.LogsBloom = make([]byte, 0, len(buf[116:372]))
-	}
-	e.LogsBloom = append(e.LogsBloom, buf[116:372]...)
+	e.LogsBloom = ssz.ExtendSlice(e.LogsBloom[:0], len(buf[116:372]))
 
 	// Field (5) 'PrevRandao'
-	if cap(e.PrevRandao) == 0 {
-		e.PrevRandao = make([]byte, 0, len(buf[372:404]))
-	}
-	e.PrevRandao = append(e.PrevRandao, buf[372:404]...)
+	e.PrevRandao = ssz.ExtendSlice(e.PrevRandao[:0], len(buf[372:404]))
 
 	// Field (6) 'BlockNumber'
 	e.BlockNumber = ssz.UnmarshallUint64(buf[404:412])
@@ -7175,22 +6995,13 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	if cap(e.BaseFeePerGas) == 0 {
-		e.BaseFeePerGas = make([]byte, 0, len(buf[440:472]))
-	}
-	e.BaseFeePerGas = append(e.BaseFeePerGas, buf[440:472]...)
+	e.BaseFeePerGas = ssz.ExtendSlice(e.BaseFeePerGas[:0], len(buf[440:472]))
 
 	// Field (12) 'BlockHash'
-	if cap(e.BlockHash) == 0 {
-		e.BlockHash = make([]byte, 0, len(buf[472:504]))
-	}
-	e.BlockHash = append(e.BlockHash, buf[472:504]...)
+	e.BlockHash = ssz.ExtendSlice(e.BlockHash[:0], len(buf[472:504]))
 
 	// Field (13) 'TransactionsRoot'
-	if cap(e.TransactionsRoot) == 0 {
-		e.TransactionsRoot = make([]byte, 0, len(buf[504:536]))
-	}
-	e.TransactionsRoot = append(e.TransactionsRoot, buf[504:536]...)
+	e.TransactionsRoot = ssz.ExtendSlice(e.TransactionsRoot[:0], len(buf[504:536]))
 
 	// Field (10) 'ExtraData'
 	{
@@ -7198,10 +7009,7 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.ExtraData) == 0 {
-			e.ExtraData = make([]byte, 0, len(buf))
-		}
-		e.ExtraData = append(e.ExtraData, buf...)
+		e.ExtraData = ssz.ExtendSlice(e.ExtraData[:0], len(buf))
 	}
 	return err
 }
@@ -7494,10 +7302,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.ExtraData) == 0 {
-			e.ExtraData = make([]byte, 0, len(buf))
-		}
-		e.ExtraData = append(e.ExtraData, buf...)
+		e.ExtraData = ssz.ExtendSlice(e.ExtraData[:0], len(buf))
 	}
 
 	// Field (13) 'Transactions'
@@ -7512,10 +7317,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
-			if cap(e.Transactions[indx]) == 0 {
-				e.Transactions[indx] = make([]byte, 0, len(buf))
-			}
-			e.Transactions[indx] = append(e.Transactions[indx], buf...)
+			e.Transactions[indx] = ssz.ExtendSlice(e.Transactions[indx][:0], len(buf))
 			return nil
 		})
 		if err != nil {
@@ -7800,10 +7602,7 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.ExtraData) == 0 {
-			e.ExtraData = make([]byte, 0, len(buf))
-		}
-		e.ExtraData = append(e.ExtraData, buf...)
+		e.ExtraData = ssz.ExtendSlice(e.ExtraData[:0], len(buf))
 	}
 	return err
 }
@@ -8525,7 +8324,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.ExtendSlice(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -8613,10 +8412,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.HistoricalRoots = make([][]byte, num)
 		for ii := 0; ii < num; ii++ {
-			if cap(b.HistoricalRoots[ii]) == 0 {
-				b.HistoricalRoots[ii] = make([]byte, 0, len(buf[ii*32:(ii+1)*32]))
-			}
-			b.HistoricalRoots[ii] = append(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32]...)
+			b.HistoricalRoots[ii] = ssz.ExtendSlice(b.HistoricalRoots[ii][:0], len(buf[ii*32:(ii+1)*32]))
 		}
 	}
 
@@ -8663,7 +8459,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
+		b.Balances = ssz.ExtendSlice(b.Balances, num)
 		for ii := 0; ii < num; ii++ {
 			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -8675,10 +8471,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 1099511627776 {
 			return ssz.ErrBytesLength
 		}
-		if cap(b.PreviousEpochParticipation) == 0 {
-			b.PreviousEpochParticipation = make([]byte, 0, len(buf))
-		}
-		b.PreviousEpochParticipation = append(b.PreviousEpochParticipation, buf...)
+		b.PreviousEpochParticipation = ssz.ExtendSlice(b.PreviousEpochParticipation[:0], len(buf))
 	}
 
 	// Field (16) 'CurrentEpochParticipation'
@@ -8687,10 +8480,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 1099511627776 {
 			return ssz.ErrBytesLength
 		}
-		if cap(b.CurrentEpochParticipation) == 0 {
-			b.CurrentEpochParticipation = make([]byte, 0, len(buf))
-		}
-		b.CurrentEpochParticipation = append(b.CurrentEpochParticipation, buf...)
+		b.CurrentEpochParticipation = ssz.ExtendSlice(b.CurrentEpochParticipation[:0], len(buf))
 	}
 
 	// Field (21) 'InactivityScores'
@@ -8700,7 +8490,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		if err != nil {
 			return err
 		}
-		b.InactivityScores = ssz.ExtendUint64(b.InactivityScores, num)
+		b.InactivityScores = ssz.ExtendSlice(b.InactivityScores, num)
 		for ii := 0; ii < num; ii++ {
 			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
@@ -9091,10 +8881,7 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	if cap(s.Signature) == 0 {
-		s.Signature = make([]byte, 0, len(buf[4:100]))
-	}
-	s.Signature = append(s.Signature, buf[4:100]...)
+	s.Signature = ssz.ExtendSlice(s.Signature[:0], len(buf[4:100]))
 
 	// Field (0) 'Block'
 	{
@@ -9450,10 +9237,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	var o3, o4, o5, o6, o7, o9, o10 uint64
 
 	// Field (0) 'RandaoReveal'
-	if cap(b.RandaoReveal) == 0 {
-		b.RandaoReveal = make([]byte, 0, len(buf[0:96]))
-	}
-	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
+	b.RandaoReveal = ssz.ExtendSlice(b.RandaoReveal[:0], len(buf[0:96]))
 
 	// Field (1) 'Eth1Data'
 	if b.Eth1Data == nil {
@@ -10009,10 +9793,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.ExtraData) == 0 {
-			e.ExtraData = make([]byte, 0, len(buf))
-		}
-		e.ExtraData = append(e.ExtraData, buf...)
+		e.ExtraData = ssz.ExtendSlice(e.ExtraData[:0], len(buf))
 	}
 
 	// Field (13) 'Transactions'
@@ -10027,10 +9808,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
-			if cap(e.Transactions[indx]) == 0 {
-				e.Transactions[indx] = make([]byte, 0, len(buf))
-			}
-			e.Transactions[indx] = append(e.Transactions[indx], buf...)
+			e.Transactions[indx] = ssz.ExtendSlice(e.Transactions[indx][:0], len(buf))
 			return nil
 		})
 		if err != nil {
@@ -10333,10 +10111,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(e.ExtraData) == 0 {
-			e.ExtraData = make([]byte, 0, len(buf))
-		}
-		e.ExtraData = append(e.ExtraData, buf...)
+		e.ExtraData = ssz.ExtendSlice(e.ExtraData[:0], len(buf))
 	}
 	return err
 }

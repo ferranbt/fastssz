@@ -44,10 +44,7 @@ func (m *Metadata) UnmarshalSSZ(buf []byte) error {
 	m.Version = ssz.UnmarshallUint8(buf[0:1])
 
 	// Field (1) 'CodeHash'
-	if cap(m.CodeHash) == 0 {
-		m.CodeHash = make([]byte, 0, len(buf[1:33]))
-	}
-	m.CodeHash = append(m.CodeHash, buf[1:33]...)
+	m.CodeHash = ssz.ExtendSlice(m.CodeHash[:0], len(buf[1:33]))
 
 	// Field (2) 'CodeLength'
 	m.CodeLength = ssz.UnmarshallUint16(buf[33:35])
@@ -126,10 +123,7 @@ func (c *Chunk) UnmarshalSSZ(buf []byte) error {
 	c.FIO = ssz.UnmarshallUint8(buf[0:1])
 
 	// Field (1) 'Code'
-	if cap(c.Code) == 0 {
-		c.Code = make([]byte, 0, len(buf[1:33]))
-	}
-	c.Code = append(c.Code, buf[1:33]...)
+	c.Code = ssz.ExtendSlice(c.Code[:0], len(buf[1:33]))
 
 	return err
 }
