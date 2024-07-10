@@ -1,6 +1,6 @@
 package testcases
 
-//go:generate go run ../main.go --path issue_165.go --include ./other
+//go:generate go run ../main.go --path issue_166.go --include ./other
 
 import "github.com/ferranbt/fastssz/sszgen/testcases/other"
 
