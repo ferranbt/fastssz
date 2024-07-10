@@ -1,12 +1,11 @@
 package ssz
 
 import (
+	"encoding/binary"
 	"fmt"
 	"hash"
 	"math/bits"
 	"sync"
-
-	"encoding/binary"
 
 	"github.com/minio/sha256-simd"
 )
@@ -263,6 +262,16 @@ func (h *Hasher) Index() int {
 
 // Merkleize is used to merkleize the last group of the hasher
 func (h *Hasher) Merkleize(indx int) {
+	// merkleizeImpl will expand the `input` by 32 bytes if some hashing depth
+	// hits an odd chunk length. But if we're at the end of `h.buf` already,
+	// appending to `input` will allocate a new buffer, *not* expand `h.buf`,
+	// so the next invocation will realloc, over and over and over. We can pre-
+	// emptively cater for that by ensuring that an extra 32 bytes is always
+	// available.
+	if len(h.buf) == cap(h.buf) {
+		h.buf = append(h.buf, zeroBytes...)
+		h.buf = h.buf[:len(h.buf)-len(zeroBytes)]
+	}
 	input := h.buf[indx:]
 
 	// merkleize the input
