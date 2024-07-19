@@ -5,7 +5,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"math"
+
+	"github.com/emicklei/dot"
 )
 
 // Proof represents a merkle proof against a general index.
@@ -453,4 +456,32 @@ func floorLog2(n int) int {
 
 func powerTwo(n int) int {
 	return int(math.Pow(2, float64(n)))
+}
+
+func (n *Node) Draw(w io.Writer) {
+	g := dot.NewGraph(dot.Directed)
+	n.draw(1, g)
+	g.Write(w)
+}
+
+func (n *Node) draw(levelOrder int, g *dot.Graph) dot.Node {
+	var h string
+	if n.left != nil || n.right != nil {
+		h = hex.EncodeToString(n.Hash())
+	}
+	if n.value != nil {
+		h = hex.EncodeToString(n.value)
+	}
+	dn := g.Node(fmt.Sprintf("n%d", levelOrder)).
+		Label(fmt.Sprintf("%d\n%s..%s", levelOrder, h[:3], h[len(h)-3:]))
+
+	if n.left != nil {
+		ln := n.left.draw(2*levelOrder, g)
+		g.Edge(dn, ln).Label("0")
+	}
+	if n.right != nil {
+		rn := n.right.draw(2*levelOrder+1, g)
+		g.Edge(dn, rn).Label("1")
+	}
+	return dn
 }
