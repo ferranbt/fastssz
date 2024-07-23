@@ -3,10 +3,13 @@ package tests
 import (
 	"bytes"
 	"encoding/hex"
+	"math"
 	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/attestantio/go-eth2-client/spec/bellatrix"
+	utilbellatrix "github.com/attestantio/go-eth2-client/util/bellatrix"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/minio/sha256-simd"
 )
@@ -143,6 +146,55 @@ func TestVerifyCodeTrieProof(t *testing.T) {
 		if ok != c.valid {
 			t.Errorf("Incorrect proof verification: expected %v, got %v\n", c.valid, ok)
 		}
+	}
+}
+
+func TestVerifyCodeTrieMultiProof2(t *testing.T) {
+	// https://etherscan.io/tx/0x138a5f8ba7950521d9dec66ee760b101e0c875039e695c9fcfb34f5ef02a881b
+	// 0x02f873011a8405f5e10085037fcc60e182520894f7eaaf75cb6ec4d0e2b53964ce6733f54f7d3ffc880b6139a7cbd2000080c080a095a7a3cbb7383fc3e7d217054f861b890a935adc1adf4f05e3a2f23688cf2416a00875cdc45f4395257e44d709d04990349b105c22c11034a60d7af749ffea2765
+	// https://etherscan.io/tx/0xfb0ee9de8941c8ad50e6a3d2999cd6ef7a541ec9cb1ba5711b76fcfd1662dfa9
+	// 0xf8708305dc6885029332e35883019a2894500b0107e172e420561565c8177c28ac0f62017f8810ffb80e6cc327008025a0e9c0b380c68f040ae7affefd11979f5ed18ae82c00e46aa3238857c372a358eca06b26e179dd2f7a7f1601755249f4cff56690c4033553658f0d73e26c36fe7815
+	// https://etherscan.io/tx/0x45e7ee9ba1a1d0145de29a764a33bb7fc5620486b686d68ec8cb3182d137bc90
+	// 0xf86c0785028fa6ae0082520894098d880c4753d0332ca737aa592332ed2522cd22880d2f09f6558750008026a0963e58027576b3a8930d7d9b4a49253b6e1a2060e259b2102e34a451d375ce87a063f802538d3efed17962c96fcea431388483bbe3860ea9bb3ef01d4781450fbf
+	// https://etherscan.io/tx/0x9d48b4a021898a605b7ae49bf93ad88fa6bd7050e9448f12dde064c10f22fe9c
+	// 0x02f87601836384348477359400850517683ba883019a28943678fce4028b6745eb04fa010d9c8e4b36d6288c872b0f1366ad800080c080a0b6b7aba1954160d081b2c8612e039518b9c46cd7df838b405a03f927ad196158a071d2fb6813e5b5184def6bd90fb5f29e0c52671dea433a7decb289560a58416e
+
+	raw := []string{"0x02f873011a8405f5e10085037fcc60e182520894f7eaaf75cb6ec4d0e2b53964ce6733f54f7d3ffc880b6139a7cbd2000080c080a095a7a3cbb7383fc3e7d217054f861b890a935adc1adf4f05e3a2f23688cf2416a00875cdc45f4395257e44d709d04990349b105c22c11034a60d7af749ffea2765", "0xf8708305dc6885029332e35883019a2894500b0107e172e420561565c8177c28ac0f62017f8810ffb80e6cc327008025a0e9c0b380c68f040ae7affefd11979f5ed18ae82c00e46aa3238857c372a358eca06b26e179dd2f7a7f1601755249f4cff56690c4033553658f0d73e26c36fe7815", "0xf86c0785028fa6ae0082520894098d880c4753d0332ca737aa592332ed2522cd22880d2f09f6558750008026a0963e58027576b3a8930d7d9b4a49253b6e1a2060e259b2102e34a451d375ce87a063f802538d3efed17962c96fcea431388483bbe3860ea9bb3ef01d4781450fbf", "0x02f87601836384348477359400850517683ba883019a28943678fce4028b6745eb04fa010d9c8e4b36d6288c872b0f1366ad800080c080a0b6b7aba1954160d081b2c8612e039518b9c46cd7df838b405a03f927ad196158a071d2fb6813e5b5184def6bd90fb5f29e0c52671dea433a7decb289560a58416e"}
+
+	byteTxs := make([][]byte, len(raw))
+	for i := range byteTxs {
+		byteTxs[i], _ = hex.DecodeString(raw[i][2:])
+	}
+
+	bellatrixTransactions := make([]bellatrix.Transaction, len(byteTxs))
+	for i, tx := range byteTxs {
+		bellatrixTransactions[i] = tx
+	}
+
+	bellatrixPayloadTxs := utilbellatrix.ExecutionPayloadTransactions{Transactions: bellatrixTransactions}
+
+	rootNode, err := bellatrixPayloadTxs.GetTree()
+	if err != nil {
+		t.Errorf("Failed to construct tree for transactions: %v\n", err)
+	}
+
+	rootNode.Hash()
+
+	// using gen index formula: 2 ** 21
+	baseGeneralizedIndex := int(math.Pow(float64(2), float64(21)))
+	generalizedIndexes := make([]int, 2)
+	// prove inclusion of some transactions
+	generalizedIndexes[0] = baseGeneralizedIndex
+	generalizedIndexes[1] = baseGeneralizedIndex + 3
+
+	multiProof, err := rootNode.ProveMulti(generalizedIndexes)
+	if err != nil {
+		t.Errorf("Failed to generate multiproof: %v\n", err)
+	}
+	if ok, err := ssz.VerifyMultiproof(rootNode.Hash(), multiProof.Hashes, multiProof.Leaves, multiProof.Indices); !ok || err != nil {
+		t.Errorf("NOT OK while verifying multiproof: %v\n", err)
+	} else {
+		t.Logf("OK while verifying multiproof\n")
 	}
 }
 
