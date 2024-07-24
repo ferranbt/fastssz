@@ -8,9 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/attestantio/go-eth2-client/spec/bellatrix"
-	utilbellatrix "github.com/attestantio/go-eth2-client/util/bellatrix"
 	ssz "github.com/ferranbt/fastssz"
+	"github.com/ferranbt/fastssz/spectests"
 	"github.com/minio/sha256-simd"
 )
 
@@ -166,12 +165,7 @@ func TestVerifyCodeTrieMultiProof2(t *testing.T) {
 		byteTxs[i], _ = hex.DecodeString(raw[i][2:])
 	}
 
-	bellatrixTransactions := make([]bellatrix.Transaction, len(byteTxs))
-	for i, tx := range byteTxs {
-		bellatrixTransactions[i] = tx
-	}
-
-	bellatrixPayloadTxs := utilbellatrix.ExecutionPayloadTransactions{Transactions: bellatrixTransactions}
+	bellatrixPayloadTxs := spectests.ExecutionPayloadTransactions{Transactions: byteTxs}
 
 	rootNode, err := bellatrixPayloadTxs.GetTree()
 	if err != nil {
