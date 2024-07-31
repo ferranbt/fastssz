@@ -6,7 +6,10 @@ var _ HashWalker = (*Wrapper)(nil)
 // the default HasherPool
 func ProofTree(v HashRootProof) (*Node, error) {
 	w := &Wrapper{}
-	return w.Node(), v.HashTreeRootWith(w)
+	if err := v.HashTreeRootWith(w); err != nil {
+		return nil, err
+	}
+	return w.Node(), nil
 }
 
 type Wrapper struct {
