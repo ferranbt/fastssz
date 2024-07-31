@@ -4,12 +4,9 @@ var _ HashWalker = (*Wrapper)(nil)
 
 // ProofTree hashes a HashRoot object with a Hasher from
 // the default HasherPool
-func ProofTree(v HashRoot) (*Node, error) {
+func ProofTree(v HashRootProof) (*Node, error) {
 	w := &Wrapper{}
-	if err := v.HashTreeRootWith(w); err != nil {
-		return nil, err
-	}
-	return w.Node(), nil
+	return w.Node(), v.HashTreeRootWith(w)
 }
 
 type Wrapper struct {
