@@ -1,15 +1,14 @@
 #!/bin/bash
 
-currentSpec=$(cat ./spectests/structs_encoding.go)
-
-# Generate the specs again
+echo "Generate testcases"
 make build-spec-tests
 
-realSpec=$(cat ./spectests/structs_encoding.go)
-
-if [ "$currentSpec" == "$realSpec" ]; then
-    echo "Specs are equal."
+# check differences
+cd spectests
+if [[ `git status --porcelain .` ]]; then
+  echo "Spectests have not been generated."
+  exit 1
 else
-    echo "Specs are not equal."
-    exit 1
+  # No changes
+  echo "Spectests are correct."
 fi
