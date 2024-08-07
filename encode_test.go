@@ -1,12 +1,16 @@
 package ssz
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestBitlist(t *testing.T) {
@@ -104,5 +108,38 @@ func TestEncode_ExtendUint(t *testing.T) {
 	}
 	if v2 := ExtendUint8(nil, 0); v2 == nil {
 		t.Fatal("uint8 cannot be nil")
+	}
+}
+
+func TestUnmarshalDynamic(t *testing.T) {
+	{
+		buf := []byte{}
+		buf = WriteOffset(buf, 4*1)
+		buf = append(buf, 0x1)
+
+		num, err := DecodeDynamicLength(buf, 10)
+		require.NoError(t, err)
+
+		err = UnmarshalDynamic(buf, num, func(i int, b []byte) error {
+			if !bytes.Equal(b, []byte{0x1}) {
+				return fmt.Errorf("bad")
+			}
+			return nil
+		})
+		require.NoError(t, err)
+	}
+
+	{
+		buf := []byte{}
+		buf = WriteOffset(buf, 0)
+		buf = append(buf, 0x1)
+
+		num, err := DecodeDynamicLength(buf, 10)
+		require.NoError(t, err)
+
+		err = UnmarshalDynamic(buf, num, func(i int, b []byte) error {
+			return nil
+		})
+		require.Equal(t, ErrSize, err)
 	}
 }
