@@ -1,14 +1,15 @@
 #!/bin/bash
 
 echo "Generate testcases"
+make build-spec-tests
 make generate-testcases
 
 # check differences
-cd sszgen/testcases
 if [[ `git status --porcelain .` ]]; then
-  echo "Testcases have not been generated."
+  echo "Codegen has not been generated."
+  git diff .
   exit 1
 else
   # No changes
-  echo "Testcases are correct."
+  echo "Codegen are correct."
 fi

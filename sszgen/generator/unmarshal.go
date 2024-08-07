@@ -274,7 +274,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				return ssz.ErrOffset
 			}
 			{{ if .firstOffsetCheck }}
-			if {{.offset}} < {{.firstOffsetCheck}} {
+			if {{.offset}} != {{.firstOffsetCheck}} {
 				return ssz.ErrInvalidVariableOffset
 			}
 			{{ end }}

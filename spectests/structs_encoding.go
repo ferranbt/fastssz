@@ -53,7 +53,7 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o1 < 108 {
+	if o1 != 108 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -363,7 +363,7 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 228 {
+	if o0 != 228 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -794,7 +794,7 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 228 {
+	if o0 != 228 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -938,7 +938,7 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 148 {
+	if o0 != 148 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -1916,7 +1916,7 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 8 {
+	if o0 != 8 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -2071,7 +2071,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o4 < 84 {
+	if o4 != 84 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -2188,7 +2188,7 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 100 {
+	if o0 != 100 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -2686,7 +2686,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o7 < 2687377 {
+	if o7 != 2687377 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -3321,7 +3321,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o3 < 220 {
+	if o3 != 220 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -3755,7 +3755,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o3 < 380 {
+	if o3 != 380 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -4214,7 +4214,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o3 < 384 {
+	if o3 != 384 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -4829,7 +4829,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o7 < 2736629 {
+	if o7 != 2736629 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -5653,7 +5653,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o7 < 2736633 {
+	if o7 != 2736633 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -6446,7 +6446,7 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 4 {
+	if o0 != 4 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -6851,7 +6851,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 < 508 {
+	if o10 != 508 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -7170,7 +7170,7 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 < 536 {
+	if o10 != 536 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -7373,7 +7373,7 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 4 {
+	if o0 != 4 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -7603,7 +7603,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 < 512 {
+	if o10 != 512 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -7913,7 +7913,7 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 < 568 {
+	if o10 != 568 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -8623,7 +8623,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o7 < 2736653 {
+	if o7 != 2736653 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -9221,7 +9221,7 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 100 {
+	if o0 != 100 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -9348,7 +9348,7 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o4 < 84 {
+	if o4 != 84 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -9606,7 +9606,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o3 < 388 {
+	if o3 != 388 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -10112,7 +10112,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 < 528 {
+	if o10 != 528 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -10440,7 +10440,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 < 584 {
+	if o10 != 584 {
 		return ssz.ErrInvalidVariableOffset
 	}
 

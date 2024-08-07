@@ -48,7 +48,7 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 4 {
+	if o0 != 4 {
 		return ssz.ErrInvalidVariableOffset
 	}
 

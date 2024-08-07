@@ -227,7 +227,7 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o1 < 39 {
+	if o1 != 39 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -362,7 +362,7 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o1 < 39 {
+	if o1 != 39 {
 		return ssz.ErrInvalidVariableOffset
 	}
 

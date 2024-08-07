@@ -244,7 +244,7 @@ func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
 	offset := binary.LittleEndian.Uint32(buf[:4])
 	length, ok := DivideInt(int(offset), bytesPerLengthOffset)
 	if !ok {
-		return 0, fmt.Errorf("bad")
+		return 0, fmt.Errorf("incorrect length division")
 	}
 	if length > maxSize {
 		return 0, fmt.Errorf("too big for the list")
@@ -255,11 +255,14 @@ func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
 // UnmarshalDynamic unmarshals the dynamic items from the input
 func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) error {
 	var err error
+	size := uint64(len(src))
+
 	if length == 0 {
+		if size != 0 && size != 4 {
+			return ErrSize
+		}
 		return nil
 	}
-
-	size := uint64(len(src))
 
 	indx := 0
 	dst := src
@@ -277,10 +280,10 @@ func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) 
 			endOffset = uint64(len(src))
 		}
 		if offset > endOffset {
-			return fmt.Errorf("four")
+			return fmt.Errorf("incorrect end of offset: %d %d", offset, endOffset)
 		}
 		if endOffset > size {
-			return fmt.Errorf("five")
+			return fmt.Errorf("incorrect end of offset size: %d %d", endOffset, size)
 		}
 
 		err := f(indx, src[offset:endOffset])
@@ -302,10 +305,10 @@ func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) 
 func DivideInt2(a, b, max int) (int, error) {
 	num, ok := DivideInt(a, b)
 	if !ok {
-		return 0, fmt.Errorf("xx")
+		return 0, fmt.Errorf("failed to divide int %d by %d", a, b)
 	}
 	if num > max {
-		return 0, fmt.Errorf("yy")
+		return 0, fmt.Errorf("num %d is greater than max %d", num, max)
 	}
 	return num, nil
 }
