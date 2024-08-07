@@ -7,6 +7,7 @@ make build-spec-tests
 cd spectests
 if [[ `git status --porcelain .` ]]; then
   echo "Spectests have not been generated."
+  git diff .
   exit 1
 else
   # No changes
