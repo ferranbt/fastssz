@@ -54,17 +54,9 @@ func TestBeaconHeader_MultiProof(t *testing.T) {
 
 	multiProof, err := objectTree.ProveMulti(proofAtIndices)
 	require.NoError(t, err)
-
-	require.Equal(t, 3, len(multiProof.Leaves), "multi proof leaf hashes length incorrect")
-	require.Equal(t, hex.EncodeToString(multiProof.Leaves[0]), "a064480000000000000000000000000000000000000000000000000000000000")
-	require.Equal(t, hex.EncodeToString(multiProof.Leaves[1]), "7859010000000000000000000000000000000000000000000000000000000000")
-	require.Equal(t, hex.EncodeToString(multiProof.Leaves[2]), "0000000000000000000000000000000000000000000000000000000000000000")
-
-	require.Equal(t, proofAtIndices, multiProof.Indices)
-	require.Equal(t, 3, len(multiProof.Hashes), "proof hashes length incorrect")
-	require.Equal(t, hex.EncodeToString(multiProof.Hashes[0]), "445fab586d7d52993d7713c29da316d7e0fe04fd053983198af93fb131ce02ed")
-	require.Equal(t, hex.EncodeToString(multiProof.Hashes[1]), "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b")
-	require.Equal(t, hex.EncodeToString(multiProof.Hashes[2]), "007c0d1e0260fb9a6fa86a39569aaebc9a95aaab0180f2865da2fc25180e2242")
+	ok, err := ssz.VerifyMultiproof(objectTree.Hash(), multiProof.Hashes, multiProof.Leaves, proofAtIndices)
+	require.NoError(t, err)
+	require.True(t, ok)
 }
 
 func TestBeaconState_BlockRootAtIndexProof(t *testing.T) {
