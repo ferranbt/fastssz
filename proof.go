@@ -35,6 +35,24 @@ func VerifyProof(root []byte, proof *Proof) (bool, error) {
 }
 
 // VerifyMultiproof verifies a proof for multiple leaves against the given root.
+//
+// The arguments provided to this function need to adhere to some ordering rules, otherwise
+// a successful verification is not guaranteed even if the client holds correct data:
+//
+// 1. `leaves` and `indices` have same order, i.e. `leaves[i]` is the leaf at `indices[i]`;
+//
+// 2. `proofs` are sorted in descending order according to their generalised indices.
+//
+// For a better understanding of "2.", consider the following the tree:
+//
+//	       .
+//	   .       .            * = intermediate hash (i.e. an element of `proof`)
+//	 .   *   *   .          x = leaf
+//	x x . . . . x *
+//
+// In the example above, we have three intermediate hashes in position 5, 6 and 15.
+// Let's call such hashes "*5", "*6" and "*15" respectively.
+// Then, when calling this function `proof` should be ordered as [*15, *6, *5].
 func VerifyMultiproof(root []byte, proof [][]byte, leaves [][]byte, indices []int) (bool, error) {
 	if len(indices) == 0 {
 		return false, errors.New("indices length is zero")
