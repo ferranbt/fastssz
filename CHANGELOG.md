@@ -1,5 +1,7 @@
 # 0.1.5 (Unreleased)
 
+- fix: Array of fixed size of bytes with size in external package [GH-181](https://github.com/ferranbt/fastssz/pull/181)
+
 # 0.1.4 (7 Aug, 2024)
 
 - fix: Do not skip intermediate hashes in multi-proof [GH-173](https://github.com/ferranbt/fastssz/issues/173)]
