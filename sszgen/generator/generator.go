@@ -1043,6 +1043,18 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					return nil, fmt.Errorf("alias ref not found: %s", obj.Name)
 				}
 				astSize = &num
+			case *ast.SelectorExpr:
+				// TODO: this does not take into account the package name.
+				// If there are two exported const with the same name it is going to collide.
+				sel := obj.Sel.Name
+
+				num, ok := e.resolveAlias(sel)
+				if !ok {
+					return nil, fmt.Errorf("alias ref not found: %s", sel)
+				}
+				astSize = &num
+			default:
+				return nil, fmt.Errorf("unsupported array length type %T", obj)
 			}
 		}
 		if astSize != nil {
