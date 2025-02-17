@@ -92,7 +92,7 @@ func Encode(source string, targets []string, output string, includePaths []strin
 		if err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(name, output, 0644); err != nil {
+		if err := ioutil.WriteFile(name, output, 0o644); err != nil {
 			return err
 		}
 	}
@@ -902,6 +902,10 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		}
 		v.name = name
 		v.obj = name
+		v.ref = e.packName
+		if raw.packName == e.packName {
+			v.ref = ""
+		}
 
 		if !raw.isAlias() {
 			// alias objects have to be recreated every time and cannot be reused
