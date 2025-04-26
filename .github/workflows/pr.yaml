@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Go test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup go
         uses: actions/setup-go@v1
         with:
