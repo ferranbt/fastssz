@@ -139,7 +139,7 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 		switch szi {
 		case "?", "":
 			if mxi == "?" || mxi == "" {
-				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimesion %d", i)
+				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimension %d", i)
 			}
 			m, err := strconv.Atoi(mxi)
 			if err != nil {
