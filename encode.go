@@ -133,7 +133,7 @@ func ReadOffset(buf []byte) uint64 {
 
 func safeReadOffset(buf []byte) (uint64, []byte, error) {
 	if len(buf) < 4 {
-		return 0, nil, fmt.Errorf("")
+		return 0, nil, fmt.Errorf("buffer too short for offset reading")
 	}
 	offset := ReadOffset(buf)
 	return offset, buf[4:], nil
