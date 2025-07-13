@@ -36,7 +36,7 @@ func (v *Value) unmarshal(dst string) string {
 		validate := ""
 		if !v.isFixed() {
 			// dynamic bytes, we need to validate the size of the buffer
-			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
+			validate = fmt.Sprintf("if len(%s) > %s { return ssz.ErrBytesLength }\n", dst, v.m.EncodeTemplate())
 		}
 
 		// both fixed and dynamic are decoded equally
@@ -325,7 +325,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
 
-	size := strconv.Itoa(int(v.s))
+	size := strconv.Itoa(int(*v.s.Size))
 	// when useNumVariable is specified, we assume there is a 'num' variable generated beforehand with the expected size.
 	if useNumVariable {
 		size = "num"
@@ -356,7 +356,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		}
 
 		if v.e.c {
-			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
+			return fmt.Sprintf("::.%s = make([][%s]byte, %s)", v.name, v.e.s.EncodeTemplate(), size)
 		}
 
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)

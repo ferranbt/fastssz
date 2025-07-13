@@ -60,8 +60,8 @@ func TestWildcardSSZSize(t *testing.T) {
 	if dims[0].IsVector() {
 		t.Errorf("Expected the first dimension to not be a vector")
 	}
-	if dims[0].ListLen() != 16777216 {
-		t.Errorf("Expected max size of list to be %d, got %d", 16777216, dims[0].ListLen())
+	if *dims[0].ListLength.Size != 16777216 {
+		t.Errorf("Expected max size of list to be %d, got %d", 16777216, *dims[0].ListLength.Size)
 	}
 	if !dims[1].IsVector() {
 		t.Errorf("Expected the first dimension to be a vector")
@@ -69,8 +69,8 @@ func TestWildcardSSZSize(t *testing.T) {
 	if dims[1].IsList() {
 		t.Errorf("Expected the second dimension to not be a list")
 	}
-	if dims[1].VectorLen() != 32 {
-		t.Errorf("Expected size of vector to be %d, got %d", 32, dims[1].VectorLen())
+	if *dims[1].VectorLength.Size != 32 {
+		t.Errorf("Expected size of vector to be %d, got %d", 32, *dims[1].VectorLength.Size)
 	}
 }
 
@@ -96,11 +96,11 @@ func TestListOfList(t *testing.T) {
 	if dims[1].IsVector() {
 		t.Errorf("Expected neither dimension to be vector, but the second dimension is")
 	}
-	if dims[0].ListLen() != 1048576 {
-		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1048576, dims[0].ListLen())
+	if *dims[0].ListLength.Size != 1048576 {
+		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1048576, *dims[0].ListLength.Size)
 	}
-	if dims[1].ListLen() != 1073741824 {
-		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1073741824, dims[1].ListLen())
+	if *dims[1].ListLength.Size != 1073741824 {
+		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1073741824, *dims[1].ListLength.Size)
 	}
 }
 
@@ -152,5 +152,46 @@ func TestBitlist(t *testing.T) {
 	}
 	if !dims[0].IsBitlist() {
 		t.Error("Expected tag 'ssz:\"bitlist\" to mark field as a bitlist")
+	}
+}
+
+func uint64Ptr(i uint64) *uint64 {
+	if i == 0 {
+		return nil
+	}
+	return &i
+}
+
+func TestParseSSZLength(t *testing.T) {
+	cases := []struct {
+		Input string
+		Size  *uint64
+		Dyn   string
+		Error bool
+	}{
+		{"32", uint64Ptr(32), "", false},
+		{"?,32", nil, "32", true},
+		{"?,?", nil, "", true},
+		{"", nil, "", true},
+		{"VAL", nil, "VAL", false},
+	}
+
+	for _, c := range cases {
+		res, err := newSSZLength(c.Input)
+		if c.Error && err == nil {
+			t.Errorf("Expected error for input '%s', but got none", c.Input)
+		}
+		if !c.Error && err != nil {
+			t.Errorf("Unexpected error for input '%s': %v", c.Input, err)
+		}
+		if c.Error {
+			continue
+		}
+		if res.Size != nil && *res.Size != *c.Size {
+			t.Errorf("Expected size %v for input '%s', got %v", c.Size, c.Input, res.Size)
+		}
+		if res.Dyn != c.Dyn {
+			t.Errorf("Expected dynamic value '%s' for input '%s', got '%s'", c.Dyn, c.Input, res.Dyn)
+		}
 	}
 }

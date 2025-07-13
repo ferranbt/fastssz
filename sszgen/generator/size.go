@@ -35,10 +35,11 @@ func (v *Value) fixedSize() uint64 {
 		if v.e == nil {
 			panic(fmt.Sprintf("error computing size of empty vector %v for type name=%s", v, v.name))
 		}
+		num := v.e.s.Size
 		if v.e.isFixed() {
-			return v.s * v.e.fixedSize()
+			return *num * v.e.fixedSize()
 		} else {
-			return v.s * bytesPerLengthOffset
+			return *num * bytesPerLengthOffset
 		}
 	case TypeContainer:
 		var fixed uint64
@@ -55,7 +56,7 @@ func (v *Value) fixedSize() uint64 {
 		if !v.isFixed() {
 			return bytesPerLengthOffset
 		}
-		return v.s
+		return *v.s.Size
 	}
 }
 

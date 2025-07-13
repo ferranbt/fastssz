@@ -33,23 +33,26 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 	}
 	inner := ""
 	if !v.e.c && elem == TypeBytes {
-		inner = `if len(i) != %d {
+		inner = `if len(i) != {{.size}} {
 			err = ssz.ErrBytesLength
 			return
 		}
 		`
-		inner = fmt.Sprintf(inner, v.e.s)
+		inner = execTmpl(inner, map[string]interface{}{
+			"size": v.e.s,
+		})
 	}
 
 	var appendFn string
 	var elemSize uint64
 	if elem == TypeBytes {
 		// [][]byte
-		if v.e.s != 32 {
+		if *v.e.s.Size != 32 {
+			// TODO: Assume that bytes size cannot be changed dynamically
 			// we need to use PutBytes in order to hash the result since
 			// is higher than 32 bytes
 			appendFn = "PutBytes"
-			elemSize = v.e.s
+			elemSize = *v.e.s.Size
 		} else {
 			appendFn = "Append"
 			elemSize = 32

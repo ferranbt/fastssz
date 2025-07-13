@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"text/scanner"
+	"unicode"
 )
 
 type tokenState int
@@ -77,7 +78,7 @@ func GetSSZTags(tag string) (map[string]string, error) {
 // cannot compare untyped nil to typed nil
 // this value gives us a nil with type of *int
 // to compare to ssz-size = '?' values
-var nilInt *int
+var nilInt *SSZLength
 
 // handle tag structured like 'ssz:"bitlist"'
 // this is not used in prysm but needs to be supported for fastssz tests
@@ -141,22 +142,22 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 			if mxi == "?" || mxi == "" {
 				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimesion %d", i)
 			}
-			m, err := strconv.Atoi(mxi)
+			m, err := newSSZLength(mxi)
 			if err != nil {
 				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d err=%s", mxi, i, err)
 			}
 			dims[i] = &SSZDimension{
 				isBitlist:  isbl,
-				ListLength: &m,
+				ListLength: m,
 			}
 		default: // szi is not empty or "?"
-			s, err := strconv.Atoi(szi)
+			s, err := newSSZLength(szi)
 			if err != nil {
 				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, err=%s", szi, i, err)
 			}
 			dims[i] = &SSZDimension{
 				isBitlist:    isbl,
-				VectorLength: &s,
+				VectorLength: s,
 			}
 			continue
 		}
@@ -164,9 +165,77 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	return dims, nil
 }
 
+type SSZLength struct {
+	Size *uint64
+	Dyn  string
+}
+
+func (s *SSZLength) EncodeTemplate() string {
+	if s == nil {
+		return "0 // nil SSZLength check"
+	}
+	if s.Size != nil {
+		return strconv.FormatUint(*s.Size, 10)
+	}
+	if s.Dyn != "" {
+		return s.Dyn
+	}
+	panic("SSZLength has no size or dynamic value defined")
+}
+
+func newSSZLengthNum(val uint64) *SSZLength {
+	return &SSZLength{Size: &val}
+}
+
+func newSSZLength(val string) (*SSZLength, error) {
+	if val == "" {
+		return &SSZLength{}, fmt.Errorf("newSSZLength called with empty value")
+	}
+
+	// Check if the first character is a digit
+	if unicode.IsDigit(rune(val[0])) {
+		// Try to parse as integer
+		size, err := strconv.Atoi(val)
+		if err != nil {
+			return nil, err
+		}
+		sizeU64 := uint64(size)
+		return &SSZLength{Size: &sizeU64}, nil
+	}
+
+	// Otherwise, treat as dynamic string - must be valid Go identifier
+	if !isValidGoIdentifier(val) {
+		return nil, fmt.Errorf("invalid Go identifier: %s", val)
+	}
+
+	return &SSZLength{Dyn: val}, nil
+}
+
+// isValidGoIdentifier checks if a string is a valid Go identifier
+func isValidGoIdentifier(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+
+	// First character must be a letter or underscore
+	first := rune(s[0])
+	if !unicode.IsLetter(first) && first != '_' {
+		return false
+	}
+
+	// Remaining characters must be letters, digits, or underscores
+	for _, r := range s[1:] {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' {
+			return false
+		}
+	}
+
+	return true
+}
+
 type SSZDimension struct {
-	VectorLength *int
-	ListLength   *int
+	VectorLength *SSZLength
+	ListLength   *SSZLength
 	isBitlist    bool
 }
 
@@ -182,14 +251,6 @@ func (dim *SSZDimension) IsBitlist() bool {
 	return dim.isBitlist
 }
 
-func (dim *SSZDimension) ListLen() int {
-	return *dim.ListLength
-}
-
-func (dim *SSZDimension) VectorLen() int {
-	return *dim.VectorLength
-}
-
 // ValueType returns a Type enum to be used in the construction of a fastssz Value type
 func (dim *SSZDimension) ValueType() Type {
 	if dim.IsVector() {
@@ -199,17 +260,6 @@ func (dim *SSZDimension) ValueType() Type {
 		return TypeList
 	}
 	return TypeUndefined
-}
-
-// ValueType returns ssz-max or ssz-size, to be used in the construction of a fastssz Value type
-func (dim *SSZDimension) ValueLen() uint64 {
-	if dim.IsList() {
-		return uint64(dim.ListLen())
-	}
-	if dim.IsVector() {
-		return uint64(dim.VectorLen())
-	}
-	return 0
 }
 
 func trimTagQuotes(s string) string {

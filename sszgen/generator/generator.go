@@ -30,7 +30,7 @@ const bytesPerLengthOffset = 4
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string) error {
+func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string, formatOutput bool) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
@@ -88,10 +88,13 @@ func Encode(source string, targets []string, output string, includePaths []strin
 	for name, str := range out {
 		output := []byte(str)
 
-		output, err = format.Source(output)
-		if err != nil {
-			return err
+		if formatOutput {
+			output, err = format.Source(output)
+			if err != nil {
+				return err
+			}
 		}
+
 		if err := ioutil.WriteFile(name, output, 0o644); err != nil {
 			return err
 		}
@@ -164,7 +167,7 @@ type Value struct {
 	// name of the Go object this value represents
 	obj string
 	// auxiliary int number
-	s uint64
+	s *SSZLength
 	// type of the value
 	t Type
 	// array of values for a container
@@ -174,7 +177,7 @@ type Value struct {
 	// array is fixed size. important for codegen to know so that code can be generated to interop with slices
 	c bool
 	// another auxiliary int number
-	m uint64
+	m *SSZLength
 	// ref is the external reference if the struct is imported
 	// from another package
 	ref string
@@ -1051,7 +1054,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 		if astSize != nil {
 			outer.c = true
-			outer.s = *astSize
+			outer.s = newSSZLengthNum(*astSize)
 			outer.fixed = true
 		}
 
@@ -1113,11 +1116,11 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 
 			// update the sizes of the value
 			if dim.IsVector() {
-				outerRef.s = uint64(dim.VectorLen())
+				outerRef.s = dim.VectorLength
 			}
 			if dim.IsList() {
-				outerRef.m = uint64(dim.ListLen())
-				outerRef.s = uint64(dim.ListLen())
+				outerRef.m = dim.ListLength
+				outerRef.s = dim.ListLength
 			}
 			outerRef = outerRef.e
 		}
@@ -1129,15 +1132,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		var v *Value
 		switch obj.Name {
 		case "uint64":
-			v = &Value{t: TypeUint, s: 8}
+			v = &Value{t: TypeUint, s: newSSZLengthNum(8)}
 		case "uint32":
-			v = &Value{t: TypeUint, s: 4}
+			v = &Value{t: TypeUint, s: newSSZLengthNum(4)}
 		case "uint16":
-			v = &Value{t: TypeUint, s: 2}
+			v = &Value{t: TypeUint, s: newSSZLengthNum(2)}
 		case "uint8":
-			v = &Value{t: TypeUint, s: 1}
+			v = &Value{t: TypeUint, s: newSSZLengthNum(1)}
 		case "bool":
-			v = &Value{t: TypeBool, s: 1}
+			v = &Value{t: TypeBool, s: newSSZLengthNum(1)}
 		default:
 			// try to resolve as an alias
 			vv, err := e.encodeItem(obj.Name, tags)
@@ -1154,12 +1157,12 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		sel := obj.Sel.Name
 
 		if exprName == "time" && sel == "Time" {
-			return &Value{t: TypeTime, s: 8}, nil
+			return &Value{t: TypeTime, s: newSSZLengthNum(8)}, nil
 		} else if sel == "Bitlist" {
 			// go-bitfield/Bitlist
-			maxSize, ok := getTagsInt(tags, "ssz-max")
-			if !ok {
-				return nil, fmt.Errorf("bitlist %s does not have ssz-max tag", name)
+			maxSize, err := getTagsInt(tags, "ssz-max")
+			if err != nil {
+				return nil, fmt.Errorf("failed to get bitlist 'ssz-max' for '%s': %v", name, err)
 			}
 			return &Value{t: TypeBitList, m: maxSize, s: maxSize}, nil
 		} else if strings.HasPrefix(sel, "Bitvector") {
@@ -1175,7 +1178,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{t: TypeBytes, fixed: true, s: uint64(tailDim.VectorLen())}, nil
+			return &Value{t: TypeBytes, fixed: true, s: tailDim.VectorLength}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1196,16 +1199,16 @@ func isExportedField(str string) bool {
 }
 
 // getTagsInt returns tags of the format 'ssz-size:"32"'
-func getTagsInt(str string, field string) (uint64, bool) {
+func getTagsInt(str string, field string) (*SSZLength, error) {
 	numStr, ok := getTags(str, field)
 	if !ok {
-		return 0, false
+		return nil, fmt.Errorf("failed to get tags for field %s", field)
 	}
-	num, err := strconv.Atoi(numStr)
+	sszLength, err := newSSZLength(numStr)
 	if err != nil {
-		return 0, false
+		return nil, fmt.Errorf("failed to parse ssz-size tag %s: %v", field, err)
 	}
-	return uint64(num), true
+	return sszLength, nil
 }
 
 // getTags returns the tags from a given field
@@ -1269,7 +1272,7 @@ func (v *Value) isFixed() bool {
 		// if all values within the container are fixed, it is fixed
 		return true
 	case TypeReference:
-		if v.s != 0 {
+		if v.s != nil {
 			return true
 		}
 		return false
@@ -1282,11 +1285,22 @@ func (v *Value) isFixed() bool {
 	}
 }
 
-func execTmpl(tpl string, input interface{}) string {
+type TemplateEncode interface {
+	EncodeTemplate() string
+}
+
+func execTmpl(tpl string, input map[string]interface{}) string {
 	funcs := template.FuncMap{
 		"ref": func(v *Value) string {
 			return v.objRef()
 		},
+	}
+
+	// if any of the input has a custom encoding for the template, use it
+	for k, v := range input {
+		if enc, ok := v.(TemplateEncode); ok {
+			input[k] = enc.EncodeTemplate()
+		}
 	}
 
 	tmpl, err := template.New("tmpl").Funcs(funcs).Parse(tpl)
@@ -1304,7 +1318,12 @@ func uintVToName(v *Value) string {
 	if v.t != TypeUint {
 		panic(fmt.Sprintf("type %v for %s not expected", v.t, v.name))
 	}
-	switch v.s {
+	num := v.s.Size
+	if num == nil {
+		// we expect that for uint basic types the size is always set
+		panic(fmt.Sprintf("size for %s is nil", v.name))
+	}
+	switch *num {
 	case 8:
 		return "Uint64"
 	case 4:
@@ -1322,7 +1341,12 @@ func uintVToLowerCaseName(v *Value) string {
 	if v.t != TypeUint {
 		panic(fmt.Sprintf("type %v for %s not expected", v.t, v.name))
 	}
-	switch v.s {
+	num := v.s.Size
+	if num == nil {
+		// we expect that for uint basic types the size is always set
+		panic(fmt.Sprintf("size for %s is nil", v.name))
+	}
+	switch *num {
 	case 8:
 		return "uint64"
 	case 4:

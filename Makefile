@@ -2,7 +2,7 @@
 .PHONY:
 build-spec-tests:
 	go run github.com/ferranbt/fastssz/sszgen --path ./spectests/structs.go --exclude-objs Hash,Uint256
-	go run github.com/ferranbt/fastssz/sszgen --path ./tests
+	# go run github.com/ferranbt/fastssz/sszgen --path ./tests
 
 .PHONY:
 get-spec-tests:
