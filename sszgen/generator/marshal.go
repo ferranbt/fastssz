@@ -36,7 +36,7 @@ func (e *env) marshal(name string, v *Value) string {
 }
 
 func (v *Value) marshal() string {
-	switch obj := v.v2.(type) {
+	switch obj := v.typ.(type) {
 	case *Bool:
 		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
 
@@ -86,7 +86,7 @@ func (v *Value) marshal() string {
 }
 
 func (v *Value) marshalList() string {
-	inner := getElem(v.v2)
+	inner := getElem(v.typ)
 	inner.name = v.name + "[ii]"
 
 	// bound check
@@ -127,9 +127,9 @@ func (v *Value) marshalList() string {
 }
 
 func (v *Value) marshalVector() (str string) {
-	inner := getElem(v.v2)
+	inner := getElem(v.typ)
 
-	obj := v.v2.(*Vector)
+	obj := v.typ.(*Vector)
 	inner.name = fmt.Sprintf("%s[ii]", v.name)
 
 	tmpl := `{{.validate}}for ii := 0; ii < {{.size}}; ii++ {

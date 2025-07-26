@@ -31,7 +31,7 @@ func (e *env) size(name string, v *Value) string {
 }
 
 func (v *Value) fixedSize() uint64 {
-	switch obj := v.v2.(type) {
+	switch obj := v.typ.(type) {
 	case *Bool:
 		return 1
 	case *Uint:
@@ -67,7 +67,7 @@ func (v *Value) fixedSize() uint64 {
 		return obj.Size
 
 	default:
-		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.v2)))
+		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.typ)))
 	}
 }
 
@@ -105,7 +105,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 // during marshalling to figure out the size of the offset
 func (v *Value) size(name string) string {
 	if v.isFixed() {
-		if _, ok := v.v2.(*Container); ok {
+		if _, ok := v.typ.(*Container); ok {
 			return v.sizeContainer(name, false)
 		}
 		if v.fixedSize() == 1 {
@@ -114,7 +114,7 @@ func (v *Value) size(name string) string {
 		return name + " += " + strconv.Itoa(int(v.fixedSize()))
 	}
 
-	switch v.v2.(type) {
+	switch v.typ.(type) {
 	case *Container, *Reference:
 		return v.sizeContainer(name, false)
 
@@ -125,7 +125,7 @@ func (v *Value) size(name string) string {
 		return fmt.Sprintf(name+" += len(::.%s)", v.name)
 
 	case *List, *Vector:
-		inner := getElem(v.v2)
+		inner := getElem(v.typ)
 
 		if inner.isFixed() {
 			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, inner.fixedSize())

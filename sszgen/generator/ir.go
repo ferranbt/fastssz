@@ -91,14 +91,14 @@ func getElem(v Value2) *Value {
 }
 
 func (v *Value) getObjs() []*Value {
-	if obj, ok := v.v2.(*Container); ok {
+	if obj, ok := v.typ.(*Container); ok {
 		return obj.Elems
 	}
 	return nil
 }
 
 func (v *Value) Type() string {
-	switch v.v2.(type) {
+	switch v.typ.(type) {
 	case *Bool:
 		return "bool"
 	case *Uint:
@@ -120,6 +120,6 @@ func (v *Value) Type() string {
 	case *Time:
 		return "time"
 	default:
-		panic(fmt.Errorf("unknown type %s", reflect.TypeOf(v.v2)))
+		panic(fmt.Errorf("unknown type %s", reflect.TypeOf(v.typ)))
 	}
 }

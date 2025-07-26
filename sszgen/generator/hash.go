@@ -27,12 +27,12 @@ func (e *env) hashTreeRoot(name string, v *Value) string {
 }
 
 func (v *Value) hashRoots(isList bool) string {
-	innerObj := getElem(v.v2)
+	innerObj := getElem(v.typ)
 
 	subName := "i"
 
 	inner := ""
-	if obj, ok := innerObj.v2.(*Bytes); ok && (obj.IsGoDyn || obj.IsList) {
+	if obj, ok := innerObj.typ.(*Bytes); ok && (obj.IsGoDyn || obj.IsList) {
 		inner = `if len(i) != %d {
 			err = ssz.ErrBytesLength
 			return
@@ -44,7 +44,7 @@ func (v *Value) hashRoots(isList bool) string {
 	var appendFn string
 	var elemSize uint64
 
-	if obj, ok := innerObj.v2.(*Bytes); ok {
+	if obj, ok := innerObj.typ.(*Bytes); ok {
 		// [][]byte
 		if obj.Size != 32 {
 			// we need to use PutBytes in order to hash the result since
@@ -62,20 +62,20 @@ func (v *Value) hashRoots(isList bool) string {
 		}
 	} else {
 		// []uint64
-		appendFn = "Append" + uintVToName2(*innerObj.v2.(*Uint))
+		appendFn = "Append" + uintVToName2(*innerObj.typ.(*Uint))
 		elemSize = uint64(innerObj.fixedSize())
 	}
 
 	var merkleize string
 	if isList {
-		innerListSize := v.v2.(*List).MaxSize
+		innerListSize := v.typ.(*List).MaxSize
 
 		// the limit for merkleize with mixin depends on the internal type
 		// if the type is basic, the size depends on CalculateLimit
 		// if the type is complex (TypeVector), the limit is the size.
 		// TODO: Generalize a list of complex objects
 		isComplex := false
-		if _, ok := innerObj.v2.(*Bytes); ok {
+		if _, ok := innerObj.typ.(*Bytes); ok {
 			// TypeVector alias
 			isComplex = true
 		}
@@ -91,7 +91,7 @@ func (v *Value) hashRoots(isList bool) string {
 		})
 
 		// when doing []uint64 we need to round up the Hasher bytes to 32
-		if _, ok := innerObj.v2.(*Uint); ok {
+		if _, ok := innerObj.typ.(*Uint); ok {
 			merkleize = "hh.FillUpTo32()\n" + merkleize
 		}
 	} else {
@@ -130,7 +130,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 		name = "::." + v.name
 	}
 
-	switch obj := v.v2.(type) {
+	switch obj := v.typ.(type) {
 	case *Container, *Reference:
 		return v.hashTreeRootContainer(false)
 
@@ -162,8 +162,8 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 
 	case *List:
 		if obj.Elem.isFixed() {
-			_, isUint := obj.Elem.v2.(*Uint)
-			_, isBytes := obj.Elem.v2.(*Bytes)
+			_, isUint := obj.Elem.typ.(*Uint)
+			_, isBytes := obj.Elem.typ.(*Bytes)
 
 			if isUint || isBytes {
 				return v.hashRoots(true)
@@ -183,7 +183,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			hh.MerkleizeWithMixin(subIndx, num, {{.num}})
 		}`
 		var htrCall string
-		if _, ok := obj.Elem.v2.(*Bytes); ok {
+		if _, ok := obj.Elem.typ.(*Bytes); ok {
 			eName := "elem"
 			// ByteLists should be represented as Value with TypeBytes and .m set instead of .s (isFixed == true)
 			htrCall = obj.Elem.hashTreeRoot(eName, true)

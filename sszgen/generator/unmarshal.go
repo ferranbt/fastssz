@@ -24,7 +24,7 @@ func (e *env) unmarshal(name string, v *Value) string {
 }
 
 func (v *Value) unmarshal(dst string) string {
-	switch obj := v.v2.(type) {
+	switch obj := v.typ.(type) {
 	case *Container, *Reference:
 		return v.umarshalContainer(false, dst)
 
@@ -110,15 +110,15 @@ func (v *Value) unmarshal(dst string) string {
 
 func (v *Value) unmarshalList() string {
 	var size uint64
-	if obj, ok := v.v2.(*List); ok {
+	if obj, ok := v.typ.(*List); ok {
 		size = obj.MaxSize
-	} else if obj, ok := v.v2.(*Vector); ok {
+	} else if obj, ok := v.typ.(*Vector); ok {
 		size = obj.Size
 	} else {
 		panic(fmt.Errorf("unmarshalList not implemented for type %s", v.Type()))
 	}
 
-	inner := getElem(v.v2)
+	inner := getElem(v.typ)
 	if inner.isFixed() {
 		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", inner.fixedSize(), inner.fixedSize())
 
@@ -329,10 +329,10 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 func (v *Value) createSlice(useNumVariable bool) string {
 	var sizeU64 uint64
 	var isVectorCreate bool
-	if obj, ok := v.v2.(*List); ok {
+	if obj, ok := v.typ.(*List); ok {
 		sizeU64 = obj.MaxSize
 		isVectorCreate = true
-	} else if obj, ok := v.v2.(*Vector); ok {
+	} else if obj, ok := v.typ.(*Vector); ok {
 		sizeU64 = obj.Size
 		isVectorCreate = obj.IsDyn
 	} else {
@@ -345,8 +345,8 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		size = "num"
 	}
 
-	inner := getElem(v.v2)
-	switch obj := inner.v2.(type) {
+	inner := getElem(v.typ)
+	switch obj := inner.typ.(type) {
 	case *Uint:
 		// []int uses the Extend functions in the fastssz package
 		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName2(*obj), v.name, size)

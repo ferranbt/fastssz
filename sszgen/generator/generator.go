@@ -169,7 +169,7 @@ type Value struct {
 	// new determines if the value is a pointer
 	noPtr bool
 
-	v2 Value2
+	typ Value2
 }
 
 func (v *Value) isListElem() bool {
@@ -188,7 +188,7 @@ func appendWithoutRepeated(s []string, i []string) []string {
 func detectImports(v *Value) string {
 	// for sure v is a container
 	var ref string
-	switch v.v2.(type) {
+	switch v.typ.(type) {
 	case *Reference:
 		if !v.noPtr {
 			// it is not a typed reference
@@ -197,7 +197,7 @@ func detectImports(v *Value) string {
 	case *Container:
 		ref = v.ref
 	case *List, *Vector:
-		inner := getElem(v.v2)
+		inner := getElem(v.typ)
 		ref = inner.ref
 	case *Bytes:
 		ref = v.ref
@@ -459,9 +459,9 @@ func (e *env) print(order []string) (string, bool, error) {
 }
 
 func isBasicType(v *Value) bool {
-	_, isUint := v.v2.(*Uint)
-	_, isBool := v.v2.(*Bool)
-	_, isBytes := v.v2.(*Bytes)
+	_, isUint := v.typ.(*Uint)
+	_, isBool := v.typ.(*Bool)
+	_, isBytes := v.typ.(*Bytes)
 
 	return isUint || isBool || isBytes
 }
@@ -877,7 +877,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		}
 		if raw.implFunc {
 			size, _ := getTagsInt(tags, "ssz-size")
-			v = &Value{noPtr: raw.obj == nil, v2: &Reference{Size: size}}
+			v = &Value{noPtr: raw.obj == nil, typ: &Reference{Size: size}}
 		} else if raw.obj != nil {
 			v, err = e.parseASTStructType(name)
 		} else {
@@ -978,7 +978,7 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 		v2.Elems = append(v2.Elems, elem)
 	}
 
-	v.v2 = v2
+	v.typ = v2
 	return v, nil
 }
 
@@ -1055,11 +1055,11 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				if astSize != nil {
 					// we cannot do here dynamic because we rely on the size
 					// on the tags
-					outer.v2 = &Bytes{
+					outer.typ = &Bytes{
 						Size: *astSize,
 					}
 				} else {
-					outer.v2 = &Bytes{
+					outer.typ = &Bytes{
 						IsList: true,
 					}
 				}
@@ -1078,14 +1078,14 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			innerTyp = element
 		}
 
-		if outer.v2 == nil {
+		if outer.typ == nil {
 			if astSize != nil {
-				outer.v2 = &Vector{
+				outer.typ = &Vector{
 					Elem: innerTyp,
 					Size: *astSize,
 				}
 			} else {
-				outer.v2 = &List{
+				outer.typ = &List{
 					Elem: innerTyp,
 				}
 			}
@@ -1131,7 +1131,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				}
 			*/
 
-			switch obj := outerRef.v2.(type) {
+			switch obj := outerRef.typ.(type) {
 			case *List:
 				// You had a list because you did not reoslve the type yet, now is where you check it
 				// the size should be 0
@@ -1143,7 +1143,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					obj.MaxSize = uint64(dim.ListLen())
 				} else if dim.IsVector() {
 					// update to vector
-					outerRef.v2 = &Vector{
+					outerRef.typ = &Vector{
 						Elem:  obj.Elem,
 						Size:  uint64(dim.VectorLen()),
 						IsDyn: true,
@@ -1176,7 +1176,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					if dim.IsList() {
 						obj.Size = uint64(dim.ListLen())
 					} else if dim.IsVector() {
-						outerRef.v2 = &Bytes{
+						outerRef.typ = &Bytes{
 							Size:    uint64(dim.VectorLen()),
 							IsGoDyn: true,
 						}
@@ -1185,18 +1185,18 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					}
 				}
 			default:
-				panic(fmt.Errorf("i think I have to handle this: %s", reflect.TypeOf(outerRef.v2)))
+				panic(fmt.Errorf("i think I have to handle this: %s", reflect.TypeOf(outerRef.typ)))
 			}
 
 			if dim.IsBitlist() {
 				// this is a bitlist, we have to change the type
-				outerRef.v2 = &BitList{
+				outerRef.typ = &BitList{
 					Size: uint64(dim.ListLen()),
 				}
 			}
 
 			// TODO: check that there are no more dimensions to check
-			switch obj := outerRef.v2.(type) {
+			switch obj := outerRef.typ.(type) {
 			case *List:
 				outerRef = obj.Elem
 			case *Vector:
@@ -1213,23 +1213,23 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		var v *Value
 		switch obj.Name {
 		case "uint64":
-			v = &Value{v2: &Uint{Size: 8}}
+			v = &Value{typ: &Uint{Size: 8}}
 		case "uint32":
-			v = &Value{v2: &Uint{Size: 4}}
+			v = &Value{typ: &Uint{Size: 4}}
 		case "uint16":
-			v = &Value{v2: &Uint{Size: 2}}
+			v = &Value{typ: &Uint{Size: 2}}
 		case "uint8":
-			v = &Value{v2: &Uint{Size: 1}}
+			v = &Value{typ: &Uint{Size: 1}}
 		case "bool":
-			v = &Value{v2: &Bool{}}
+			v = &Value{typ: &Bool{}}
 		default:
 			// try to resolve as an alias
 			vv, err := e.encodeItem(obj.Name, tags)
 			if err != nil {
 				return nil, fmt.Errorf("failed to encode %s: %v", obj.Name, err)
 			}
-			fmt.Println(vv.v2, reflect.TypeOf(vv.v2))
-			if vv.v2 == nil {
+			fmt.Println(vv.typ, reflect.TypeOf(vv.typ))
+			if vv.typ == nil {
 				panic("Cannot be nil")
 			}
 			vv.noPtr = true
@@ -1242,14 +1242,14 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		sel := obj.Sel.Name
 
 		if exprName == "time" && sel == "Time" {
-			return &Value{v2: &Time{}}, nil
+			return &Value{typ: &Time{}}, nil
 		} else if sel == "Bitlist" {
 			// go-bitfield/Bitlist
 			maxSize, ok := getTagsInt(tags, "ssz-max")
 			if !ok {
 				return nil, fmt.Errorf("bitlist %s does not have ssz-max tag", name)
 			}
-			return &Value{v2: &BitList{Size: maxSize}}, nil
+			return &Value{typ: &BitList{Size: maxSize}}, nil
 		} else if strings.HasPrefix(sel, "Bitvector") {
 			// go-bitfield/Bitvector, fixed bytes
 			dims, err := extractSSZDimensions(tags)
@@ -1263,7 +1263,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{v2: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
+			return &Value{typ: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1324,7 +1324,7 @@ func getTags(str string, field string) (string, bool) {
 }
 
 func (v *Value) isFixed() bool {
-	switch obj := v.v2.(type) {
+	switch obj := v.typ.(type) {
 	case *Uint, *Bool, *Time:
 		return true
 	case *BitList:
@@ -1357,7 +1357,7 @@ func (v *Value) isFixed() bool {
 	default:
 		// TypeUndefined should be the only type to fallthrough to this case
 		// TypeUndefined always means there is a fatal error in the parsing logic
-		panic(fmt.Errorf("is fixed not implemented for type %s named %s, %s", v.Type(), v.name, reflect.TypeOf(v.v2)))
+		panic(fmt.Errorf("is fixed not implemented for type %s named %s, %s", v.Type(), v.name, reflect.TypeOf(v.typ)))
 	}
 }
 

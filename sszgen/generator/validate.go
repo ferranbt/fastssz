@@ -20,7 +20,7 @@ func validateBytesArray(name string, size uint64, fixed bool) string {
 }
 
 func (v *Value) validate() string {
-	switch obj := v.v2.(type) {
+	switch obj := v.typ.(type) {
 	case *BitList:
 		return validateBytesArray(v.name, obj.Size, false)
 	case *Bytes:
