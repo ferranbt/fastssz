@@ -104,7 +104,7 @@ func (v *Value) unmarshal(dst string) string {
 		return v.unmarshalList()
 
 	default:
-		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
+		panic(fmt.Errorf("unmarshal not implemented for type %s", v.Type()))
 	}
 }
 
@@ -115,7 +115,7 @@ func (v *Value) unmarshalList() string {
 	} else if obj, ok := v.v2.(*Vector); ok {
 		size = obj.Size
 	} else {
-		panic(fmt.Errorf("unmarshalList not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("unmarshalList not implemented for type %s", v.Type()))
 	}
 
 	inner := getElem(v.v2)
@@ -136,10 +136,6 @@ func (v *Value) unmarshalList() string {
 			"create":    v.createSlice(true),
 			"unmarshal": inner.unmarshal(dst),
 		})
-	}
-
-	if v.t == TypeVector {
-		panic("it cannot happen")
 	}
 
 	// Decode list with a dynamic element. 'ssz.DecodeDynamicLength' ensures
@@ -378,6 +374,6 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
-		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, inner.t.String()))
+		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, inner.Type()))
 	}
 }

@@ -92,3 +92,30 @@ func (v *Value) getObjs() []*Value {
 	}
 	return nil
 }
+
+func (v *Value) Type() string {
+	switch v.v2.(type) {
+	case *Bool:
+		return "bool"
+	case *Uint:
+		return "uint"
+	case *Int:
+		return "int"
+	case *Bytes:
+		return "bytes"
+	case *BitList:
+		return "bitlist"
+	case *Vector:
+		return "vector"
+	case *List:
+		return "list"
+	case *Container:
+		return "container"
+	case *Reference:
+		return "reference"
+	case *Time:
+		return "time"
+	default:
+		panic(fmt.Errorf("unknown type %s", reflect.TypeOf(v.v2)))
+	}
+}

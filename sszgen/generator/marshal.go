@@ -2,7 +2,6 @@ package generator
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -82,7 +81,7 @@ func (v *Value) marshal() string {
 		return v.marshalContainer(false)
 
 	default:
-		panic(fmt.Errorf("marshal not implemented for type %s: %v", v.t.String(), reflect.TypeOf(v.v2)))
+		panic(fmt.Errorf("marshal not implemented for type %s", v.Type()))
 	}
 }
 

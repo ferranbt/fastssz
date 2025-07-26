@@ -105,7 +105,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 // during marshalling to figure out the size of the offset
 func (v *Value) size(name string) string {
 	if v.isFixed() {
-		if v.t == TypeContainer {
+		if _, ok := v.v2.(*Container); ok {
 			return v.sizeContainer(name, false)
 		}
 		if v.fixedSize() == 1 {
@@ -142,6 +142,6 @@ func (v *Value) size(name string) string {
 		})
 
 	default:
-		panic(fmt.Errorf("size not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("size not implemented for type %s", v.Type()))
 	}
 }
