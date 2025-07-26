@@ -45,6 +45,11 @@ func (v *Value) hashRoots(isList bool) string {
 	var elemSize uint64
 
 	if obj, ok := innerObj.typ.(*Bytes); ok {
+		if !obj.IsGoDyn {
+			// If we have something like [32]byte we need to call append with [:] to convert it to a slice
+			subName += "[:]"
+		}
+
 		// [][]byte
 		if obj.Size != 32 {
 			// we need to use PutBytes in order to hash the result since
@@ -54,11 +59,6 @@ func (v *Value) hashRoots(isList bool) string {
 		} else {
 			appendFn = "Append"
 			elemSize = 32
-
-			if !obj.IsGoDyn {
-				// If we have something like [32]byte we need to call append with [:] to convert it to a slice
-				subName += "[:]"
-			}
 		}
 	} else {
 		// []uint64
