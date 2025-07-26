@@ -84,8 +84,8 @@ func (v *Value) unmarshal(dst string) string {
 		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
 
 	case *Vector:
-		if v.e.isFixed() {
-			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, v.e.fixedSize(), v.e.fixedSize())
+		if obj.Elem.isFixed() {
+			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, obj.Elem.fixedSize(), obj.Elem.fixedSize())
 
 			tmpl := `{{.create}}
 			for ii := 0; ii < {{.size}}; ii++ {
@@ -94,7 +94,7 @@ func (v *Value) unmarshal(dst string) string {
 			return execTmpl(tmpl, map[string]interface{}{
 				"create":    v.createSlice(false),
 				"size":      obj.Size,
-				"unmarshal": v.e.unmarshal(dst),
+				"unmarshal": obj.Elem.unmarshal(dst),
 			})
 		} else {
 			return v.unmarshalList()
@@ -118,8 +118,9 @@ func (v *Value) unmarshalList() string {
 		panic(fmt.Errorf("unmarshalList not implemented for type %s", v.t.String()))
 	}
 
-	if v.e.isFixed() {
-		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.fixedSize(), v.e.fixedSize())
+	inner := getElem(v.v2)
+	if inner.isFixed() {
+		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", inner.fixedSize(), inner.fixedSize())
 
 		tmpl := `num, err := ssz.DivideInt2(len(buf), {{.size}}, {{.max}})
 		if err != nil {
@@ -130,10 +131,10 @@ func (v *Value) unmarshalList() string {
 			{{.unmarshal}}
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
-			"size":      v.e.fixedSize(),
+			"size":      inner.fixedSize(),
 			"max":       size,
 			"create":    v.createSlice(true),
-			"unmarshal": v.e.unmarshal(dst),
+			"unmarshal": inner.unmarshal(dst),
 		})
 	}
 
@@ -157,12 +158,12 @@ func (v *Value) unmarshalList() string {
 		return err
 	}`
 
-	v.e.name = v.name + "[indx]"
+	inner.name = v.name + "[indx]"
 
 	data := map[string]interface{}{
 		"max":       size,
 		"create":    v.createSlice(true),
-		"unmarshal": v.e.unmarshal("buf"),
+		"unmarshal": inner.unmarshal("buf"),
 	}
 	return execTmpl(tmpl, data)
 }
@@ -190,7 +191,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	var offsets []string
 	offsetsMatch := map[string]string{}
 
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			name := "o" + strconv.Itoa(indx)
 			if len(offsets) != 0 {
@@ -239,7 +240,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// value with the name of the previous offset variable.
 	firstOffsetCheck := fmt.Sprintf("%d", v.fixedSize())
 	outs := []string{}
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 
 		// How much it increases on every item
 		var incr uint64
@@ -298,7 +299,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	c := 0
 
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			from := offsets[c]
 			var to string
@@ -345,7 +346,8 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		size = "num"
 	}
 
-	switch obj := v.e.v2.(type) {
+	inner := getElem(v.v2)
+	switch obj := inner.v2.(type) {
 	case *Uint:
 		// []int uses the Extend functions in the fastssz package
 		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName2(*obj), v.name, size)
@@ -353,10 +355,10 @@ func (v *Value) createSlice(useNumVariable bool) string {
 	case *Container:
 		// []*(ref.)Struct{}
 		ptr := "*"
-		if v.e.noPtr {
+		if inner.noPtr {
 			ptr = ""
 		}
-		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, v.e.objRef(), size)
+		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, inner.objRef(), size)
 
 	case *Bytes:
 		if v.c {
@@ -364,18 +366,18 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		}
 
 		// Check for a type alias.
-		ref := v.e.objRef()
+		ref := inner.objRef()
 		if ref != "" {
 			return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
 		}
 
-		if v.e.c {
+		if inner.c {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, obj.Size, size)
 		}
 
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
-		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, v.e.t.String()))
+		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, inner.t.String()))
 	}
 }

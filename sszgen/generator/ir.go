@@ -1,5 +1,10 @@
 package generator
 
+import (
+	"fmt"
+	"reflect"
+)
+
 // vector -> fixed size
 // list -> variable size
 
@@ -39,7 +44,7 @@ type BitList struct {
 func (b *BitList) isValue() {}
 
 type Vector struct {
-	Elem  Value2
+	Elem  *Value
 	Size  uint64
 	IsDyn bool // this is a fixed byte array but that is represented as a vector
 }
@@ -47,14 +52,14 @@ type Vector struct {
 func (v *Vector) isValue() {}
 
 type List struct {
-	Elem    Value2
+	Elem    *Value
 	MaxSize uint64
 }
 
 func (l *List) isValue() {}
 
 type Container struct {
-	Elems map[string]*Value
+	Elems []*Value
 }
 
 func (c *Container) isValue() {}
@@ -69,3 +74,21 @@ type Reference struct {
 }
 
 func (r *Reference) isValue() {}
+
+func getElem(v Value2) *Value {
+	switch obj := v.(type) {
+	case *List:
+		return obj.Elem
+	case *Vector:
+		return obj.Elem
+	default:
+		panic(fmt.Errorf("getElem called with non-list/vector type %s", reflect.TypeOf(v)))
+	}
+}
+
+func (v *Value) getObjs() []*Value {
+	if obj, ok := v.v2.(*Container); ok {
+		return obj.Elems
+	}
+	return nil
+}

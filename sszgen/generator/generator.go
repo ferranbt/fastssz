@@ -165,10 +165,6 @@ type Value struct {
 	obj string
 	// type of the value
 	t Type
-	// array of values for a container
-	o []*Value
-	// type of item for an array
-	e *Value
 	// array is fixed size. important for codegen to know so that code can be generated to interop with slices
 	c bool
 	// ref is the external reference if the struct is imported
@@ -205,7 +201,8 @@ func detectImports(v *Value) string {
 	case TypeContainer:
 		ref = v.ref
 	case TypeList, TypeVector:
-		ref = v.e.ref
+		inner := getElem(v.v2)
+		ref = inner.ref
 	case TypeBytes:
 		ref = v.ref
 	default:
@@ -228,13 +225,6 @@ func (v *Value) objRef() string {
 func (v *Value) copy() *Value {
 	vv := new(Value)
 	*vv = *v
-	vv.o = make([]*Value, len(v.o))
-	for indx := range v.o {
-		vv.o[indx] = v.o[indx].copy()
-	}
-	if v.e != nil {
-		vv.e = v.e.copy()
-	}
 	return vv
 }
 
@@ -917,11 +907,10 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 	v := &Value{
 		name: name,
 		t:    TypeContainer,
-		o:    []*Value{},
 	}
 
 	v2 := &Container{
-		Elems: map[string]*Value{},
+		Elems: []*Value{},
 	}
 
 	visited := map[string]struct{}{}
@@ -987,8 +976,7 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 			continue
 		}
 		elem.name = fieldName
-		v.o = append(v.o, elem)
-		v2.Elems[fieldName] = elem
+		v2.Elems = append(v2.Elems, elem)
 	}
 
 	v.v2 = v2
@@ -1059,6 +1047,8 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			outer.c = true
 		}
 
+		var innerTyp *Value
+
 		switch eeType := obj.Elt.(type) {
 		case *ast.Ident:
 			if eeType.Name == "byte" {
@@ -1081,25 +1071,25 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				if err != nil {
 					return nil, err
 				}
-				outer.e = val
+				innerTyp = val
 			}
 		default:
 			element, err := e.parseASTFieldType(name, "", eeType)
 			if err != nil {
 				return nil, err
 			}
-			outer.e = element
+			innerTyp = element
 		}
 
 		if outer.v2 == nil {
 			if astSize != nil {
 				outer.v2 = &Vector{
-					Elem: outer.e.v2,
+					Elem: innerTyp,
 					Size: *astSize,
 				}
 			} else {
 				outer.v2 = &List{
-					Elem: outer.e.v2,
+					Elem: innerTyp,
 				}
 			}
 		}
@@ -1155,7 +1145,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				} else if dim.IsVector() {
 					// update to vector
 					outerRef.v2 = &Vector{
-						Elem:  outerRef.e.v2,
+						Elem:  obj.Elem,
 						Size:  uint64(dim.VectorLen()),
 						IsDyn: true,
 					}
@@ -1194,9 +1184,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					} else if dim.IsBitlist() {
 						panic("Not handled?")
 					}
-					if name == "RandaoMixes" {
-						// panic("STOP")
-					}
 				}
 			default:
 				panic(fmt.Errorf("i think I have to handle this: %s", reflect.TypeOf(outerRef.v2)))
@@ -1209,7 +1196,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				}
 			}
 
-			outerRef = outerRef.e
+			// TODO: check that there are no more dimensions to check
+			switch obj := outerRef.v2.(type) {
+			case *List:
+				outerRef = obj.Elem
+			case *Vector:
+				outerRef = obj.Elem
+			default:
+				break
+			}
 		}
 
 		return outer, nil
@@ -1344,9 +1339,9 @@ func (v *Value) isFixed() bool {
 	case *List:
 		return false
 	case *Vector:
-		return v.e.isFixed()
+		return obj.Elem.isFixed()
 	case *Container:
-		for _, f := range v.o {
+		for _, f := range v.getObjs() {
 			if f.t == TypeUndefined {
 				fmt.Printf("%s %s", v.name, f.name)
 			}

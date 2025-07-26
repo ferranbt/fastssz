@@ -73,7 +73,7 @@ func (v *Value) marshal() string {
 		return v.marshalList()
 
 	case *Vector:
-		if v.e.isFixed() {
+		if obj.Elem.isFixed() {
 			return v.marshalVector()
 		}
 		return v.marshalList()
@@ -87,18 +87,19 @@ func (v *Value) marshal() string {
 }
 
 func (v *Value) marshalList() string {
-	v.e.name = v.name + "[ii]"
+	inner := getElem(v.v2)
+	inner.name = v.name + "[ii]"
 
 	// bound check
 	str := v.validate()
 
-	if v.e.isFixed() {
+	if inner.isFixed() {
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
 			{{.dynamic}}
 		}`
 		str += execTmpl(tmpl, map[string]interface{}{
 			"name":    v.name,
-			"dynamic": v.e.marshal(),
+			"dynamic": inner.marshal(),
 		})
 		return str
 	}
@@ -120,15 +121,17 @@ func (v *Value) marshalList() string {
 
 	str += execTmpl(tmpl, map[string]interface{}{
 		"name":    v.name,
-		"size":    v.e.size("offset"),
-		"marshal": v.e.marshal(),
+		"size":    inner.size("offset"),
+		"marshal": inner.marshal(),
 	})
 	return str
 }
 
 func (v *Value) marshalVector() (str string) {
+	inner := getElem(v.v2)
+
 	obj := v.v2.(*Vector)
-	v.e.name = fmt.Sprintf("%s[ii]", v.name)
+	inner.name = fmt.Sprintf("%s[ii]", v.name)
 
 	tmpl := `{{.validate}}for ii := 0; ii < {{.size}}; ii++ {
 		{{.marshal}}
@@ -137,7 +140,7 @@ func (v *Value) marshalVector() (str string) {
 		"validate": v.validate(),
 		"name":     v.name,
 		"size":     obj.Size,
-		"marshal":  v.e.marshal(),
+		"marshal":  inner.marshal(),
 	})
 }
 
@@ -167,12 +170,12 @@ func (v *Value) marshalContainer(start bool) string {
 	out := []string{}
 
 	lastVariableIndx := -1
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			lastVariableIndx = indx
 		}
 	}
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		var str string
 		if i.isFixed() {
 			// write the content
@@ -191,7 +194,7 @@ func (v *Value) marshalContainer(start bool) string {
 	}
 
 	// write the dynamic parts
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			out = append(out, fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.marshal()))
 		}

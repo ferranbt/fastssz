@@ -44,7 +44,7 @@ func (v *Value) fixedSize() uint64 {
 		return obj.Size
 	case *Container:
 		var fixed uint64
-		for _, f := range v.o {
+		for _, f := range v.getObjs() {
 			if f.isFixed() {
 				fixed += f.fixedSize()
 			} else {
@@ -54,8 +54,8 @@ func (v *Value) fixedSize() uint64 {
 		}
 		return fixed
 	case *Vector:
-		if v.e.isFixed() {
-			return obj.Size * v.e.fixedSize()
+		if obj.Elem.isFixed() {
+			return obj.Size * obj.Elem.fixedSize()
 		} else {
 			return obj.Size * bytesPerLengthOffset
 		}
@@ -93,7 +93,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 		})
 	}
 	out := []string{}
-	for indx, v := range v.o {
+	for indx, v := range v.getObjs() {
 		if !v.isFixed() {
 			out = append(out, fmt.Sprintf("// Field (%d) '%s'\n%s", indx, v.name, v.size(name)))
 		}
@@ -125,10 +125,12 @@ func (v *Value) size(name string) string {
 		return fmt.Sprintf(name+" += len(::.%s)", v.name)
 
 	case *List, *Vector:
-		if v.e.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.fixedSize())
+		inner := getElem(v.v2)
+
+		if inner.isFixed() {
+			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, inner.fixedSize())
 		}
-		v.e.name = v.name + "[ii]"
+		inner.name = v.name + "[ii]"
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
 			{{.size}} += 4
 			{{.dynamic}}
@@ -136,7 +138,7 @@ func (v *Value) size(name string) string {
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":    v.name,
 			"size":    name,
-			"dynamic": v.e.size(name),
+			"dynamic": inner.size(name),
 		})
 
 	default:
