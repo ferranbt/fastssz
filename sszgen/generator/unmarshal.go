@@ -28,6 +28,30 @@ func (v *Value) unmarshal(dst string) string {
 	case *Container:
 		return v.umarshalContainer(false, dst)
 
+	case *Bytes:
+		if !obj.IsList && !obj.IsGoDyn {
+			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
+		}
+		validate := ""
+		if !v.isFixed() {
+			// dynamic bytes, we need to validate the size of the buffer
+			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, obj.Size)
+		}
+
+		// both fixed and dynamic are decoded equally
+		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
+			{{if .isRef}} ::.{{.name}} = {{ ref .obj }}(make([]byte, 0, len({{.dst}}))) {{ else }} ::.{{.name}} = make([]byte, 0, len({{.dst}})) {{ end }}
+		}
+		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		return execTmpl(tmpl, map[string]interface{}{
+			"validate": validate,
+			"name":     v.name,
+			"dst":      dst,
+			"size":     obj.Size,
+			"isRef":    v.ref != "",
+			"obj":      v,
+		})
+
 	case *BitList:
 		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
 			return err
@@ -84,30 +108,6 @@ func (v *Value) unmarshal(dst string) string {
 	switch v.t {
 	case TypeReference:
 		return v.umarshalContainer(false, dst)
-
-	case TypeBytes:
-		if v.c {
-			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
-		}
-		validate := ""
-		if !v.isFixed() {
-			// dynamic bytes, we need to validate the size of the buffer
-			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
-		}
-
-		// both fixed and dynamic are decoded equally
-		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
-			{{if .isRef}} ::.{{.name}} = {{ ref .obj }}(make([]byte, 0, len({{.dst}}))) {{ else }} ::.{{.name}} = make([]byte, 0, len({{.dst}})) {{ end }}
-		}
-		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
-		return execTmpl(tmpl, map[string]interface{}{
-			"validate": validate,
-			"name":     v.name,
-			"dst":      dst,
-			"size":     v.m,
-			"isRef":    v.ref != "",
-			"obj":      v,
-		})
 
 	default:
 		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
@@ -351,12 +351,12 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		size = "num"
 	}
 
-	switch v.e.t {
-	case TypeUint:
+	switch obj := v.e.v2.(type) {
+	case *Uint:
 		// []int uses the Extend functions in the fastssz package
 		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName(v.e), v.name, size)
 
-	case TypeContainer:
+	case *Container:
 		// []*(ref.)Struct{}
 		ptr := "*"
 		if v.e.noPtr {
@@ -364,7 +364,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		}
 		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, v.e.objRef(), size)
 
-	case TypeBytes:
+	case *Bytes:
 		if v.c {
 			return ""
 		}
@@ -376,7 +376,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		}
 
 		if v.e.c {
-			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
+			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, obj.Size, size)
 		}
 
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)

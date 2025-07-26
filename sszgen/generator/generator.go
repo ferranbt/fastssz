@@ -845,7 +845,7 @@ func (e *env) generateIR() error {
 		name := obj.name
 
 		var valid bool
-		if e.targets == nil || len(e.targets) == 0 {
+		if len(e.targets) == 0 {
 			valid = true
 		} else {
 			valid = contains(name, e.targets)
@@ -1361,18 +1361,9 @@ func (v *Value) isFixed() bool {
 		return true
 	case *List:
 		return false
-	}
-
-	switch v.t {
-	// dynamic collection types
-	case TypeList:
-		return false
-	case TypeVector:
-		if v.e.t == TypeUndefined {
-			fmt.Printf("%s", v.name)
-		}
+	case *Vector:
 		return v.e.isFixed()
-	case TypeContainer:
+	case *Container:
 		for _, f := range v.o {
 			if f.t == TypeUndefined {
 				fmt.Printf("%s %s", v.name, f.name)
@@ -1384,6 +1375,9 @@ func (v *Value) isFixed() bool {
 		}
 		// if all values within the container are fixed, it is fixed
 		return true
+	}
+
+	switch v.t {
 	case TypeReference:
 		if v.s != 0 {
 			return true

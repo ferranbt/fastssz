@@ -61,6 +61,12 @@ func (v *Value) fixedSize() uint64 {
 		}
 
 	default:
+		if v.t == TypeReference {
+			if !v.isFixed() {
+				return bytesPerLengthOffset
+			}
+			return v.s
+		}
 		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.v2)))
 	}
 }
@@ -108,20 +114,17 @@ func (v *Value) size(name string) string {
 		return name + " += " + strconv.Itoa(int(v.fixedSize()))
 	}
 
-	switch v.t {
-	case TypeContainer, TypeReference:
+	switch v.v2.(type) {
+	case *Container:
 		return v.sizeContainer(name, false)
 
-	case TypeBitList:
-		fallthrough
-
-	case TypeBytes:
+	case *BitList:
 		return fmt.Sprintf(name+" += len(::.%s)", v.name)
 
-	case TypeList:
-		fallthrough
+	case *Bytes:
+		return fmt.Sprintf(name+" += len(::.%s)", v.name)
 
-	case TypeVector:
+	case *List, *Vector:
 		if v.e.isFixed() {
 			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.fixedSize())
 		}
@@ -135,6 +138,11 @@ func (v *Value) size(name string) string {
 			"size":    name,
 			"dynamic": v.e.size(name),
 		})
+	}
+
+	switch v.t {
+	case TypeReference:
+		return v.sizeContainer(name, false)
 
 	default:
 		panic(fmt.Errorf("size not implemented for type %s", v.t.String()))

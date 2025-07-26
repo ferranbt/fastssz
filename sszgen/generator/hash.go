@@ -193,14 +193,9 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 
 	case *Time:
 		return fmt.Sprintf("hh.PutUint64(uint64(%s.Unix()))", name)
-	}
 
-	switch v.t {
-	case TypeReference:
-		return v.hashTreeRootContainer(false)
-
-	case TypeBytes:
-		if v.c {
+	case *Bytes:
+		if !obj.IsGoDyn && !obj.IsList {
 			name += "[:]"
 		}
 		if v.isFixed() {
@@ -208,7 +203,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			return execTmpl(tmpl, map[string]interface{}{
 				"validate": v.validate(),
 				"name":     name,
-				"size":     v.s,
+				"size":     obj.Size,
 			})
 		} else {
 			// dynamic bytes require special handling, need length mixed in
@@ -229,9 +224,14 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			return execTmpl(tmpl, map[string]interface{}{
 				"hashMethod": hMethod,
 				"name":       name,
-				"maxLen":     v.m,
+				"maxLen":     obj.Size,
 			})
 		}
+	}
+
+	switch v.t {
+	case TypeReference:
+		return v.hashTreeRootContainer(false)
 
 	default:
 		panic(fmt.Errorf("hash not implemented for type %s", v.t.String()))
