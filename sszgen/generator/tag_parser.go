@@ -8,6 +8,9 @@ import (
 	"text/scanner"
 )
 
+// Vector -> fixed size
+// List -> variable size
+
 type tokenState int
 
 const (
@@ -170,6 +173,19 @@ type SSZDimension struct {
 	isBitlist    bool
 }
 
+func (dim *SSZDimension) Type() string {
+	if dim.IsVector() {
+		return "vector"
+	}
+	if dim.IsList() {
+		return "list"
+	}
+	if dim.IsBitlist() {
+		return "bitlist"
+	}
+	return "undefined"
+}
+
 func (dim *SSZDimension) IsVector() bool {
 	return dim.VectorLength != nilInt
 }
@@ -188,17 +204,6 @@ func (dim *SSZDimension) ListLen() int {
 
 func (dim *SSZDimension) VectorLen() int {
 	return *dim.VectorLength
-}
-
-// ValueType returns a Type enum to be used in the construction of a fastssz Value type
-func (dim *SSZDimension) ValueType() Type {
-	if dim.IsVector() {
-		return TypeVector
-	}
-	if dim.IsList() {
-		return TypeList
-	}
-	return TypeUndefined
 }
 
 // ValueType returns ssz-max or ssz-size, to be used in the construction of a fastssz Value type

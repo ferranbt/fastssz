@@ -36,13 +36,13 @@ func (e *env) marshal(name string, v *Value) string {
 }
 
 func (v *Value) marshal() string {
-	switch v.t {
-	case TypeContainer, TypeReference:
-		return v.marshalContainer(false)
+	switch obj := v.typ.(type) {
+	case *Bool:
+		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
 
-	case TypeBytes:
+	case *Bytes:
 		name := v.name
-		if v.c {
+		if obj.IsFixed() {
 			name += "[:]"
 		}
 		tmpl := `{{.validate}}dst = append(dst, ::.{{.name}}...)`
@@ -52,52 +52,53 @@ func (v *Value) marshal() string {
 			"name":     name,
 		})
 
-	case TypeUint:
+	case *Uint:
 		var name string
 		if v.ref != "" || v.obj != "" {
 			// alias to uint*
-			name = fmt.Sprintf("%s(::.%s)", uintVToLowerCaseName(v), v.name)
+			name = fmt.Sprintf("%s(::.%s)", uintVToLowerCaseName2(obj), v.name)
 		} else {
 			name = "::." + v.name
 		}
-		return fmt.Sprintf("dst = ssz.Marshal%s(dst, %s)", uintVToName(v), name)
+		return fmt.Sprintf("dst = ssz.Marshal%s(dst, %s)", uintVToName2(*obj), name)
 
-	case TypeBitList:
+	case *BitList:
 		return fmt.Sprintf("%sdst = append(dst, ::.%s...)", v.validate(), v.name)
 
-	case TypeBool:
-		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
-
-	case TypeVector:
-		if v.e.isFixed() {
-			return v.marshalVector()
-		}
-		fallthrough
-
-	case TypeList:
-		return v.marshalList()
-
-	case TypeTime:
+	case *Time:
 		return fmt.Sprintf("dst = ssz.MarshalTime(dst, ::.%s)", v.name)
 
+	case *List:
+		return v.marshalList()
+
+	case *Vector:
+		if obj.Elem.isFixed() {
+			return v.marshalVector()
+		}
+		return v.marshalList()
+
+	case *Container, *Reference:
+		return v.marshalContainer(false)
+
 	default:
-		panic(fmt.Errorf("marshal not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("marshal not implemented for type %s", v.Type()))
 	}
 }
 
 func (v *Value) marshalList() string {
-	v.e.name = v.name + "[ii]"
+	inner := getElem(v.typ)
+	inner.name = v.name + "[ii]"
 
 	// bound check
 	str := v.validate()
 
-	if v.e.isFixed() {
+	if inner.isFixed() {
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
 			{{.dynamic}}
 		}`
 		str += execTmpl(tmpl, map[string]interface{}{
 			"name":    v.name,
-			"dynamic": v.e.marshal(),
+			"dynamic": inner.marshal(),
 		})
 		return str
 	}
@@ -119,14 +120,17 @@ func (v *Value) marshalList() string {
 
 	str += execTmpl(tmpl, map[string]interface{}{
 		"name":    v.name,
-		"size":    v.e.size("offset"),
-		"marshal": v.e.marshal(),
+		"size":    inner.size("offset"),
+		"marshal": inner.marshal(),
 	})
 	return str
 }
 
 func (v *Value) marshalVector() (str string) {
-	v.e.name = fmt.Sprintf("%s[ii]", v.name)
+	inner := getElem(v.typ)
+
+	obj := v.typ.(*Vector)
+	inner.name = fmt.Sprintf("%s[ii]", v.name)
 
 	tmpl := `{{.validate}}for ii := 0; ii < {{.size}}; ii++ {
 		{{.marshal}}
@@ -134,8 +138,8 @@ func (v *Value) marshalVector() (str string) {
 	return execTmpl(tmpl, map[string]interface{}{
 		"validate": v.validate(),
 		"name":     v.name,
-		"size":     v.s,
-		"marshal":  v.e.marshal(),
+		"size":     obj.Size,
+		"marshal":  inner.marshal(),
 	})
 }
 
@@ -165,12 +169,12 @@ func (v *Value) marshalContainer(start bool) string {
 	out := []string{}
 
 	lastVariableIndx := -1
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			lastVariableIndx = indx
 		}
 	}
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		var str string
 		if i.isFixed() {
 			// write the content
@@ -189,7 +193,7 @@ func (v *Value) marshalContainer(start bool) string {
 	}
 
 	// write the dynamic parts
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			out = append(out, fmt.Sprintf("// Field (%d) '%s'\n%s\n", indx, i.name, i.marshal()))
 		}

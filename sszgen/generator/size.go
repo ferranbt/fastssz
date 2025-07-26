@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -30,19 +31,20 @@ func (e *env) size(name string, v *Value) string {
 }
 
 func (v *Value) fixedSize() uint64 {
-	switch v.t {
-	case TypeVector:
-		if v.e == nil {
-			panic(fmt.Sprintf("error computing size of empty vector %v for type name=%s", v, v.name))
-		}
-		if v.e.isFixed() {
-			return v.s * v.e.fixedSize()
-		} else {
-			return v.s * bytesPerLengthOffset
-		}
-	case TypeContainer:
+	switch obj := v.typ.(type) {
+	case *Bool:
+		return 1
+	case *Uint:
+		return obj.Size
+	case *Int:
+		return obj.Size
+	case *Bytes:
+		return obj.Size
+	case *BitList:
+		return obj.Size
+	case *Container:
 		var fixed uint64
-		for _, f := range v.o {
+		for _, f := range v.getObjs() {
 			if f.isFixed() {
 				fixed += f.fixedSize()
 			} else {
@@ -51,11 +53,21 @@ func (v *Value) fixedSize() uint64 {
 			}
 		}
 		return fixed
-	default:
+	case *Vector:
+		if obj.Elem.isFixed() {
+			return obj.Size * obj.Elem.fixedSize()
+		} else {
+			return obj.Size * bytesPerLengthOffset
+		}
+
+	case *Reference:
 		if !v.isFixed() {
 			return bytesPerLengthOffset
 		}
-		return v.s
+		return obj.Size
+
+	default:
+		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.typ)))
 	}
 }
 
@@ -81,7 +93,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 		})
 	}
 	out := []string{}
-	for indx, v := range v.o {
+	for indx, v := range v.getObjs() {
 		if !v.isFixed() {
 			out = append(out, fmt.Sprintf("// Field (%d) '%s'\n%s", indx, v.name, v.size(name)))
 		}
@@ -93,7 +105,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 // during marshalling to figure out the size of the offset
 func (v *Value) size(name string) string {
 	if v.isFixed() {
-		if v.t == TypeContainer {
+		if _, ok := v.typ.(*Container); ok {
 			return v.sizeContainer(name, false)
 		}
 		if v.fixedSize() == 1 {
@@ -102,24 +114,23 @@ func (v *Value) size(name string) string {
 		return name + " += " + strconv.Itoa(int(v.fixedSize()))
 	}
 
-	switch v.t {
-	case TypeContainer, TypeReference:
+	switch v.typ.(type) {
+	case *Container, *Reference:
 		return v.sizeContainer(name, false)
 
-	case TypeBitList:
-		fallthrough
-
-	case TypeBytes:
+	case *BitList:
 		return fmt.Sprintf(name+" += len(::.%s)", v.name)
 
-	case TypeList:
-		fallthrough
+	case *Bytes:
+		return fmt.Sprintf(name+" += len(::.%s)", v.name)
 
-	case TypeVector:
-		if v.e.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, v.e.fixedSize())
+	case *List, *Vector:
+		inner := getElem(v.typ)
+
+		if inner.isFixed() {
+			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, inner.fixedSize())
 		}
-		v.e.name = v.name + "[ii]"
+		inner.name = v.name + "[ii]"
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {
 			{{.size}} += 4
 			{{.dynamic}}
@@ -127,10 +138,10 @@ func (v *Value) size(name string) string {
 		return execTmpl(tmpl, map[string]interface{}{
 			"name":    v.name,
 			"size":    name,
-			"dynamic": v.e.size(name),
+			"dynamic": inner.size(name),
 		})
 
 	default:
-		panic(fmt.Errorf("size not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("size not implemented for type %s", v.Type()))
 	}
 }
