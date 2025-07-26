@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -36,11 +37,11 @@ func (e *env) marshal(name string, v *Value) string {
 }
 
 func (v *Value) marshal() string {
-	switch v.t {
-	case TypeContainer, TypeReference:
-		return v.marshalContainer(false)
+	switch v.v2.(type) {
+	case *Bool:
+		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
 
-	case TypeBytes:
+	case *Bytes, *DynamicBytes:
 		name := v.name
 		if v.c {
 			name += "[:]"
@@ -52,7 +53,7 @@ func (v *Value) marshal() string {
 			"name":     name,
 		})
 
-	case TypeUint:
+	case *Uint:
 		var name string
 		if v.ref != "" || v.obj != "" {
 			// alias to uint*
@@ -62,26 +63,31 @@ func (v *Value) marshal() string {
 		}
 		return fmt.Sprintf("dst = ssz.Marshal%s(dst, %s)", uintVToName(v), name)
 
-	case TypeBitList:
+	case *BitList:
 		return fmt.Sprintf("%sdst = append(dst, ::.%s...)", v.validate(), v.name)
 
-	case TypeBool:
-		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
+	case *Time:
+		return fmt.Sprintf("dst = ssz.MarshalTime(dst, ::.%s)", v.name)
 
-	case TypeVector:
+	case *List:
+		return v.marshalList()
+
+	case *Vector:
 		if v.e.isFixed() {
 			return v.marshalVector()
 		}
-		fallthrough
-
-	case TypeList:
 		return v.marshalList()
 
-	case TypeTime:
-		return fmt.Sprintf("dst = ssz.MarshalTime(dst, ::.%s)", v.name)
+	case *Container:
+		return v.marshalContainer(false)
+	}
+
+	switch v.t {
+	case TypeReference:
+		return v.marshalContainer(false)
 
 	default:
-		panic(fmt.Errorf("marshal not implemented for type %s", v.t.String()))
+		panic(fmt.Errorf("marshal not implemented for type %s: %v", v.t.String(), reflect.TypeOf(v.v2)))
 	}
 }
 
@@ -126,6 +132,7 @@ func (v *Value) marshalList() string {
 }
 
 func (v *Value) marshalVector() (str string) {
+	obj := v.v2.(*Vector)
 	v.e.name = fmt.Sprintf("%s[ii]", v.name)
 
 	tmpl := `{{.validate}}for ii := 0; ii < {{.size}}; ii++ {
@@ -134,7 +141,7 @@ func (v *Value) marshalVector() (str string) {
 	return execTmpl(tmpl, map[string]interface{}{
 		"validate": v.validate(),
 		"name":     v.name,
-		"size":     v.s,
+		"size":     obj.Size,
 		"marshal":  v.e.marshal(),
 	})
 }

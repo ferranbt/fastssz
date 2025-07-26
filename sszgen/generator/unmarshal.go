@@ -24,9 +24,65 @@ func (e *env) unmarshal(name string, v *Value) string {
 }
 
 func (v *Value) unmarshal(dst string) string {
+	switch obj := v.v2.(type) {
+	case *Container:
+		return v.umarshalContainer(false, dst)
+
+	case *BitList:
+		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
+			return err
+		}
+		if cap(::.{{.name}}) == 0 {
+			::.{{.name}} = make([]byte, 0, len({{.dst}}))
+		}
+		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": v.name,
+			"dst":  dst,
+			"size": obj.Size,
+		})
+
+	case *Uint:
+		if v.ref != "" {
+			// alias, we need to cast the value
+			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.objRef(), uintVToName2(*obj), dst)
+		}
+		if v.obj != "" {
+			// alias to a type on the same package
+			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.obj, uintVToName2(*obj), dst)
+		}
+		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName2(*obj), dst)
+
+	case *Bool:
+		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
+
+	case *Time:
+		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
+
+	case *Vector:
+		if v.e.isFixed() {
+			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, v.e.fixedSize(), v.e.fixedSize())
+
+			tmpl := `{{.create}}
+			for ii := 0; ii < {{.size}}; ii++ {
+				{{.unmarshal}}
+			}`
+			return execTmpl(tmpl, map[string]interface{}{
+				"create":    v.createSlice(false),
+				"size":      obj.Size,
+				"unmarshal": v.e.unmarshal(dst),
+			})
+		} else {
+			return v.unmarshalList()
+		}
+
+	case *List:
+		return v.unmarshalList()
+	}
+
 	// we use dst as the input buffer where the SSZ data to decode the value is.
 	switch v.t {
-	case TypeContainer, TypeReference:
+	case TypeReference:
 		return v.umarshalContainer(false, dst)
 
 	case TypeBytes:
@@ -53,62 +109,21 @@ func (v *Value) unmarshal(dst string) string {
 			"obj":      v,
 		})
 
-	case TypeUint:
-		if v.ref != "" {
-			// alias, we need to cast the value
-			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.objRef(), uintVToName(v), dst)
-		}
-		if v.obj != "" {
-			// alias to a type on the same package
-			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.obj, uintVToName(v), dst)
-		}
-		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
-
-	case TypeBitList:
-		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
-			return err
-		}
-		if cap(::.{{.name}}) == 0 {
-			::.{{.name}} = make([]byte, 0, len({{.dst}}))
-		}
-		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
-		return execTmpl(tmpl, map[string]interface{}{
-			"name": v.name,
-			"dst":  dst,
-			"size": v.m,
-		})
-
-	case TypeVector:
-		if v.e.isFixed() {
-			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, v.e.fixedSize(), v.e.fixedSize())
-
-			tmpl := `{{.create}}
-			for ii := 0; ii < {{.size}}; ii++ {
-				{{.unmarshal}}
-			}`
-			return execTmpl(tmpl, map[string]interface{}{
-				"create":    v.createSlice(false),
-				"size":      v.s,
-				"unmarshal": v.e.unmarshal(dst),
-			})
-		}
-		fallthrough
-
-	case TypeList:
-		return v.unmarshalList()
-
-	case TypeBool:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
-
-	case TypeTime:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
-
 	default:
 		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
 	}
 }
 
 func (v *Value) unmarshalList() string {
+	var size uint64
+	if obj, ok := v.v2.(*List); ok {
+		size = obj.MaxSize
+	} else if obj, ok := v.v2.(*Vector); ok {
+		size = obj.Size
+	} else {
+		panic(fmt.Errorf("unmarshalList not implemented for type %s", v.t.String()))
+	}
+
 	if v.e.isFixed() {
 		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.fixedSize(), v.e.fixedSize())
 
@@ -122,7 +137,7 @@ func (v *Value) unmarshalList() string {
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
 			"size":      v.e.fixedSize(),
-			"max":       v.s,
+			"max":       size,
 			"create":    v.createSlice(true),
 			"unmarshal": v.e.unmarshal(dst),
 		})
@@ -151,7 +166,7 @@ func (v *Value) unmarshalList() string {
 	v.e.name = v.name + "[indx]"
 
 	data := map[string]interface{}{
-		"max":       v.s,
+		"max":       size,
 		"create":    v.createSlice(true),
 		"unmarshal": v.e.unmarshal("buf"),
 	}
@@ -321,11 +336,16 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 // createItem is used to initialize slices of objects
 func (v *Value) createSlice(useNumVariable bool) string {
-	if v.t != TypeVector && v.t != TypeList {
+	var sizeU64 uint64
+	if obj, ok := v.v2.(*List); ok {
+		sizeU64 = obj.MaxSize
+	} else if obj, ok := v.v2.(*Vector); ok {
+		sizeU64 = obj.Size
+	} else {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
 
-	size := strconv.Itoa(int(v.s))
+	size := strconv.Itoa(int(sizeU64))
 	// when useNumVariable is specified, we assume there is a 'num' variable generated beforehand with the expected size.
 	if useNumVariable {
 		size = "num"

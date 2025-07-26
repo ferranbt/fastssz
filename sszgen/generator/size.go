@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -30,17 +31,20 @@ func (e *env) size(name string, v *Value) string {
 }
 
 func (v *Value) fixedSize() uint64 {
-	switch v.t {
-	case TypeVector:
-		if v.e == nil {
-			panic(fmt.Sprintf("error computing size of empty vector %v for type name=%s", v, v.name))
-		}
-		if v.e.isFixed() {
-			return v.s * v.e.fixedSize()
-		} else {
-			return v.s * bytesPerLengthOffset
-		}
-	case TypeContainer:
+	switch obj := v.v2.(type) {
+	case *Bool:
+		return 1
+	case *Uint:
+		return obj.Size
+	case *Int:
+		return obj.Size
+	case *Bytes:
+		return obj.Size
+	case *DynamicBytes:
+		return obj.MaxSize
+	case *BitList:
+		return obj.Size
+	case *Container:
 		var fixed uint64
 		for _, f := range v.o {
 			if f.isFixed() {
@@ -51,11 +55,15 @@ func (v *Value) fixedSize() uint64 {
 			}
 		}
 		return fixed
-	default:
-		if !v.isFixed() {
-			return bytesPerLengthOffset
+	case *Vector:
+		if v.e.isFixed() {
+			return obj.Size * v.e.fixedSize()
+		} else {
+			return obj.Size * bytesPerLengthOffset
 		}
-		return v.s
+
+	default:
+		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.v2)))
 	}
 }
 

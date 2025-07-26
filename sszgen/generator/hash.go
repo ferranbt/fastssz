@@ -26,30 +26,53 @@ func (e *env) hashTreeRoot(name string, v *Value) string {
 	return appendObjSignature(str, v)
 }
 
-func (v *Value) hashRoots(isList bool, elem Type) string {
+func arrayNeedsSafeCheck(elem *Value) (bool, uint64) {
+	if obj, ok := elem.v2.(*DynamicBytes); ok {
+		// we need to check the length of the array
+		return true, obj.MaxSize
+	}
+	if obj, ok := elem.v2.(*Bytes); ok && obj.IsDyn {
+		// It is of fixed size but we need to perform the check because the Go obj is not fixed size
+		return true, obj.Size
+	}
+	return false, 0
+}
+
+func isBytesType(elem *Value) (bool, uint64) {
+	if obj, ok := elem.v2.(*DynamicBytes); ok {
+		return true, obj.MaxSize
+	}
+	if obj, ok := elem.v2.(*Bytes); ok {
+		return true, obj.Size
+	}
+	return false, 0
+}
+
+func (v *Value) hashRoots(isList bool) string {
 	subName := "i"
 	if v.e.c {
 		subName += "[:]"
 	}
 	inner := ""
-	if !v.e.c && elem == TypeBytes {
+	if ok, size := arrayNeedsSafeCheck(v.e); ok {
 		inner = `if len(i) != %d {
 			err = ssz.ErrBytesLength
 			return
 		}
 		`
-		inner = fmt.Sprintf(inner, v.e.s)
+		inner = fmt.Sprintf(inner, size)
 	}
 
 	var appendFn string
 	var elemSize uint64
-	if elem == TypeBytes {
+
+	if ok, size := isBytesType(v.e); ok {
 		// [][]byte
-		if v.e.s != 32 {
+		if size != 32 {
 			// we need to use PutBytes in order to hash the result since
 			// is higher than 32 bytes
 			appendFn = "PutBytes"
-			elemSize = v.e.s
+			elemSize = size
 		} else {
 			appendFn = "Append"
 			elemSize = 32
@@ -62,6 +85,8 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 
 	var merkleize string
 	if isList {
+		innerListSize := v.v2.(*List).MaxSize
+
 		// the limit for merkleize with mixin depends on the internal type
 		// if the type is basic, the size depends on CalculateLimit
 		// if the type is complex (TypeVector), the limit is the size.
@@ -77,13 +102,13 @@ func (v *Value) hashRoots(isList bool, elem Type) string {
 
 		merkleize = execTmpl(tmpl, map[string]interface{}{
 			"name":      v.name,
-			"listSize":  v.s,
+			"listSize":  innerListSize,
 			"elemSize":  elemSize,
 			"isComplex": isComplex,
 		})
 
 		// when doing []uint64 we need to round up the Hasher bytes to 32
-		if elem == TypeUint {
+		if v.e.t == TypeUint {
 			merkleize = "hh.FillUpTo32()\n" + merkleize
 		}
 	} else {
@@ -121,8 +146,79 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 	if name == "" {
 		name = "::." + v.name
 	}
+
+	switch obj := v.v2.(type) {
+	case *Container:
+		return v.hashTreeRootContainer(false)
+
+	case *Uint:
+		if v.ref != "" || v.obj != "" {
+			// alias to uint*
+			name = fmt.Sprintf("%s(%s)", uintVToLowerCaseName2(obj), name)
+		}
+		bitLen := v.fixedSize() * 8
+		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
+
+	case *BitList:
+		tmpl := `if len({{.name}}) == 0 {
+			err = ssz.ErrEmptyBitlist
+			return
+		}
+		hh.PutBitlist({{.name}}, {{.size}})
+		`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": name,
+			"size": obj.Size,
+		})
+
+	case *Bool:
+		return fmt.Sprintf("hh.PutBool(%s)", name)
+
+	case *Vector:
+		return v.hashRoots(false)
+
+	case *List:
+		if v.e.isFixed() {
+			if v.e.t == TypeUint || v.e.t == TypeBytes {
+				return v.hashRoots(true)
+			}
+		}
+
+		tmpl := `{
+			subIndx := hh.Index()
+			num := uint64(len({{.name}}))
+			if num > {{.num}} {
+				err = ssz.ErrIncorrectListSize
+				return
+			}
+			for _, elem := range {{.name}} {
+{{.htrCall}}
+			}
+			hh.MerkleizeWithMixin(subIndx, num, {{.num}})
+		}`
+		var htrCall string
+		if v.e.t == TypeBytes {
+			eName := "elem"
+			// ByteLists should be represented as Value with TypeBytes and .m set instead of .s (isFixed == true)
+			htrCall = v.e.hashTreeRoot(eName, true)
+		} else {
+			htrCall = execTmpl(`if err = elem.HashTreeRootWith(hh); err != nil {
+	return
+}`,
+				map[string]interface{}{"name": name})
+		}
+		return execTmpl(tmpl, map[string]interface{}{
+			"name":    name,
+			"num":     obj.MaxSize,
+			"htrCall": htrCall,
+		})
+
+	case *Time:
+		return fmt.Sprintf("hh.PutUint64(uint64(%s.Unix()))", name)
+	}
+
 	switch v.t {
-	case TypeContainer, TypeReference:
+	case TypeReference:
 		return v.hashTreeRootContainer(false)
 
 	case TypeBytes:
@@ -158,71 +254,6 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 				"maxLen":     v.m,
 			})
 		}
-
-	case TypeUint:
-		if v.ref != "" || v.obj != "" {
-			// alias to uint*
-			name = fmt.Sprintf("%s(%s)", uintVToLowerCaseName(v), name)
-		}
-		bitLen := v.fixedSize() * 8
-		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
-
-	case TypeBitList:
-		tmpl := `if len({{.name}}) == 0 {
-			err = ssz.ErrEmptyBitlist
-			return
-		}
-		hh.PutBitlist({{.name}}, {{.size}})
-		`
-		return execTmpl(tmpl, map[string]interface{}{
-			"name": name,
-			"size": v.m,
-		})
-
-	case TypeBool:
-		return fmt.Sprintf("hh.PutBool(%s)", name)
-
-	case TypeVector:
-		return v.hashRoots(false, v.e.t)
-
-	case TypeList:
-		if v.e.isFixed() {
-			if v.e.t == TypeUint || v.e.t == TypeBytes {
-				return v.hashRoots(true, v.e.t)
-			}
-		}
-
-		tmpl := `{
-			subIndx := hh.Index()
-			num := uint64(len({{.name}}))
-			if num > {{.num}} {
-				err = ssz.ErrIncorrectListSize
-				return
-			}
-			for _, elem := range {{.name}} {
-{{.htrCall}}
-			}
-			hh.MerkleizeWithMixin(subIndx, num, {{.num}})
-		}`
-		var htrCall string
-		if v.e.t == TypeBytes {
-			eName := "elem"
-			// ByteLists should be represented as Value with TypeBytes and .m set instead of .s (isFixed == true)
-			htrCall = v.e.hashTreeRoot(eName, true)
-		} else {
-			htrCall = execTmpl(`if err = elem.HashTreeRootWith(hh); err != nil {
-	return
-}`,
-				map[string]interface{}{"name": name})
-		}
-		return execTmpl(tmpl, map[string]interface{}{
-			"name":    name,
-			"num":     v.m,
-			"htrCall": htrCall,
-		})
-
-	case TypeTime:
-		return fmt.Sprintf("hh.PutUint64(uint64(%s.Unix()))", name)
 
 	default:
 		panic(fmt.Errorf("hash not implemented for type %s", v.t.String()))

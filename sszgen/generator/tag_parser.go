@@ -8,6 +8,9 @@ import (
 	"text/scanner"
 )
 
+// Vector -> fixed size
+// List -> variable size
+
 type tokenState int
 
 const (
@@ -168,6 +171,19 @@ type SSZDimension struct {
 	VectorLength *int
 	ListLength   *int
 	isBitlist    bool
+}
+
+func (dim *SSZDimension) Type() string {
+	if dim.IsVector() {
+		return "vector"
+	}
+	if dim.IsList() {
+		return "list"
+	}
+	if dim.IsBitlist() {
+		return "bitlist"
+	}
+	return "undefined"
 }
 
 func (dim *SSZDimension) IsVector() bool {

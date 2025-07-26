@@ -1,35 +1,42 @@
 package generator
 
-func (v *Value) validate() string {
-	switch v.t {
-	case TypeBitList, TypeBytes:
-		// this is a fixed-length array, not a slice, so it's size is a constant we don't need to check
-		if v.c {
-			return ""
-		}
-		// for fixed size collections, we need to ensure the size is an exact match
-		cmp := "!="
-		// for variable size values, we want to ensure it doesn't exceed max size bound
-		if !v.isFixed() {
-			cmp = ">"
-		}
+func validateBytesArray(name string, size uint64, fixed bool) string {
+	// for variable size values, we want to ensure it doesn't exceed max size bound
+	cmp := ">"
+	if fixed {
+		cmp = "!="
+	}
 
-		tmpl := `if size := len(::.{{.name}}); size {{.cmp}} {{.size}} {
+	tmpl := `if size := len(::.{{.name}}); size {{.cmp}} {{.size}} {
 			err = ssz.ErrBytesLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
-		`
-		return execTmpl(tmpl, map[string]interface{}{
-			"cmp":  cmp,
-			"name": v.name,
-			"size": v.s,
-		})
+	`
+	return execTmpl(tmpl, map[string]interface{}{
+		"cmp":  cmp,
+		"name": name,
+		"size": size,
+	})
+}
 
-	case TypeVector:
-		// this is a fixed-length array, not a slice, so it's size is a constant we don't need to check
-		if v.c {
+func (v *Value) validate() string {
+	switch obj := v.v2.(type) {
+	case *BitList:
+		return validateBytesArray(v.name, obj.Size, false)
+	case *DynamicBytes:
+		// always validate dynamic bytes
+		return validateBytesArray(v.name, obj.MaxSize, false)
+	case *Bytes:
+		if obj.IsDyn {
+			// always validate dynamic bytes
+			return validateBytesArray(v.name, obj.Size, true)
+		}
+		return ""
+	case *Vector:
+		if !obj.IsDyn {
 			return ""
 		}
+
 		// We only have vectors for [][]byte roots
 		tmpl := `if size := len(::.{{.name}}); size != {{.size}} {
 			err = ssz.ErrVectorLengthFn("--.{{.name}}", size, {{.size}})
@@ -38,10 +45,10 @@ func (v *Value) validate() string {
 		`
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,
-			"size": v.s,
+			"size": obj.Size,
 		})
 
-	case TypeList:
+	case *List:
 		tmpl := `if size := len(::.{{.name}}); size > {{.size}} {
 			err = ssz.ErrListTooBigFn("--.{{.name}}", size, {{.size}})
 			return
@@ -49,7 +56,7 @@ func (v *Value) validate() string {
 		`
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,
-			"size": v.s,
+			"size": obj.MaxSize,
 		})
 
 	default:
