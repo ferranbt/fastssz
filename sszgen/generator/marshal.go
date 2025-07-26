@@ -42,7 +42,7 @@ func (v *Value) marshal() string {
 
 	case *Bytes:
 		name := v.name
-		if v.c {
+		if obj.IsFixed() {
 			name += "[:]"
 		}
 		tmpl := `{{.validate}}dst = append(dst, ::.{{.name}}...)`

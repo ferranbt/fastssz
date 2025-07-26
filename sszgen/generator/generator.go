@@ -163,8 +163,6 @@ type Value struct {
 	name string
 	// name of the Go object this value represents
 	obj string
-	// array is fixed size. important for codegen to know so that code can be generated to interop with slices
-	c bool
 	// ref is the external reference if the struct is imported
 	// from another package
 	ref string
@@ -1045,7 +1043,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			}
 		}
 		if astSize != nil {
-			outer.c = true
+			// outer.c = true
 		}
 
 		var innerTyp *Value

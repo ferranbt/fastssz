@@ -30,9 +30,7 @@ func (v *Value) hashRoots(isList bool) string {
 	innerObj := getElem(v.v2)
 
 	subName := "i"
-	if innerObj.c {
-		subName += "[:]"
-	}
+
 	inner := ""
 	if obj, ok := innerObj.v2.(*Bytes); ok && (obj.IsGoDyn || obj.IsList) {
 		inner = `if len(i) != %d {
@@ -56,6 +54,11 @@ func (v *Value) hashRoots(isList bool) string {
 		} else {
 			appendFn = "Append"
 			elemSize = 32
+
+			if !obj.IsGoDyn {
+				// If we have something like [32]byte we need to call append with [:] to convert it to a slice
+				subName += "[:]"
+			}
 		}
 	} else {
 		// []uint64

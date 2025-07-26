@@ -328,10 +328,13 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 // createItem is used to initialize slices of objects
 func (v *Value) createSlice(useNumVariable bool) string {
 	var sizeU64 uint64
+	var isVectorCreate bool
 	if obj, ok := v.v2.(*List); ok {
 		sizeU64 = obj.MaxSize
+		isVectorCreate = true
 	} else if obj, ok := v.v2.(*Vector); ok {
 		sizeU64 = obj.Size
+		isVectorCreate = obj.IsDyn
 	} else {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
@@ -357,7 +360,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, inner.objRef(), size)
 
 	case *Bytes:
-		if v.c {
+		if !isVectorCreate {
 			return ""
 		}
 
@@ -367,7 +370,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 			return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
 		}
 
-		if inner.c {
+		if obj.IsFixed() {
 			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, obj.Size, size)
 		}
 

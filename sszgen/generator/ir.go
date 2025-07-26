@@ -35,6 +35,10 @@ type Bytes struct {
 	IsGoDyn bool // this is a fixed byte array but that is represented as a vector
 }
 
+func (b *Bytes) IsFixed() bool {
+	return !b.IsList && !b.IsGoDyn
+}
+
 func (b *Bytes) isValue() {}
 
 type BitList struct {
