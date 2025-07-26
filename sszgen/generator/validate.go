@@ -23,11 +23,12 @@ func (v *Value) validate() string {
 	switch obj := v.v2.(type) {
 	case *BitList:
 		return validateBytesArray(v.name, obj.Size, false)
-	case *DynamicBytes:
-		// always validate dynamic bytes
-		return validateBytesArray(v.name, obj.MaxSize, false)
 	case *Bytes:
-		if obj.IsDyn {
+		if obj.IsList {
+			// for lists of bytes, we need to validate the size of the buffer
+			return validateBytesArray(v.name, obj.Size, false)
+		}
+		if obj.IsGoDyn {
 			// always validate dynamic bytes
 			return validateBytesArray(v.name, obj.Size, true)
 		}

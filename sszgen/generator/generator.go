@@ -1080,7 +1080,9 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 						Size: *astSize,
 					}
 				} else {
-					outer.v2 = &DynamicBytes{}
+					outer.v2 = &Bytes{
+						IsList: true,
+					}
 				}
 			} else {
 				val, err := e.parseASTFieldType(name, "", eeType)
@@ -1191,32 +1193,29 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				*/
 
 				// we do not override any value here
-
-			case *DynamicBytes:
-				fmt.Println("DynamicBytes", name, dim.Type(), dim.IsVector(), dim.IsList(), dim.IsBitlist())
-				// this was characterized as dynamic bytes becuase we did not have the size for it
-				// now we can match the size and convert to Bytes if it is a vector
-				if obj.MaxSize != 0 {
-					panic("This should not happen")
-				}
-				if dim.IsList() {
-					outerRef.v2 = &DynamicBytes{
-						MaxSize: uint64(dim.ListLen()),
-					}
-				} else if dim.IsVector() {
-					outerRef.v2 = &Bytes{
-						Size:  uint64(dim.VectorLen()),
-						IsDyn: true,
-					}
-				} else if dim.IsBitlist() {
-					panic("Not handled?")
-				}
-				if name == "RandaoMixes" {
-					// panic("STOP")
-				}
 			case *Bytes:
 				// TODO: Confused because this gets returned as vector not sure why
-
+				if obj.IsList {
+					fmt.Println("DynamicBytes", name, dim.Type(), dim.IsVector(), dim.IsList(), dim.IsBitlist())
+					// this was characterized as dynamic bytes becuase we did not have the size for it
+					// now we can match the size and convert to Bytes if it is a vector
+					if obj.Size != 0 {
+						panic("This should not happen")
+					}
+					if dim.IsList() {
+						obj.Size = uint64(dim.ListLen())
+					} else if dim.IsVector() {
+						outerRef.v2 = &Bytes{
+							Size:    uint64(dim.VectorLen()),
+							IsGoDyn: true,
+						}
+					} else if dim.IsBitlist() {
+						panic("Not handled?")
+					}
+					if name == "RandaoMixes" {
+						// panic("STOP")
+					}
+				}
 			default:
 				panic(fmt.Errorf("i think I have to handle this: %s", reflect.TypeOf(outerRef.v2)))
 			}
@@ -1349,15 +1348,15 @@ func getTags(str string, field string) (string, bool) {
 }
 
 func (v *Value) isFixed() bool {
-	switch v.v2.(type) {
+	switch obj := v.v2.(type) {
 	case *Uint, *Bool, *Time:
 		return true
 	case *BitList:
 		return false
-	case *DynamicBytes:
-		// dynamic bytes are always dynamic
-		return false
 	case *Bytes:
+		if obj.IsList {
+			return false
+		}
 		// bytes are always fixed in size (though sometimes they might be represented as dynamic bytes)
 		return true
 	case *List:

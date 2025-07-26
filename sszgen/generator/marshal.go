@@ -41,7 +41,7 @@ func (v *Value) marshal() string {
 	case *Bool:
 		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
 
-	case *Bytes, *DynamicBytes:
+	case *Bytes:
 		name := v.name
 		if v.c {
 			name += "[:]"

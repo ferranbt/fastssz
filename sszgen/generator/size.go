@@ -40,8 +40,6 @@ func (v *Value) fixedSize() uint64 {
 		return obj.Size
 	case *Bytes:
 		return obj.Size
-	case *DynamicBytes:
-		return obj.MaxSize
 	case *BitList:
 		return obj.Size
 	case *Container:

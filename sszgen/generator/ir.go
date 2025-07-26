@@ -25,17 +25,12 @@ type Bool struct {
 func (b *Bool) isValue() {}
 
 type Bytes struct {
-	Size  uint64
-	IsDyn bool // this is a fixed byte array but that is represented as a vector
+	Size    uint64
+	IsList  bool
+	IsGoDyn bool // this is a fixed byte array but that is represented as a vector
 }
 
 func (b *Bytes) isValue() {}
-
-type DynamicBytes struct {
-	MaxSize uint64
-}
-
-func (d *DynamicBytes) isValue() {}
 
 type BitList struct {
 	Size uint64

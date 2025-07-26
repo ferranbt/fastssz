@@ -26,53 +26,31 @@ func (e *env) hashTreeRoot(name string, v *Value) string {
 	return appendObjSignature(str, v)
 }
 
-func arrayNeedsSafeCheck(elem *Value) (bool, uint64) {
-	if obj, ok := elem.v2.(*DynamicBytes); ok {
-		// we need to check the length of the array
-		return true, obj.MaxSize
-	}
-	if obj, ok := elem.v2.(*Bytes); ok && obj.IsDyn {
-		// It is of fixed size but we need to perform the check because the Go obj is not fixed size
-		return true, obj.Size
-	}
-	return false, 0
-}
-
-func isBytesType(elem *Value) (bool, uint64) {
-	if obj, ok := elem.v2.(*DynamicBytes); ok {
-		return true, obj.MaxSize
-	}
-	if obj, ok := elem.v2.(*Bytes); ok {
-		return true, obj.Size
-	}
-	return false, 0
-}
-
 func (v *Value) hashRoots(isList bool) string {
 	subName := "i"
 	if v.e.c {
 		subName += "[:]"
 	}
 	inner := ""
-	if ok, size := arrayNeedsSafeCheck(v.e); ok {
+	if obj, ok := v.e.v2.(*Bytes); ok && (obj.IsGoDyn || obj.IsList) {
 		inner = `if len(i) != %d {
 			err = ssz.ErrBytesLength
 			return
 		}
 		`
-		inner = fmt.Sprintf(inner, size)
+		inner = fmt.Sprintf(inner, obj.Size)
 	}
 
 	var appendFn string
 	var elemSize uint64
 
-	if ok, size := isBytesType(v.e); ok {
+	if obj, ok := v.e.v2.(*Bytes); ok {
 		// [][]byte
-		if size != 32 {
+		if obj.Size != 32 {
 			// we need to use PutBytes in order to hash the result since
 			// is higher than 32 bytes
 			appendFn = "PutBytes"
-			elemSize = size
+			elemSize = obj.Size
 		} else {
 			appendFn = "Append"
 			elemSize = 32
