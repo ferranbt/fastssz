@@ -126,7 +126,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 	}
 
 	switch obj := v.v2.(type) {
-	case *Container:
+	case *Container, *Reference:
 		return v.hashTreeRootContainer(false)
 
 	case *Uint:
@@ -227,11 +227,6 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 				"maxLen":     obj.Size,
 			})
 		}
-	}
-
-	switch v.t {
-	case TypeReference:
-		return v.hashTreeRootContainer(false)
 
 	default:
 		panic(fmt.Errorf("hash not implemented for type %s", v.t.String()))

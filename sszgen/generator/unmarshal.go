@@ -25,7 +25,7 @@ func (e *env) unmarshal(name string, v *Value) string {
 
 func (v *Value) unmarshal(dst string) string {
 	switch obj := v.v2.(type) {
-	case *Container:
+	case *Container, *Reference:
 		return v.umarshalContainer(false, dst)
 
 	case *Bytes:
@@ -102,12 +102,6 @@ func (v *Value) unmarshal(dst string) string {
 
 	case *List:
 		return v.unmarshalList()
-	}
-
-	// we use dst as the input buffer where the SSZ data to decode the value is.
-	switch v.t {
-	case TypeReference:
-		return v.umarshalContainer(false, dst)
 
 	default:
 		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))

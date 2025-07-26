@@ -63,3 +63,9 @@ type Time struct {
 }
 
 func (t *Time) isValue() {}
+
+type Reference struct {
+	Size uint64
+}
+
+func (r *Reference) isValue() {}

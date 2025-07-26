@@ -60,13 +60,13 @@ func (v *Value) fixedSize() uint64 {
 			return obj.Size * bytesPerLengthOffset
 		}
 
-	default:
-		if v.t == TypeReference {
-			if !v.isFixed() {
-				return bytesPerLengthOffset
-			}
-			return v.s
+	case *Reference:
+		if !v.isFixed() {
+			return bytesPerLengthOffset
 		}
+		return obj.Size
+
+	default:
 		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.v2)))
 	}
 }
@@ -115,7 +115,7 @@ func (v *Value) size(name string) string {
 	}
 
 	switch v.v2.(type) {
-	case *Container:
+	case *Container, *Reference:
 		return v.sizeContainer(name, false)
 
 	case *BitList:
@@ -138,11 +138,6 @@ func (v *Value) size(name string) string {
 			"size":    name,
 			"dynamic": v.e.size(name),
 		})
-	}
-
-	switch v.t {
-	case TypeReference:
-		return v.sizeContainer(name, false)
 
 	default:
 		panic(fmt.Errorf("size not implemented for type %s", v.t.String()))

@@ -893,7 +893,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		}
 		if raw.implFunc {
 			size, _ := getTagsInt(tags, "ssz-size")
-			v = &Value{t: TypeReference, s: size, noPtr: raw.obj == nil}
+			v = &Value{t: TypeReference, s: size, noPtr: raw.obj == nil, v2: &Reference{Size: size}}
 		} else if raw.obj != nil {
 			v, err = e.parseASTStructType(name)
 		} else {

@@ -78,12 +78,7 @@ func (v *Value) marshal() string {
 		}
 		return v.marshalList()
 
-	case *Container:
-		return v.marshalContainer(false)
-	}
-
-	switch v.t {
-	case TypeReference:
+	case *Container, *Reference:
 		return v.marshalContainer(false)
 
 	default:
