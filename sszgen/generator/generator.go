@@ -176,8 +176,6 @@ type Value struct {
 	ref string
 	// new determines if the value is a pointer
 	noPtr bool
-	// isFixed allows us to explicitly mark fixed at parse time
-	fixed bool
 
 	v2 Value2
 }
@@ -1059,7 +1057,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 		if astSize != nil {
 			outer.c = true
-			outer.fixed = true
 		}
 
 		switch eeType := obj.Elt.(type) {
@@ -1132,7 +1129,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				if dim.IsVector() {
 					// this is how we differentiate byte lists from byte vectors, rather than the usual approach
 					// of nesting a Value for the element within the .e attribute
-					outerRef.fixed = true
 				}
 				if dim.IsBitlist() {
 					outerRef.t = TypeBitList
@@ -1273,7 +1269,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{t: TypeBytes, fixed: true, v2: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
+			return &Value{t: TypeBytes, v2: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
