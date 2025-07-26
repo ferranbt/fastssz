@@ -206,17 +206,6 @@ func (dim *SSZDimension) VectorLen() int {
 	return *dim.VectorLength
 }
 
-// ValueType returns a Type enum to be used in the construction of a fastssz Value type
-func (dim *SSZDimension) ValueType() Type {
-	if dim.IsVector() {
-		return TypeVector
-	}
-	if dim.IsList() {
-		return TypeList
-	}
-	return TypeUndefined
-}
-
 // ValueType returns ssz-max or ssz-size, to be used in the construction of a fastssz Value type
 func (dim *SSZDimension) ValueLen() uint64 {
 	if dim.IsList() {

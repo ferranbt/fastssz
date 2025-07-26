@@ -224,59 +224,6 @@ func (v *Value) copy() *Value {
 	return vv
 }
 
-// Type is a SSZ type
-type Type int
-
-const (
-	// TypeUndefined is a sentinel zero value to make initialization problems detectable
-	TypeUndefined Type = iota
-	// TypeUint is a SSZ int type
-	TypeUint
-	// TypeBool is a SSZ bool type
-	TypeBool
-	// TypeBytes is a SSZ fixed or dynamic bytes type
-	TypeBytes
-	// TypeBitList is a SSZ bitlist
-	TypeBitList
-	// TypeVector is a SSZ vector
-	TypeVector
-	// TypeList is a SSZ list
-	TypeList
-	// TypeContainer is a SSZ container
-	TypeContainer
-	// TypeReference is a SSZ reference
-	TypeReference
-	// TypeTime is a timestamp
-	TypeTime
-)
-
-func (t Type) String() string {
-	switch t {
-	case TypeUndefined:
-		return "undefined"
-	case TypeUint:
-		return "uint"
-	case TypeBool:
-		return "bool"
-	case TypeBytes:
-		return "bytes"
-	case TypeBitList:
-		return "bitlist"
-	case TypeVector:
-		return "vector"
-	case TypeList:
-		return "list"
-	case TypeContainer:
-		return "container"
-	case TypeReference:
-		return "reference"
-	case TypeTime:
-		return "time.Time"
-	default:
-		panic("not found")
-	}
-}
-
 type env struct {
 	source string
 	// map of the include path for cross package reference
@@ -1042,9 +989,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				astSize = &num
 			}
 		}
-		if astSize != nil {
-			// outer.c = true
-		}
 
 		var innerTyp *Value
 
@@ -1105,44 +1049,22 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			return nil, fmt.Errorf("%v, tag=%s", err, tags)
 		}
 
-		fmt.Println("-- name", name, tags)
-
 		// try to validate the dimensions
 		outerRef := outer
-		for _, dim := range dims {
-			// upsert the types of the value depending on
-			// what the dimension says
-			/*
-				if outerRef.t == TypeBytes {
-					if dim.IsVector() {
-						// this is how we differentiate byte lists from byte vectors, rather than the usual approach
-						// of nesting a Value for the element within the .e attribute
-					}
-					if dim.IsBitlist() {
-						outerRef.t = TypeBitList
-					}
-				} else {
-					if dim.IsVector() {
-						outerRef.t = TypeVector
-					}
-					if dim.IsList() {
-						outerRef.t = TypeList
-					}
-				}
-			*/
 
+		dimsLen := len(dims)
+		for indx, dim := range dims {
 			switch obj := outerRef.typ.(type) {
 			case *List:
-				// You had a list because you did not reoslve the type yet, now is where you check it
-				// the size should be 0
+				// At this point we have a list because the internal vector/list did not have a concrete size
+				// Now is the time where we check the dimensions and update the size of the list type accordingly
+				// if it is a vector.
 				if obj.MaxSize != 0 {
-					panic("This should not happen")
+					return nil, fmt.Errorf("list should not have a max size at this point")
 				}
 				if dim.IsList() {
-					// update the MaxSize of the list
 					obj.MaxSize = uint64(dim.ListLen())
 				} else if dim.IsVector() {
-					// update to vector
 					outerRef.typ = &Vector{
 						Elem:  obj.Elem,
 						Size:  uint64(dim.VectorLen()),
@@ -1151,27 +1073,21 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				}
 
 			case *Vector:
-				// TODO: Assume the vector has the correct data at this point for now
-				/*
-					if !dim.IsList() {
-						return nil, fmt.Errorf("(2) expected a list type for %s but got %s", name, dim.Type())
-					}
-					size := uint64(dim.ListLen())
-					if obj.Size != 0 && obj.Size != size {
-						// if it is set already, it should be the same
-						return nil, fmt.Errorf("(3) expected a list size of %d for %s but got %d", obj.Size, name, size)
-					}
-				*/
+				// Validate that the vector fixed size specified in the ssz tags matches the size of the Go array
+				if !dim.IsVector() {
+					return nil, fmt.Errorf("fixed size %d but the ssz tag is not a vector", obj.Size)
+				}
+				vectorLen := dim.VectorLen()
+				if vectorLen != int(obj.Size) {
+					return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size, vectorLen)
+				}
 
-				// we do not override any value here
 			case *Bytes:
-				// TODO: Confused because this gets returned as vector not sure why
 				if obj.IsList {
-					fmt.Println("DynamicBytes", name, dim.Type(), dim.IsVector(), dim.IsList(), dim.IsBitlist())
-					// this was characterized as dynamic bytes becuase we did not have the size for it
-					// now we can match the size and convert to Bytes if it is a vector
+					// Same case as with the List above.
+					// We have a []byte object for which we have to resolve the size now that we have the dimensions
 					if obj.Size != 0 {
-						panic("This should not happen")
+						return nil, fmt.Errorf("bytes should not have a size at this point")
 					}
 					if dim.IsList() {
 						obj.Size = uint64(dim.ListLen())
@@ -1180,28 +1096,33 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 							Size:    uint64(dim.VectorLen()),
 							IsGoDyn: true,
 						}
-					} else if dim.IsBitlist() {
-						panic("Not handled?")
 					}
 				}
 			default:
-				panic(fmt.Errorf("i think I have to handle this: %s", reflect.TypeOf(outerRef.typ)))
+				return nil, fmt.Errorf("unexpected type %s for field %s", reflect.TypeOf(obj), name)
 			}
 
 			if dim.IsBitlist() {
-				// this is a bitlist, we have to change the type
 				outerRef.typ = &BitList{
 					Size: uint64(dim.ListLen()),
 				}
 			}
 
-			// TODO: check that there are no more dimensions to check
+			// Go down to the nested type to check the next dimension
 			switch obj := outerRef.typ.(type) {
 			case *List:
 				outerRef = obj.Elem
 			case *Vector:
 				outerRef = obj.Elem
 			default:
+				outerRef = nil
+			}
+
+			if outerRef == nil {
+				if indx < dimsLen-1 {
+					return nil, fmt.Errorf("incorrect dimensions, expected %d but got only %d", dimsLen, indx+1)
+				}
+				// we are at the last dimension, no more dimensions to check
 				break
 			}
 		}
@@ -1228,7 +1149,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if err != nil {
 				return nil, fmt.Errorf("failed to encode %s: %v", obj.Name, err)
 			}
-			fmt.Println(vv.typ, reflect.TypeOf(vv.typ))
 			if vv.typ == nil {
 				panic("Cannot be nil")
 			}
