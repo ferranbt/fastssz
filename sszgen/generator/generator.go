@@ -163,8 +163,6 @@ type Value struct {
 	name string
 	// name of the Go object this value represents
 	obj string
-	// auxiliary int number
-	s uint64
 	// type of the value
 	t Type
 	// array of values for a container
@@ -173,8 +171,6 @@ type Value struct {
 	e *Value
 	// array is fixed size. important for codegen to know so that code can be generated to interop with slices
 	c bool
-	// another auxiliary int number
-	m uint64
 	// ref is the external reference if the struct is imported
 	// from another package
 	ref string
@@ -893,7 +889,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 		}
 		if raw.implFunc {
 			size, _ := getTagsInt(tags, "ssz-size")
-			v = &Value{t: TypeReference, s: size, noPtr: raw.obj == nil, v2: &Reference{Size: size}}
+			v = &Value{t: TypeReference, noPtr: raw.obj == nil, v2: &Reference{Size: size}}
 		} else if raw.obj != nil {
 			v, err = e.parseASTStructType(name)
 		} else {
@@ -1063,7 +1059,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		}
 		if astSize != nil {
 			outer.c = true
-			outer.s = *astSize
 			outer.fixed = true
 		}
 
@@ -1151,15 +1146,6 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				}
 			}
 
-			// update the sizes of the value
-			if dim.IsVector() {
-				outerRef.s = uint64(dim.VectorLen())
-			}
-			if dim.IsList() {
-				outerRef.m = uint64(dim.ListLen())
-				outerRef.s = uint64(dim.ListLen())
-			}
-
 			switch obj := outerRef.v2.(type) {
 			case *List:
 				// You had a list because you did not reoslve the type yet, now is where you check it
@@ -1237,15 +1223,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		var v *Value
 		switch obj.Name {
 		case "uint64":
-			v = &Value{t: TypeUint, s: 8, v2: &Uint{Size: 8}}
+			v = &Value{t: TypeUint, v2: &Uint{Size: 8}}
 		case "uint32":
-			v = &Value{t: TypeUint, s: 4, v2: &Uint{Size: 4}}
+			v = &Value{t: TypeUint, v2: &Uint{Size: 4}}
 		case "uint16":
-			v = &Value{t: TypeUint, s: 2, v2: &Uint{Size: 2}}
+			v = &Value{t: TypeUint, v2: &Uint{Size: 2}}
 		case "uint8":
-			v = &Value{t: TypeUint, s: 1, v2: &Uint{Size: 1}}
+			v = &Value{t: TypeUint, v2: &Uint{Size: 1}}
 		case "bool":
-			v = &Value{t: TypeBool, s: 1, v2: &Bool{}}
+			v = &Value{t: TypeBool, v2: &Bool{}}
 		default:
 			// try to resolve as an alias
 			vv, err := e.encodeItem(obj.Name, tags)
@@ -1266,14 +1252,14 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		sel := obj.Sel.Name
 
 		if exprName == "time" && sel == "Time" {
-			return &Value{t: TypeTime, s: 8, v2: &Time{}}, nil
+			return &Value{t: TypeTime, v2: &Time{}}, nil
 		} else if sel == "Bitlist" {
 			// go-bitfield/Bitlist
 			maxSize, ok := getTagsInt(tags, "ssz-max")
 			if !ok {
 				return nil, fmt.Errorf("bitlist %s does not have ssz-max tag", name)
 			}
-			return &Value{t: TypeBitList, m: maxSize, s: maxSize, v2: &BitList{Size: maxSize}}, nil
+			return &Value{t: TypeBitList, v2: &BitList{Size: maxSize}}, nil
 		} else if strings.HasPrefix(sel, "Bitvector") {
 			// go-bitfield/Bitvector, fixed bytes
 			dims, err := extractSSZDimensions(tags)
@@ -1287,7 +1273,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{t: TypeBytes, fixed: true, s: uint64(tailDim.VectorLen()), v2: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
+			return &Value{t: TypeBytes, fixed: true, v2: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1375,14 +1361,12 @@ func (v *Value) isFixed() bool {
 		}
 		// if all values within the container are fixed, it is fixed
 		return true
-	}
-
-	switch v.t {
-	case TypeReference:
-		if v.s != 0 {
+	case *Reference:
+		if obj.Size != 0 {
 			return true
 		}
 		return false
+
 	default:
 		// TypeUndefined should be the only type to fallthrough to this case
 		// TypeUndefined always means there is a fatal error in the parsing logic
@@ -1423,24 +1407,6 @@ func uintVToName2(v Uint) string {
 	}
 }
 
-func uintVToName(v *Value) string {
-	if v.t != TypeUint {
-		panic(fmt.Sprintf("type %v for %s not expected", v.t, v.name))
-	}
-	switch v.s {
-	case 8:
-		return "Uint64"
-	case 4:
-		return "Uint32"
-	case 2:
-		return "Uint16"
-	case 1:
-		return "Uint8"
-	default:
-		panic(fmt.Sprintf("unknown uint size, %d bytes. field name=%s", v.s, v.name))
-	}
-}
-
 func uintVToLowerCaseName2(v *Uint) string {
 	switch v.Size {
 	case 8:
@@ -1453,23 +1419,5 @@ func uintVToLowerCaseName2(v *Uint) string {
 		return "uint8"
 	default:
 		panic(fmt.Sprintf("unknown uint size, %d bytes", v.Size))
-	}
-}
-
-func uintVToLowerCaseName(v *Value) string {
-	if v.t != TypeUint {
-		panic(fmt.Sprintf("type %v for %s not expected", v.t, v.name))
-	}
-	switch v.s {
-	case 8:
-		return "uint64"
-	case 4:
-		return "uint32"
-	case 2:
-		return "uint16"
-	case 1:
-		return "uint8"
-	default:
-		panic(fmt.Sprintf("unknown uint size, %d bytes. field name=%s", v.s, v.name))
 	}
 }

@@ -57,7 +57,7 @@ func (v *Value) hashRoots(isList bool) string {
 		}
 	} else {
 		// []uint64
-		appendFn = "Append" + uintVToName(v.e)
+		appendFn = "Append" + uintVToName2(*v.e.v2.(*Uint))
 		elemSize = uint64(v.e.fixedSize())
 	}
 

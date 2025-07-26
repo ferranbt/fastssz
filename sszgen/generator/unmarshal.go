@@ -348,7 +348,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 	switch obj := v.e.v2.(type) {
 	case *Uint:
 		// []int uses the Extend functions in the fastssz package
-		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName(v.e), v.name, size)
+		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName2(*obj), v.name, size)
 
 	case *Container:
 		// []*(ref.)Struct{}
