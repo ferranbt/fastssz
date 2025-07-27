@@ -517,10 +517,12 @@ func decodeASTStruct(file *ast.File) *astResult {
 						obj.obj = structType
 
 						// process the type params if there is any
-						if len(typeSpec.TypeParams.List) > 0 {
-							obj.paramTypes = map[string]ast.Expr{}
-							for _, typ := range typeSpec.TypeParams.List {
-								obj.paramTypes[typ.Names[0].Name] = typ.Type
+						if typeSpec.TypeParams != nil {
+							if len(typeSpec.TypeParams.List) > 0 {
+								obj.paramTypes = map[string]ast.Expr{}
+								for _, typ := range typeSpec.TypeParams.List {
+									obj.paramTypes[typ.Names[0].Name] = typ.Type
+								}
 							}
 						}
 					} else {
