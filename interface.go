@@ -18,6 +18,10 @@ type HashRoot interface {
 	HashTreeRootWith(hh HashWalker) error
 }
 
+type HashRootProof interface {
+	HashTreeRootWith(hh HashWalker) error
+}
+
 type HashWalker interface {
 	// Intended for testing purposes to know the latest hash generated during merkleize
 	Hash() []byte

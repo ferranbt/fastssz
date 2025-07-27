@@ -267,11 +267,9 @@ type ErrorResponse struct {
 	Message []byte `ssz-max:"256"`
 }
 
-type Dummy struct {
-}
+type Dummy struct{}
 
-type Interface interface {
-}
+type Interface interface{}
 
 type SyncCommittee struct {
 	PubKeys         [][]byte `json:"pubkeys" ssz-size:"512,48"`
@@ -317,6 +315,11 @@ type ExecutionPayloadHeader struct {
 	BaseFeePerGas    []byte `json:"base_fee_per_gas" ssz-size:"32"`
 	BlockHash        []byte `json:"block_hash" ssz-size:"32"`
 	TransactionsRoot []byte `json:"transactions_root" ssz-size:"32"`
+}
+
+// ExecutionPayloadTransactions provides information about transactions.
+type ExecutionPayloadTransactions struct {
+	Transactions [][]byte `ssz-max:"1048576,1073741824" ssz-size:"?,?"`
 }
 
 // Capella types

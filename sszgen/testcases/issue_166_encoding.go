@@ -15,9 +15,13 @@ func (i *Issue165) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Issue165 object to a target array
 func (i *Issue165) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int(8)
 
 	// Offset (0) 'A'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(i.A)
+
+	// Offset (1) 'B'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'A'
@@ -27,6 +31,13 @@ func (i *Issue165) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, i.A...)
 
+	// Field (1) 'B'
+	if size := len(i.B); size > 0 {
+		err = ssz.ErrBytesLengthFn("Issue165.B", size, 0)
+		return
+	}
+	dst = append(dst, i.B...)
+
 	return
 }
 
@@ -34,39 +45,59 @@ func (i *Issue165) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 4 {
+	if size < 8 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0 uint64
+	var o0, o1 uint64
 
 	// Offset (0) 'A'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 4 {
+	if o0 != 8 {
 		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Offset (1) 'B'
+	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+		return ssz.ErrOffset
 	}
 
 	// Field (0) 'A'
 	{
-		buf = tail[o0:]
+		buf = tail[o0:o1]
 		if len(buf) > 0 {
 			return ssz.ErrBytesLength
 		}
 		i.A = ssz.ExtendSlice(i.A[:0], len(buf))
+	}
+
+	// Field (1) 'B'
+	{
+		buf = tail[o1:]
+		if len(buf) > 0 {
+			return ssz.ErrBytesLength
+		}
+		if cap(i.B) == 0 {
+			i.B = make([]byte, 0, len(buf))
+		}
+		i.B = append(i.B, buf...)
 	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Issue165 object
 func (i *Issue165) SizeSSZ() (size int) {
-	size = 4
+	size = 8
 
 	// Field (0) 'A'
 	size += len(i.A)
+
+	// Field (1) 'B'
+	size += len(i.B)
 
 	return
 }
@@ -89,6 +120,18 @@ func (i *Issue165) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 			return
 		}
 		hh.Append(i.A)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (0+31)/32)
+	}
+
+	// Field (1) 'B'
+	{
+		elemIndx := hh.Index()
+		byteLen := uint64(len(i.B))
+		if byteLen > 0 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		hh.Append(i.B)
 		hh.MerkleizeWithMixin(elemIndx, byteLen, (0+31)/32)
 	}
 

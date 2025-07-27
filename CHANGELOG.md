@@ -1,4 +1,19 @@
-# 0.1.4 (Unreleased)
+# 0.1.5 (Unreleased)
+
+# 0.1.4 (7 Aug, 2024)
+
+- fix: Do not skip intermediate hashes in multi-proof [GH-173](https://github.com/ferranbt/fastssz/issues/173)]
+- feat: Add dot graph generation [[GH-172](https://github.com/ferranbt/fastssz/issues/172)]
+- fix: Fix spurious allocation in hasher.Merkleize [[GH-171](https://github.com/ferranbt/fastssz/issues/171)]
+- feat: Increase performance for repeated proving [[GH-168](https://github.com/ferranbt/fastssz/issues/168)]
+- fix: Infer size for fixed []byte without tags [[GH-155](https://github.com/ferranbt/fastssz/issues/155)]
+- fix: Unmarshaling of fixed sized custom types [[GH-152](https://github.com/ferranbt/fastssz/issues/152)]
+- feat: Support list of non-ptr containers [[GH-151](https://github.com/ferranbt/fastssz/issues/151)]
+- feat: Support uin32 lists [[GH-149](https://github.com/ferranbt/fastssz/issues/149)]
+- fix: Fix chunk count in merkleize [[GH-147](https://github.com/ferranbt/fastssz/issues/147)]
+- feat: Add deneb fork to specs [[GH-139](https://github.com/ferranbt/fastssz/issues/139)]
+- fix: Sszgen incorrect output for nested []byte types [[GH-127](https://github.com/ferranbt/fastssz/issues/127)]
+- fix: Sszgen do not import package references if not used [[GH-137](https://github.com/ferranbt/fastssz/issues/137)]
 
 # 0.1.3 (8 Feb, 2023)
 
