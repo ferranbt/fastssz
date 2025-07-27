@@ -874,15 +874,23 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 		if !ok {
 			return nil, fmt.Errorf("struct %s not found", subName)
 		}
+
+		isValidField := func(fieldName string) bool {
+			if !isExportedField(fieldName) {
+				return false
+			}
+			if strings.HasPrefix(fieldName, "XXX_") {
+				// skip protobuf methods
+				return false
+			}
+			return true
+		}
+
 		for _, f := range item.obj.Fields.List {
 			if len(f.Names) == 1 {
 				// normal type
 				fieldName := f.Names[0].Name
-				if !isExportedField(fieldName) {
-					continue
-				}
-				if strings.HasPrefix(fieldName, "XXX_") {
-					// skip protobuf methods
+				if !isValidField(fieldName) {
 					continue
 				}
 				fields = append(fields, f)
@@ -897,6 +905,24 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 					return nil, err
 				}
 				fields = append(fields, subFields...)
+			} else {
+				// inlined names
+				// For example: A, B uint64
+				for _, name := range f.Names {
+					if !isValidField(name.Name) {
+						continue
+					}
+
+					// create a copy of the field f and set a single name
+					fieldCopy := &ast.Field{
+						Doc:     f.Doc,
+						Names:   []*ast.Ident{name},
+						Tag:     f.Tag,
+						Type:    f.Type,
+						Comment: f.Comment,
+					}
+					fields = append(fields, fieldCopy)
+				}
 			}
 		}
 		return fields, nil
@@ -931,6 +957,7 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 
 // parse the Go AST field
 func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error) {
+	fmt.Println(name)
 	if tag, ok := getTags(tags, "ssz"); ok && tag == "-" {
 		// omit value
 		return nil, nil
