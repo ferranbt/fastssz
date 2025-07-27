@@ -24,19 +24,18 @@ func (e *env) unmarshal(name string, v *Value) string {
 }
 
 func (v *Value) unmarshal(dst string) string {
-	// we use dst as the input buffer where the SSZ data to decode the value is.
-	switch v.t {
-	case TypeContainer, TypeReference:
+	switch obj := v.typ.(type) {
+	case *Container, *Reference:
 		return v.umarshalContainer(false, dst)
 
-	case TypeBytes:
-		if v.c {
+	case *Bytes:
+		if !obj.IsList && !obj.IsGoDyn {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
 		validate := ""
 		if !v.isFixed() {
 			// dynamic bytes, we need to validate the size of the buffer
-			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, v.m)
+			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, obj.Size)
 		}
 
 		// both fixed and dynamic are decoded equally
@@ -48,23 +47,12 @@ func (v *Value) unmarshal(dst string) string {
 			"validate": validate,
 			"name":     v.name,
 			"dst":      dst,
-			"size":     v.m,
+			"size":     obj.Size,
 			"isRef":    v.ref != "",
 			"obj":      v,
 		})
 
-	case TypeUint:
-		if v.ref != "" {
-			// alias, we need to cast the value
-			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.objRef(), uintVToName(v), dst)
-		}
-		if v.obj != "" {
-			// alias to a type on the same package
-			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.obj, uintVToName(v), dst)
-		}
-		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName(v), dst)
-
-	case TypeBitList:
+	case *BitList:
 		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
 			return err
 		}
@@ -75,12 +63,29 @@ func (v *Value) unmarshal(dst string) string {
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,
 			"dst":  dst,
-			"size": v.m,
+			"size": obj.Size,
 		})
 
-	case TypeVector:
-		if v.e.isFixed() {
-			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, v.e.fixedSize(), v.e.fixedSize())
+	case *Uint:
+		if v.ref != "" {
+			// alias, we need to cast the value
+			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.objRef(), uintVToName2(*obj), dst)
+		}
+		if v.obj != "" {
+			// alias to a type on the same package
+			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.obj, uintVToName2(*obj), dst)
+		}
+		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName2(*obj), dst)
+
+	case *Bool:
+		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
+
+	case *Time:
+		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
+
+	case *Vector:
+		if obj.Elem.isFixed() {
+			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, obj.Elem.fixedSize(), obj.Elem.fixedSize())
 
 			tmpl := `{{.create}}
 			for ii := 0; ii < {{.size}}; ii++ {
@@ -88,29 +93,34 @@ func (v *Value) unmarshal(dst string) string {
 			}`
 			return execTmpl(tmpl, map[string]interface{}{
 				"create":    v.createSlice(false),
-				"size":      v.s,
-				"unmarshal": v.e.unmarshal(dst),
+				"size":      obj.Size,
+				"unmarshal": obj.Elem.unmarshal(dst),
 			})
+		} else {
+			return v.unmarshalList()
 		}
-		fallthrough
 
-	case TypeList:
+	case *List:
 		return v.unmarshalList()
 
-	case TypeBool:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
-
-	case TypeTime:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
-
 	default:
-		panic(fmt.Errorf("unmarshal not implemented for type %d", v.t))
+		panic(fmt.Errorf("unmarshal not implemented for type %s", v.Type()))
 	}
 }
 
 func (v *Value) unmarshalList() string {
-	if v.e.isFixed() {
-		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", v.e.fixedSize(), v.e.fixedSize())
+	var size uint64
+	if obj, ok := v.typ.(*List); ok {
+		size = obj.MaxSize
+	} else if obj, ok := v.typ.(*Vector); ok {
+		size = obj.Size
+	} else {
+		panic(fmt.Errorf("unmarshalList not implemented for type %s", v.Type()))
+	}
+
+	inner := getElem(v.typ)
+	if inner.isFixed() {
+		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", inner.fixedSize(), inner.fixedSize())
 
 		tmpl := `num, err := ssz.DivideInt2(len(buf), {{.size}}, {{.max}})
 		if err != nil {
@@ -121,15 +131,11 @@ func (v *Value) unmarshalList() string {
 			{{.unmarshal}}
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
-			"size":      v.e.fixedSize(),
-			"max":       v.s,
+			"size":      inner.fixedSize(),
+			"max":       size,
 			"create":    v.createSlice(true),
-			"unmarshal": v.e.unmarshal(dst),
+			"unmarshal": inner.unmarshal(dst),
 		})
-	}
-
-	if v.t == TypeVector {
-		panic("it cannot happen")
 	}
 
 	// Decode list with a dynamic element. 'ssz.DecodeDynamicLength' ensures
@@ -148,12 +154,12 @@ func (v *Value) unmarshalList() string {
 		return err
 	}`
 
-	v.e.name = v.name + "[indx]"
+	inner.name = v.name + "[indx]"
 
 	data := map[string]interface{}{
-		"max":       v.s,
+		"max":       size,
 		"create":    v.createSlice(true),
-		"unmarshal": v.e.unmarshal("buf"),
+		"unmarshal": inner.unmarshal("buf"),
 	}
 	return execTmpl(tmpl, data)
 }
@@ -181,7 +187,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	var offsets []string
 	offsetsMatch := map[string]string{}
 
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			name := "o" + strconv.Itoa(indx)
 			if len(offsets) != 0 {
@@ -230,7 +236,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// value with the name of the previous offset variable.
 	firstOffsetCheck := fmt.Sprintf("%d", v.fixedSize())
 	outs := []string{}
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 
 		// How much it increases on every item
 		var incr uint64
@@ -289,7 +295,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	c := 0
 
-	for indx, i := range v.o {
+	for indx, i := range v.getObjs() {
 		if !i.isFixed() {
 			from := offsets[c]
 			var to string
@@ -321,47 +327,56 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 // createItem is used to initialize slices of objects
 func (v *Value) createSlice(useNumVariable bool) string {
-	if v.t != TypeVector && v.t != TypeList {
+	var sizeU64 uint64
+	var isVectorCreate bool
+	if obj, ok := v.typ.(*List); ok {
+		sizeU64 = obj.MaxSize
+		isVectorCreate = true
+	} else if obj, ok := v.typ.(*Vector); ok {
+		sizeU64 = obj.Size
+		isVectorCreate = obj.IsDyn
+	} else {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
 
-	size := strconv.Itoa(int(v.s))
+	size := strconv.Itoa(int(sizeU64))
 	// when useNumVariable is specified, we assume there is a 'num' variable generated beforehand with the expected size.
 	if useNumVariable {
 		size = "num"
 	}
 
-	switch v.e.t {
-	case TypeUint:
+	inner := getElem(v.typ)
+	switch obj := inner.typ.(type) {
+	case *Uint:
 		// []int uses the Extend functions in the fastssz package
-		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName(v.e), v.name, size)
+		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName2(*obj), v.name, size)
 
-	case TypeContainer:
+	case *Container:
 		// []*(ref.)Struct{}
 		ptr := "*"
-		if v.e.noPtr {
+		if inner.noPtr {
 			ptr = ""
 		}
-		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, v.e.objRef(), size)
+		return fmt.Sprintf("::.%s = make([]%s%s, %s)", v.name, ptr, inner.objRef(), size)
 
-	case TypeBytes:
-		if v.c {
+	case *Bytes:
+		if !isVectorCreate {
 			return ""
 		}
 
 		// Check for a type alias.
-		ref := v.e.objRef()
+		ref := inner.objRef()
 		if ref != "" {
 			return fmt.Sprintf("::.%s = make([]%s, %s)", v.name, ref, size)
 		}
 
-		if v.e.c {
-			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, v.e.s, size)
+		if obj.IsFixed() {
+			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, obj.Size, size)
 		}
 
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)
 
 	default:
-		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, v.e.t.String()))
+		panic(fmt.Sprintf("create not implemented for %s type %s", v.name, inner.Type()))
 	}
 }
