@@ -248,6 +248,8 @@ type env struct {
 	results []*astResult
 	// suffix is the suffix to append to codec files.
 	suffix string
+	// current struct being processed
+	current *astStruct
 }
 
 func (e *env) generateOutputEncodings(output string) (map[string]string, error) {
@@ -374,12 +376,26 @@ func (e *env) print(order []string) (string, bool, error) {
 			continue
 		}
 
+		// generate the correct name for the method definition
+		astStruct, ok := e.getRawItemByName(name)
+		if !ok {
+			return "", false, fmt.Errorf("could not find struct with name '%s'", name)
+		}
+		funcSigName := name
+		if len(astStruct.paramTypes) > 0 {
+			paramNames := []string{}
+			for name := range astStruct.paramTypes {
+				paramNames = append(paramNames, name)
+			}
+			funcSigName += "[" + strings.Join(paramNames, ",") + "]"
+		}
+
 		objs = append(objs, &Obj{
-			HashTreeRoot: e.hashTreeRoot(name, obj),
-			GetTree:      e.getTree(name, obj),
-			Marshal:      e.marshal(name, obj),
-			Unmarshal:    e.unmarshal(name, obj),
-			Size:         e.size(name, obj),
+			HashTreeRoot: e.hashTreeRoot(funcSigName, obj),
+			GetTree:      e.getTree(funcSigName, obj),
+			Marshal:      e.marshal(funcSigName, obj),
+			Unmarshal:    e.unmarshal(funcSigName, obj),
+			Size:         e.size(funcSigName, obj),
 		})
 	}
 	if len(objs) == 0 {
@@ -451,12 +467,13 @@ func appendObjSignature(str string, v *Value) string {
 }
 
 type astStruct struct {
-	name     string
-	obj      *ast.StructType
-	packName string
-	typ      ast.Expr
-	implFunc bool
-	isRef    bool
+	name       string
+	obj        *ast.StructType
+	packName   string
+	typ        ast.Expr
+	implFunc   bool
+	isRef      bool
+	paramTypes map[string]ast.Expr
 }
 
 func (a *astStruct) isAlias() bool {
@@ -498,6 +515,14 @@ func decodeASTStruct(file *ast.File) *astResult {
 					if ok {
 						// type is a struct
 						obj.obj = structType
+
+						// process the type params if there is any
+						if len(typeSpec.TypeParams.List) > 0 {
+							obj.paramTypes = map[string]ast.Expr{}
+							for _, typ := range typeSpec.TypeParams.List {
+								obj.paramTypes[typ.Names[0].Name] = typ.Type
+							}
+						}
 					} else {
 						if _, ok := typeSpec.Type.(*ast.InterfaceType); !ok {
 							// type is an alias (skip interfaces)
@@ -649,6 +674,13 @@ func decodeASTImports(file *ast.File) []*astImport {
 }
 
 func (e *env) getRawItemByName(name string) (*astStruct, bool) {
+	// try to find the type in the generic params of the struct (if any)
+	for paramName, paramTyp := range e.current.paramTypes {
+		if paramName == name {
+			return &astStruct{name: name, typ: paramTyp}, true
+		}
+	}
+	// try to find the type in any of the other imported structs or aliases
 	for _, item := range e.raw {
 		if item.name == name {
 			return item, true
@@ -786,6 +818,7 @@ func (e *env) generateIR() error {
 				// do not process imported elements
 				continue
 			}
+			e.current = obj
 			if _, err := e.encodeItem(name, ""); err != nil {
 				return err
 			}
@@ -874,15 +907,23 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 		if !ok {
 			return nil, fmt.Errorf("struct %s not found", subName)
 		}
+
+		isValidField := func(fieldName string) bool {
+			if !isExportedField(fieldName) {
+				return false
+			}
+			if strings.HasPrefix(fieldName, "XXX_") {
+				// skip protobuf methods
+				return false
+			}
+			return true
+		}
+
 		for _, f := range item.obj.Fields.List {
 			if len(f.Names) == 1 {
 				// normal type
 				fieldName := f.Names[0].Name
-				if !isExportedField(fieldName) {
-					continue
-				}
-				if strings.HasPrefix(fieldName, "XXX_") {
-					// skip protobuf methods
+				if !isValidField(fieldName) {
 					continue
 				}
 				fields = append(fields, f)
@@ -897,6 +938,24 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 					return nil, err
 				}
 				fields = append(fields, subFields...)
+			} else {
+				// inlined names
+				// For example: A, B uint64
+				for _, name := range f.Names {
+					if !isValidField(name.Name) {
+						continue
+					}
+
+					// create a copy of the field f and set a single name
+					fieldCopy := &ast.Field{
+						Doc:     f.Doc,
+						Names:   []*ast.Ident{name},
+						Tag:     f.Tag,
+						Type:    f.Type,
+						Comment: f.Comment,
+					}
+					fields = append(fields, fieldCopy)
+				}
 			}
 		}
 		return fields, nil
@@ -987,6 +1046,18 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					return nil, fmt.Errorf("alias ref not found: %s", obj.Name)
 				}
 				astSize = &num
+			case *ast.SelectorExpr:
+				// TODO: this does not take into account the package name.
+				// If there are two exported const with the same name it is going to collide.
+				sel := obj.Sel.Name
+
+				num, ok := e.resolveAlias(sel)
+				if !ok {
+					return nil, fmt.Errorf("alias ref not found: %s", sel)
+				}
+				astSize = &num
+			default:
+				return nil, fmt.Errorf("unsupported array length type %T", obj)
 			}
 		}
 
