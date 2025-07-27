@@ -177,7 +177,7 @@ func NewNodeWithLR(left, right *Node) *Node {
 func TreeFromChunks(chunks [][]byte) (*Node, error) {
 	numLeaves := len(chunks)
 	if !isPowerOfTwo(numLeaves) {
-		return nil, errors.New("Number of leaves should be a power of 2")
+		return nil, errors.New("number of leaves should be a power of 2")
 	}
 
 	leaves := make([]*Node, numLeaves)
