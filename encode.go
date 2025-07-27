@@ -141,60 +141,35 @@ func safeReadOffset(buf []byte) (uint64, []byte, error) {
 
 // ---- extend functions ----
 
-func extendByteSlice(b []byte, needLen int) []byte {
+func ExtendSlice[T any](b []T, needLen int) []T {
+	if b == nil {
+		b = []T{}
+	}
 	b = b[:cap(b)]
 	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]byte, n)...)
+		b = append(b, make([]T, n)...)
 	}
 	return b[:needLen]
 }
 
 // ExtendUint64 extends a uint64 buffer to a given size
 func ExtendUint64(b []uint64, needLen int) []uint64 {
-	if b == nil {
-		b = []uint64{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint64, n)...)
-	}
-	return b[:needLen]
+	return ExtendSlice(b, needLen)
 }
 
 // ExtendUint32 extends a uint32 buffer to a given size
 func ExtendUint32(b []uint32, needLen int) []uint32 {
-	if b == nil {
-		b = []uint32{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint32, n)...)
-	}
-	return b[:needLen]
+	return ExtendSlice(b, needLen)
 }
 
 // ExtendUint16 extends a uint16 buffer to a given size
 func ExtendUint16(b []uint16, needLen int) []uint16 {
-	if b == nil {
-		b = []uint16{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint16, n)...)
-	}
-	return b[:needLen]
+	return ExtendSlice(b, needLen)
 }
 
 // ExtendUint16 extends a uint16 buffer to a given size
 func ExtendUint8(b []uint8, needLen int) []uint8 {
-	if b == nil {
-		b = []uint8{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint8, n)...)
-	}
-	return b[:needLen]
+	return ExtendSlice(b, needLen)
 }
 
 // ---- unmarshal dynamic content ----

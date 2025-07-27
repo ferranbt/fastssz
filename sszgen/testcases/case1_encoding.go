@@ -56,10 +56,7 @@ func (c *Case1A) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 2048 {
 			return ssz.ErrBytesLength
 		}
-		if cap(c.Foo) == 0 {
-			c.Foo = make([]byte, 0, len(buf))
-		}
-		c.Foo = append(c.Foo, buf...)
+		c.Foo = ssz.ExtendSlice(c.Foo[:0], len(buf))
 	}
 	return err
 }
@@ -153,10 +150,7 @@ func (c *Case1B) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
-		if cap(c.Bar) == 0 {
-			c.Bar = make([]byte, 0, len(buf))
-		}
-		c.Bar = append(c.Bar, buf...)
+		c.Bar = ssz.ExtendSlice(c.Bar[:0], len(buf))
 	}
 	return err
 }

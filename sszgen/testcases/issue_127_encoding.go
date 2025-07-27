@@ -75,10 +75,7 @@ func (o *Obj2) UnmarshalSSZ(buf []byte) error {
 			if len(buf) > 256 {
 				return ssz.ErrBytesLength
 			}
-			if cap(o.T1[indx]) == 0 {
-				o.T1[indx] = make([]byte, 0, len(buf))
-			}
-			o.T1[indx] = append(o.T1[indx], buf...)
+			o.T1[indx] = ssz.ExtendSlice(o.T1[indx][:0], len(buf))
 			return nil
 		})
 		if err != nil {

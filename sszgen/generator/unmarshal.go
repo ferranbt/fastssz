@@ -39,10 +39,7 @@ func (v *Value) unmarshal(dst string) string {
 		}
 
 		// both fixed and dynamic are decoded equally
-		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
-			{{if .isRef}} ::.{{.name}} = {{ ref .obj }}(make([]byte, 0, len({{.dst}}))) {{ else }} ::.{{.name}} = make([]byte, 0, len({{.dst}})) {{ end }}
-		}
-		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		tmpl := `{{.validate}}::.{{.name}} = ssz.ExtendSlice(::.{{.name}}[:0], len({{.dst}}))`
 		return execTmpl(tmpl, map[string]interface{}{
 			"validate": validate,
 			"name":     v.name,
@@ -349,7 +346,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 	switch obj := inner.typ.(type) {
 	case *Uint:
 		// []int uses the Extend functions in the fastssz package
-		return fmt.Sprintf("::.%s = ssz.Extend%s(::.%s, %s)", v.name, uintVToName2(*obj), v.name, size)
+		return fmt.Sprintf("::.%s = ssz.ExtendSlice(::.%s, %s)", v.name, v.name, size)
 
 	case *Container:
 		// []*(ref.)Struct{}
