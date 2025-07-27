@@ -1026,7 +1026,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if astSize != nil {
 				outer.typ = &Vector{
 					Elem: innerTyp,
-					Size: *astSize,
+					Size: Size{Size: *astSize},
 				}
 			} else {
 				outer.typ = &List{
@@ -1056,31 +1056,33 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 		for indx, dim := range dims {
 			switch obj := outerRef.typ.(type) {
 			case *List:
-				// At this point we have a list because the internal vector/list did not have a concrete size
-				// Now is the time where we check the dimensions and update the size of the list type accordingly
-				// if it is a vector.
-				if obj.MaxSize != 0 {
-					return nil, fmt.Errorf("list should not have a max size at this point")
-				}
-				if dim.IsList() {
-					obj.MaxSize = uint64(dim.ListLen())
-				} else if dim.IsVector() {
-					outerRef.typ = &Vector{
-						Elem:  obj.Elem,
-						Size:  uint64(dim.VectorLen()),
-						IsDyn: true,
+				/*
+					// At this point we have a list because the internal vector/list did not have a concrete size
+					// Now is the time where we check the dimensions and update the size of the list type accordingly
+					// if it is a vector.
+					if obj.MaxSize != 0 {
+						return nil, fmt.Errorf("list should not have a max size at this point")
 					}
-				}
+					if dim.IsList() {
+						obj.MaxSize = uint64(dim.ListLen())
+					} else if dim.IsVector() {
+						outerRef.typ = &Vector{
+							Elem:  obj.Elem,
+							Size:  uint64(dim.VectorLen()),
+							IsDyn: true,
+						}
+					}
+				*/
 
 			case *Vector:
 				// Validate that the vector fixed size specified in the ssz tags matches the size of the Go array
 				if !dim.IsVector() {
 					return nil, fmt.Errorf("fixed size %d but the ssz tag is not a vector", obj.Size)
 				}
-				vectorLen := dim.VectorLen()
-				if vectorLen != int(obj.Size) {
-					return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size, vectorLen)
-				}
+				//vectorLen := dim.VectorLen()
+				//if vectorLen != int(obj.Size) {
+				//	return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size, vectorLen)
+				//}
 
 			case *Bytes:
 				if obj.IsList {
@@ -1281,7 +1283,19 @@ func (v *Value) isFixed() bool {
 	}
 }
 
-func execTmpl(tpl string, input interface{}) string {
+type TemplateMarshal interface {
+	MarshalTemplate() string
+}
+
+func execTmpl(tpl string, input map[string]interface{}) string {
+	for k, v := range input {
+		if tmpl, ok := v.(TemplateMarshal); ok {
+			// if the value is a TemplateMarshal, we want to use its template
+			// instead of the default one.
+			input[k] = tmpl.MarshalTemplate()
+		}
+	}
+
 	funcs := template.FuncMap{
 		"ref": func(v *Value) string {
 			return v.objRef()

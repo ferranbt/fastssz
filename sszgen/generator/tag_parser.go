@@ -206,17 +206,6 @@ func (dim *SSZDimension) VectorLen() int {
 	return *dim.VectorLength
 }
 
-// ValueType returns ssz-max or ssz-size, to be used in the construction of a fastssz Value type
-func (dim *SSZDimension) ValueLen() uint64 {
-	if dim.IsList() {
-		return uint64(dim.ListLen())
-	}
-	if dim.IsVector() {
-		return uint64(dim.VectorLen())
-	}
-	return 0
-}
-
 func trimTagQuotes(s string) string {
 	if len(s) > 0 && s[0] == '"' {
 		s = s[1:]

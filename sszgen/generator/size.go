@@ -30,6 +30,19 @@ func (e *env) size(name string, v *Value) string {
 	return appendObjSignature(str, v)
 }
 
+type SizeCompute struct {
+	FixedSize uint64
+	Variables []string
+}
+
+func (c *SizeCompute) AddVariable(name string) {
+	c.Variables = append(c.Variables, name)
+}
+
+func (c *SizeCompute) AddFixed(size uint64) {
+	c.FixedSize += size
+}
+
 func (v *Value) fixedSize() uint64 {
 	switch obj := v.typ.(type) {
 	case *Bool:

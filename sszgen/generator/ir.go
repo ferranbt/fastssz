@@ -49,7 +49,7 @@ func (b *BitList) isValue() {}
 
 type Vector struct {
 	Elem  *Value
-	Size  uint64
+	Size  Size
 	IsDyn bool // this is a fixed byte array but that is represented as a vector
 }
 
@@ -57,7 +57,7 @@ func (v *Vector) isValue() {}
 
 type List struct {
 	Elem    *Value
-	MaxSize uint64
+	MaxSize Size
 }
 
 func (l *List) isValue() {}
@@ -122,4 +122,16 @@ func (v *Value) Type() string {
 	default:
 		panic(fmt.Errorf("unknown type %s", reflect.TypeOf(v.typ)))
 	}
+}
+
+type Size struct {
+	Size    uint64
+	VarSize string
+}
+
+func (s *Size) MarshalTemplate() string {
+	if s.VarSize != "" {
+		return s.VarSize
+	}
+	return fmt.Sprintf("%d", s.Size)
 }

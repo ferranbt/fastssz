@@ -109,7 +109,7 @@ func (v *Value) unmarshal(dst string) string {
 }
 
 func (v *Value) unmarshalList() string {
-	var size uint64
+	var size Size
 	if obj, ok := v.typ.(*List); ok {
 		size = obj.MaxSize
 	} else if obj, ok := v.typ.(*Vector); ok {
@@ -327,22 +327,21 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 // createItem is used to initialize slices of objects
 func (v *Value) createSlice(useNumVariable bool) string {
-	var sizeU64 uint64
+	var size Size
 	var isVectorCreate bool
 	if obj, ok := v.typ.(*List); ok {
-		sizeU64 = obj.MaxSize
+		size = obj.MaxSize
 		isVectorCreate = true
 	} else if obj, ok := v.typ.(*Vector); ok {
-		sizeU64 = obj.Size
+		size = obj.Size
 		isVectorCreate = obj.IsDyn
 	} else {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
 
-	size := strconv.Itoa(int(sizeU64))
 	// when useNumVariable is specified, we assume there is a 'num' variable generated beforehand with the expected size.
 	if useNumVariable {
-		size = "num"
+		size.VarSize = "num"
 	}
 
 	inner := getElem(v.typ)
