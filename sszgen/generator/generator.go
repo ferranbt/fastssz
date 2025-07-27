@@ -957,7 +957,6 @@ func (e *env) parseASTStructType(name string) (*Value, error) {
 
 // parse the Go AST field
 func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error) {
-	fmt.Println(name)
 	if tag, ok := getTags(tags, "ssz"); ok && tag == "-" {
 		// omit value
 		return nil, nil
