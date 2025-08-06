@@ -33,7 +33,7 @@ func (i *Issue158) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Field'
-	if err = i.Field.UnmarshalSSZ(buf[0:0]); err != nil {
+	if err := i.Field.UnmarshalSSZ(buf[0:0]); err != nil {
 		return err
 	}
 
