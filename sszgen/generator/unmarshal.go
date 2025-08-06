@@ -39,10 +39,8 @@ func (v *Value) unmarshal(dst string) string {
 		}
 
 		// both fixed and dynamic are decoded equally
-		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
-			{{if .isRef}} ::.{{.name}} = {{ ref .obj }}(make([]byte, 0, len({{.dst}}))) {{ else }} ::.{{.name}} = make([]byte, 0, len({{.dst}})) {{ end }}
-		}
-		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		tmpl := `{{.validate}}::.{{.name}} = ssz.UnmarshalBytes(::.{{.name}}, {{.dst}})`
+
 		return execTmpl(tmpl, map[string]interface{}{
 			"validate": validate,
 			"name":     v.name,

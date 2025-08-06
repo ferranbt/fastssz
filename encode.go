@@ -39,6 +39,16 @@ func ErrListTooBigFn(name string, found, max int) error {
 
 // ---- Unmarshal functions ----
 
+// UnmarshalBytes unmarshals a byte slice from the src input
+// If the src is nil, it will create a new byte slice with the content of buf.
+func UnmarshalBytes(src []byte, buf []byte) []byte {
+	if cap(src) == 0 {
+		src = make([]byte, 0, len(buf))
+	}
+	src = append(src, buf...)
+	return src
+}
+
 // UnmarshallUint64 unmarshals a little endian uint64 from the src input
 func UnmarshallUint64(src []byte) uint64 {
 	return binary.LittleEndian.Uint64(src)
