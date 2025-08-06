@@ -48,13 +48,10 @@ func (c *Case1A) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Foo'
-	{
-		buf = tail[o0:]
-		if len(buf) > 2048 {
-			return ssz.ErrBytesLength
-		}
-		c.Foo = ssz.UnmarshalBytes(c.Foo, buf)
+	if c.Foo, err = ssz.UnmarshalBytes(c.Foo, tail[o0:], 2048); err != nil {
+		return err
 	}
+
 	return err
 }
 
@@ -139,13 +136,10 @@ func (c *Case1B) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Bar'
-	{
-		buf = tail[o0:]
-		if len(buf) > 32 {
-			return ssz.ErrBytesLength
-		}
-		c.Bar = ssz.UnmarshalBytes(c.Bar, buf)
+	if c.Bar, err = ssz.UnmarshalBytes(c.Bar, tail[o0:], 32); err != nil {
+		return err
 	}
+
 	return err
 }
 

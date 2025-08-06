@@ -42,10 +42,10 @@ func (i *Issue188) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Name'
-	i.Name = ssz.UnmarshalBytes(i.Name, buf[0:32])
+	i.Name, _ = ssz.UnmarshalBytes(i.Name, buf[0:32])
 
 	// Field (1) 'Address'
-	i.Address = ssz.UnmarshalBytes(i.Address, buf[32:64])
+	i.Address, _ = ssz.UnmarshalBytes(i.Address, buf[32:64])
 
 	return err
 }

@@ -54,17 +54,13 @@ func (c *Case7) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'BlobKzgs'
-	{
-		buf = tail[o0:]
-		num, err := ssz.DivideInt2(len(buf), 48, 16)
-		if err != nil {
-			return err
-		}
-		c.BlobKzgs = make([][]byte, num)
-		for ii := 0; ii < num; ii++ {
-			c.BlobKzgs[ii] = ssz.UnmarshalBytes(c.BlobKzgs[ii], buf[ii*48:(ii+1)*48])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&c.BlobKzgs, tail[o0:], 48, 16, func(ii int, buf []byte) (err error) {
+		c.BlobKzgs[ii], _ = ssz.UnmarshalBytes(c.BlobKzgs[ii], buf)
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return err
 }
 

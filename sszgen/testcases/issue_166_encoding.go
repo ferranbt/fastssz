@@ -64,22 +64,15 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'A'
-	{
-		buf = tail[o0:o1]
-		if len(buf) > 0 {
-			return ssz.ErrBytesLength
-		}
-		i.A = ssz.UnmarshalBytes(i.A, buf)
+	if i.A, err = ssz.UnmarshalBytes(i.A, tail[o0:o1], 0); err != nil {
+		return err
 	}
 
 	// Field (1) 'B'
-	{
-		buf = tail[o1:]
-		if len(buf) > 0 {
-			return ssz.ErrBytesLength
-		}
-		i.B = ssz.UnmarshalBytes(i.B, buf)
+	if i.B, err = ssz.UnmarshalBytes(i.B, tail[o1:], 0); err != nil {
+		return err
 	}
+
 	return err
 }
 

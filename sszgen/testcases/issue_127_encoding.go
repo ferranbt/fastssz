@@ -61,24 +61,15 @@ func (o *Obj2) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'T1'
-	{
-		buf = tail[o0:]
-		num, err := ssz.DecodeDynamicLength(buf, 1024)
-		if err != nil {
+	if err = ssz.UnmarshalDynamicSliceWithCallback(&o.T1, tail[o0:], 1024, func(indx int, buf []byte) (err error) {
+		if o.T1[indx], err = ssz.UnmarshalBytes(o.T1[indx], buf, 256); err != nil {
 			return err
 		}
-		o.T1 = make([]Data, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if len(buf) > 256 {
-				return ssz.ErrBytesLength
-			}
-			o.T1[indx] = ssz.UnmarshalBytes(o.T1[indx], buf)
-			return nil
-		})
-		if err != nil {
-			return err
-		}
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return err
 }
 

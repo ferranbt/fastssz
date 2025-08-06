@@ -32,22 +32,24 @@ func (v *Value) unmarshal(dst string) string {
 		if !obj.IsList && !obj.IsGoDyn {
 			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
 		}
-		validate := ""
-		if !v.isFixed() {
-			// dynamic bytes, we need to validate the size of the buffer
-			validate = fmt.Sprintf("if len(%s) > %d { return ssz.ErrBytesLength }\n", dst, obj.Size)
-		}
 
 		// both fixed and dynamic are decoded equally
-		tmpl := `{{.validate}}::.{{.name}} = ssz.UnmarshalBytes(::.{{.name}}, {{.dst}})`
+		var tmpl string
+		if !v.isFixed() {
+			// dynamic bytes, we need to validate the size of the buffer
+			tmpl = `if ::.{{.name}}, err = ssz.UnmarshalBytes(::.{{.name}}, {{.dst}}, {{.size}}); err != nil {
+			return err
+			}`
+		} else {
+			tmpl = `::.{{.name}}, _ = ssz.UnmarshalBytes(::.{{.name}}, {{.dst}})`
+		}
 
 		return execTmpl(tmpl, map[string]interface{}{
-			"validate": validate,
-			"name":     v.name,
-			"dst":      dst,
-			"size":     obj.Size,
-			"isRef":    v.ref != "",
-			"obj":      v,
+			"name":  v.name,
+			"dst":   dst,
+			"size":  obj.Size,
+			"isRef": v.ref != "",
+			"obj":   v,
 		})
 
 	case *BitList:
@@ -95,18 +97,18 @@ func (v *Value) unmarshal(dst string) string {
 				"unmarshal": obj.Elem.unmarshal(dst),
 			})
 		} else {
-			return v.unmarshalList()
+			return v.unmarshalList(dst)
 		}
 
 	case *List:
-		return v.unmarshalList()
+		return v.unmarshalList(dst)
 
 	default:
 		panic(fmt.Errorf("unmarshal not implemented for type %s", v.Type()))
 	}
 }
 
-func (v *Value) unmarshalList() string {
+func (v *Value) unmarshalList(dst string) string {
 	var size uint64
 	if obj, ok := v.typ.(*List); ok {
 		size = obj.MaxSize
@@ -118,46 +120,54 @@ func (v *Value) unmarshalList() string {
 
 	inner := getElem(v.typ)
 	if inner.isFixed() {
-		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", inner.fixedSize(), inner.fixedSize())
-
-		tmpl := `num, err := ssz.DivideInt2(len(buf), {{.size}}, {{.max}})
-		if err != nil {
+		var tmpl string
+		if inner.isContainer() && !inner.noPtr {
+			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}); err != nil {
 			return err
-		}
-		{{.create}}
-		for ii := 0; ii < num; ii++ {
-			{{.unmarshal}}
 		}`
+		} else {
+			tmpl = `if err = ssz.UnmarshalSliceWithIndexCallback(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}, func(ii int, buf []byte) (err error) {
+			{{.unmarshal}}
+			return nil
+		}); err != nil {
+			return err
+		}`
+		}
 		return execTmpl(tmpl, map[string]interface{}{
 			"size":      inner.fixedSize(),
 			"max":       size,
-			"create":    v.createSlice(true),
-			"unmarshal": inner.unmarshal(dst),
+			"name":      v.name,
+			"unmarshal": inner.unmarshal("buf"),
+			"dst":       dst,
 		})
 	}
 
 	// Decode list with a dynamic element. 'ssz.DecodeDynamicLength' ensures
 	// that the number of elements do not surpass the 'ssz-max' tag.
 
-	tmpl := `num, err := ssz.DecodeDynamicLength(buf, {{.max}})
-	if err != nil {
-		return err
-	}
-	{{.create}}
-	err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+	var tmpl string
+
+	if inner.isContainer() && !inner.noPtr {
+		tmpl = `if err = ssz.UnmarshalDynamicSliceSSZ(&::.{{.name}}, {{.dst}}, {{.max}}); err != nil {
+			return err
+		}`
+	} else {
+		tmpl = `if err = ssz.UnmarshalDynamicSliceWithCallback(&::.{{.name}}, {{.dst}}, {{.max}}, func(indx int, buf []byte) (err error) {
 		{{.unmarshal}}
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}`
+	}
 
 	inner.name = v.name + "[indx]"
 
 	data := map[string]interface{}{
 		"max":       size,
+		"name":      v.name,
 		"create":    v.createSlice(true),
 		"unmarshal": inner.unmarshal("buf"),
+		"dst":       dst,
 	}
 	return execTmpl(tmpl, data)
 }
@@ -297,17 +307,17 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			} else {
 				to = offsets[c+1]
 			}
+			dst := fmt.Sprintf("tail[%s:%s]", from, to)
 			tmpl := `// Field ({{.indx}}) '{{.name}}'
-			{
-				buf = tail[{{.from}}:{{.to}}]
-				{{.unmarshal}}
-			}`
+			{{.unmarshal}}
+			`
+
 			res := execTmpl(tmpl, map[string]interface{}{
 				"indx":      indx,
 				"name":      i.name,
 				"from":      from,
 				"to":        to,
-				"unmarshal": i.unmarshal("buf"),
+				"unmarshal": i.unmarshal(dst),
 			})
 			outs = append(outs, res)
 			c++

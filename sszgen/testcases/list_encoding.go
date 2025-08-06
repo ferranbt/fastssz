@@ -35,7 +35,7 @@ func (b *BytesWrapper) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Bytes'
-	b.Bytes = ssz.UnmarshalBytes(b.Bytes, buf[0:48])
+	b.Bytes, _ = ssz.UnmarshalBytes(b.Bytes, buf[0:48])
 
 	return err
 }
@@ -116,19 +116,15 @@ func (l *ListC) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Elems'
-	{
-		buf = tail[o0:]
-		num, err := ssz.DivideInt2(len(buf), 48, 32)
-		if err != nil {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
+		if err := l.Elems[ii].UnmarshalSSZ(buf); err != nil {
 			return err
 		}
-		l.Elems = make([]BytesWrapper, num)
-		for ii := 0; ii < num; ii++ {
-			if err := l.Elems[ii].UnmarshalSSZ(buf[ii*48 : (ii+1)*48]); err != nil {
-				return err
-			}
-		}
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return err
 }
 
@@ -221,19 +217,10 @@ func (l *ListP) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Elems'
-	{
-		buf = tail[o0:]
-		num, err := ssz.DivideInt2(len(buf), 48, 32)
-		if err != nil {
-			return err
-		}
-		l.Elems = make([]*BytesWrapper, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&l.Elems[ii], buf[ii*48:(ii+1)*48]); err != nil {
-				return err
-			}
-		}
+	if err = ssz.UnmarshalSliceSSZ(&l.Elems, tail[o0:], 48, 32); err != nil {
+		return err
 	}
+
 	return err
 }
 
