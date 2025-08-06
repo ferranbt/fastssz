@@ -32,6 +32,7 @@ func generate() {
 	var include string
 	var excludeObjs string
 	var suffix string
+	var noFormat bool
 
 	flag.StringVar(&source, "path", "", "")
 	flag.StringVar(&objsStr, "objs", "", "")
@@ -39,6 +40,7 @@ func generate() {
 	flag.StringVar(&output, "output", "", "")
 	flag.StringVar(&include, "include", "", "")
 	flag.StringVar(&suffix, "suffix", "encoding", "")
+	flag.BoolVar(&noFormat, "no-format", false, "Do not format output files with gofmt")
 
 	flag.Parse()
 
@@ -56,7 +58,7 @@ func generate() {
 		suffix = fmt.Sprintf("%s.go", suffix)
 	}
 
-	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames, suffix); err != nil {
+	if err := generator.Encode(source, targets, output, includeList, excludeTypeNames, suffix, !noFormat); err != nil {
 		fmt.Printf("[ERR]: %v\n", err)
 		os.Exit(1)
 	}

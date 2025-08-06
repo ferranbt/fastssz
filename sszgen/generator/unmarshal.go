@@ -118,33 +118,25 @@ func (v *Value) unmarshalList() string {
 
 	inner := getElem(v.typ)
 	if inner.isFixed() {
-		dst := fmt.Sprintf("buf[ii*%d: (ii+1)*%d]", inner.fixedSize(), inner.fixedSize())
-
-		tmpl := `num, err := ssz.DivideInt2(len(buf), {{.size}}, {{.max}})
+		tmpl := `err = ssz.UnmarshalSliceWithIndexCallback(&::.{{.name}}, buf, {{.size}}, {{.max}}, func(ii int, buf []byte) (err error) {
+			{{.unmarshal}}
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		{{.create}}
-		for ii := 0; ii < num; ii++ {
-			{{.unmarshal}}
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
 			"size":      inner.fixedSize(),
 			"max":       size,
-			"create":    v.createSlice(true),
-			"unmarshal": inner.unmarshal(dst),
+			"name":      v.name,
+			"unmarshal": inner.unmarshal("buf"),
 		})
 	}
 
 	// Decode list with a dynamic element. 'ssz.DecodeDynamicLength' ensures
 	// that the number of elements do not surpass the 'ssz-max' tag.
 
-	tmpl := `num, err := ssz.DecodeDynamicLength(buf, {{.max}})
-	if err != nil {
-		return err
-	}
-	{{.create}}
-	err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+	tmpl := `err = ssz.UnmarshalDynamicSliceWithCallback(&::.{{.name}}, buf, {{.max}}, func(indx int, buf []byte) (err error) {
 		{{.unmarshal}}
 		return nil
 	})
@@ -156,6 +148,7 @@ func (v *Value) unmarshalList() string {
 
 	data := map[string]interface{}{
 		"max":       size,
+		"name":      v.name,
 		"create":    v.createSlice(true),
 		"unmarshal": inner.unmarshal("buf"),
 	}

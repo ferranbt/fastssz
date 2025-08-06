@@ -56,3 +56,43 @@ func UnmarshalField[T any, PT PtrConstraint[T]](field *PT, buf []byte) error {
 	}
 	return (*field).UnmarshalSSZ(buf)
 }
+
+// UnmarshalSliceWithIndexCallback handles slices with index-aware unmarshal logic
+func UnmarshalSliceWithIndexCallback[T any](
+	slice *[]T,
+	buf []byte,
+	itemSize int,
+	maxItems int,
+	unmarshalCallback func(int, []byte) error,
+) error {
+	num, err := DivideInt2(len(buf), itemSize, maxItems)
+	if err != nil {
+		return err
+	}
+
+	*slice = make([]T, num)
+	for ii := 0; ii < num; ii++ {
+		start := ii * itemSize
+		end := (ii + 1) * itemSize
+		if err := unmarshalCallback(ii, buf[start:end]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UnmarshalDynamicSliceWithCallback handles dynamic slices with custom unmarshal logic
+func UnmarshalDynamicSliceWithCallback[T any](
+	slice *[]T,
+	buf []byte,
+	maxElements int,
+	unmarshalCallback func(int, []byte) error,
+) error {
+	num, err := DecodeDynamicLength(buf, maxElements)
+	if err != nil {
+		return err
+	}
+
+	*slice = make([]T, num)
+	return UnmarshalDynamic(buf, num, unmarshalCallback)
+}

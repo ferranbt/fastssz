@@ -30,7 +30,7 @@ const bytesPerLengthOffset = 4
 // using the Value object.
 // 3. Use the IR to print the encoding functions
 
-func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string) error {
+func Encode(source string, targets []string, output string, includePaths []string, excludeTypeNames map[string]bool, suffix string, doFormat bool) error {
 	files, err := parseInput(source) // 1.
 	if err != nil {
 		return err
@@ -88,9 +88,11 @@ func Encode(source string, targets []string, output string, includePaths []strin
 	for name, str := range out {
 		output := []byte(str)
 
-		output, err = format.Source(output)
-		if err != nil {
-			return err
+		if doFormat {
+			output, err = format.Source(output)
+			if err != nil {
+				return err
+			}
 		}
 		if err := ioutil.WriteFile(name, output, 0o644); err != nil {
 			return err

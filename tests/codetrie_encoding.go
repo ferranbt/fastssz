@@ -222,15 +222,14 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'Chunks'
 	{
 		buf = tail[o1:]
-		num, err := ssz.DivideInt2(len(buf), 33, 4)
-		if err != nil {
-			return err
-		}
-		c.Chunks = make([]*Chunk, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&c.Chunks[ii], buf[ii*33:(ii+1)*33]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&c.Chunks, buf, 33, 4, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&c.Chunks[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
@@ -348,15 +347,14 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'Chunks'
 	{
 		buf = tail[o1:]
-		num, err := ssz.DivideInt2(len(buf), 33, 1024)
-		if err != nil {
-			return err
-		}
-		c.Chunks = make([]*Chunk, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&c.Chunks[ii], buf[ii*33:(ii+1)*33]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&c.Chunks, buf, 33, 1024, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&c.Chunks[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err

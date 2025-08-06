@@ -770,13 +770,12 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'AttestationIndices'
 	{
 		buf = tail[o0:]
-		num, err := ssz.DivideInt2(len(buf), 8, 2048)
+		err = ssz.UnmarshalSliceWithIndexCallback(&i.AttestationIndices, buf, 8, 2048, func(ii int, buf []byte) (err error) {
+			i.AttestationIndices[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		i.AttestationIndices = ssz.ExtendUint64(i.AttestationIndices, num)
-		for ii := 0; ii < num; ii++ {
-			i.AttestationIndices[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 	return err
@@ -2615,68 +2614,59 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// Field (7) 'HistoricalRoots'
 	{
 		buf = tail[o7:o9]
-		num, err := ssz.DivideInt2(len(buf), 32, 16777216)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, buf, 32, 16777216, func(ii int, buf []byte) (err error) {
+			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.HistoricalRoots = make([][]byte, num)
-		for ii := 0; ii < num; ii++ {
-			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32])
 		}
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	{
 		buf = tail[o9:o11]
-		num, err := ssz.DivideInt2(len(buf), 72, 2048)
-		if err != nil {
-			return err
-		}
-		b.Eth1DataVotes = make([]*Eth1Data, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Eth1DataVotes, buf, 72, 2048, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (11) 'Validators'
 	{
 		buf = tail[o11:o12]
-		num, err := ssz.DivideInt2(len(buf), 121, 1099511627776)
-		if err != nil {
-			return err
-		}
-		b.Validators = make([]*Validator, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Validators, buf, 121, 1099511627776, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (12) 'Balances'
 	{
 		buf = tail[o12:o15]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.Balances[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
-		for ii := 0; ii < num; ii++ {
-			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 
 	// Field (15) 'PreviousEpochAttestations'
 	{
 		buf = tail[o15:o16]
-		num, err := ssz.DecodeDynamicLength(buf, 4096)
-		if err != nil {
-			return err
-		}
-		b.PreviousEpochAttestations = make([]*PendingAttestation, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.PreviousEpochAttestations, buf, 4096, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.PreviousEpochAttestations[indx], buf); err != nil {
 				return err
 			}
@@ -2690,12 +2680,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// Field (16) 'CurrentEpochAttestations'
 	{
 		buf = tail[o16:]
-		num, err := ssz.DecodeDynamicLength(buf, 4096)
-		if err != nil {
-			return err
-		}
-		b.CurrentEpochAttestations = make([]*PendingAttestation, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.CurrentEpochAttestations, buf, 4096, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.CurrentEpochAttestations[indx], buf); err != nil {
 				return err
 			}
@@ -3165,27 +3150,21 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	// Field (3) 'ProposerSlashings'
 	{
 		buf = tail[o3:o4]
-		num, err := ssz.DivideInt2(len(buf), 416, 16)
-		if err != nil {
-			return err
-		}
-		b.ProposerSlashings = make([]*ProposerSlashing, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.ProposerSlashings, buf, 416, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (4) 'AttesterSlashings'
 	{
 		buf = tail[o4:o5]
-		num, err := ssz.DecodeDynamicLength(buf, 2)
-		if err != nil {
-			return err
-		}
-		b.AttesterSlashings = make([]*AttesterSlashing, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.AttesterSlashings, buf, 2, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
@@ -3199,12 +3178,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'Attestations'
 	{
 		buf = tail[o5:o6]
-		num, err := ssz.DecodeDynamicLength(buf, 128)
-		if err != nil {
-			return err
-		}
-		b.Attestations = make([]*Attestation, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.Attestations, buf, 128, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
@@ -3218,30 +3192,28 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	// Field (6) 'Deposits'
 	{
 		buf = tail[o6:o7]
-		num, err := ssz.DivideInt2(len(buf), 1240, 16)
-		if err != nil {
-			return err
-		}
-		b.Deposits = make([]*Deposit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Deposits, buf, 1240, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (7) 'VoluntaryExits'
 	{
 		buf = tail[o7:]
-		num, err := ssz.DivideInt2(len(buf), 112, 16)
-		if err != nil {
-			return err
-		}
-		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.VoluntaryExits, buf, 112, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
@@ -3580,27 +3552,21 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (3) 'ProposerSlashings'
 	{
 		buf = tail[o3:o4]
-		num, err := ssz.DivideInt2(len(buf), 416, 16)
-		if err != nil {
-			return err
-		}
-		b.ProposerSlashings = make([]*ProposerSlashing, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.ProposerSlashings, buf, 416, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (4) 'AttesterSlashings'
 	{
 		buf = tail[o4:o5]
-		num, err := ssz.DecodeDynamicLength(buf, 2)
-		if err != nil {
-			return err
-		}
-		b.AttesterSlashings = make([]*AttesterSlashing, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.AttesterSlashings, buf, 2, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
@@ -3614,12 +3580,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'Attestations'
 	{
 		buf = tail[o5:o6]
-		num, err := ssz.DecodeDynamicLength(buf, 128)
-		if err != nil {
-			return err
-		}
-		b.Attestations = make([]*Attestation, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.Attestations, buf, 128, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
@@ -3633,30 +3594,28 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (6) 'Deposits'
 	{
 		buf = tail[o6:o7]
-		num, err := ssz.DivideInt2(len(buf), 1240, 16)
-		if err != nil {
-			return err
-		}
-		b.Deposits = make([]*Deposit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Deposits, buf, 1240, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (7) 'VoluntaryExits'
 	{
 		buf = tail[o7:]
-		num, err := ssz.DivideInt2(len(buf), 112, 16)
-		if err != nil {
-			return err
-		}
-		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.VoluntaryExits, buf, 112, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
@@ -4017,27 +3976,21 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (3) 'ProposerSlashings'
 	{
 		buf = tail[o3:o4]
-		num, err := ssz.DivideInt2(len(buf), 416, 16)
-		if err != nil {
-			return err
-		}
-		b.ProposerSlashings = make([]*ProposerSlashing, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.ProposerSlashings, buf, 416, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (4) 'AttesterSlashings'
 	{
 		buf = tail[o4:o5]
-		num, err := ssz.DecodeDynamicLength(buf, 2)
-		if err != nil {
-			return err
-		}
-		b.AttesterSlashings = make([]*AttesterSlashing, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.AttesterSlashings, buf, 2, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
@@ -4051,12 +4004,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'Attestations'
 	{
 		buf = tail[o5:o6]
-		num, err := ssz.DecodeDynamicLength(buf, 128)
-		if err != nil {
-			return err
-		}
-		b.Attestations = make([]*Attestation, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.Attestations, buf, 128, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
@@ -4070,30 +4018,28 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (6) 'Deposits'
 	{
 		buf = tail[o6:o7]
-		num, err := ssz.DivideInt2(len(buf), 1240, 16)
-		if err != nil {
-			return err
-		}
-		b.Deposits = make([]*Deposit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Deposits, buf, 1240, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (7) 'VoluntaryExits'
 	{
 		buf = tail[o7:o9]
-		num, err := ssz.DivideInt2(len(buf), 112, 16)
-		if err != nil {
-			return err
-		}
-		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.VoluntaryExits, buf, 112, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
@@ -4641,56 +4587,52 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (7) 'HistoricalRoots'
 	{
 		buf = tail[o7:o9]
-		num, err := ssz.DivideInt2(len(buf), 32, 16777216)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, buf, 32, 16777216, func(ii int, buf []byte) (err error) {
+			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.HistoricalRoots = make([][]byte, num)
-		for ii := 0; ii < num; ii++ {
-			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32])
 		}
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	{
 		buf = tail[o9:o11]
-		num, err := ssz.DivideInt2(len(buf), 72, 2048)
-		if err != nil {
-			return err
-		}
-		b.Eth1DataVotes = make([]*Eth1Data, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Eth1DataVotes, buf, 72, 2048, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (11) 'Validators'
 	{
 		buf = tail[o11:o12]
-		num, err := ssz.DivideInt2(len(buf), 121, 1099511627776)
-		if err != nil {
-			return err
-		}
-		b.Validators = make([]*Validator, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Validators, buf, 121, 1099511627776, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (12) 'Balances'
 	{
 		buf = tail[o12:o15]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.Balances[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
-		for ii := 0; ii < num; ii++ {
-			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 
@@ -4715,13 +4657,12 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	// Field (21) 'InactivityScores'
 	{
 		buf = tail[o21:]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.InactivityScores, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.InactivityScores = ssz.ExtendUint64(b.InactivityScores, num)
-		for ii := 0; ii < num; ii++ {
-			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 	return err
@@ -5413,56 +5354,52 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (7) 'HistoricalRoots'
 	{
 		buf = tail[o7:o9]
-		num, err := ssz.DivideInt2(len(buf), 32, 16777216)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, buf, 32, 16777216, func(ii int, buf []byte) (err error) {
+			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.HistoricalRoots = make([][]byte, num)
-		for ii := 0; ii < num; ii++ {
-			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32])
 		}
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	{
 		buf = tail[o9:o11]
-		num, err := ssz.DivideInt2(len(buf), 72, 2048)
-		if err != nil {
-			return err
-		}
-		b.Eth1DataVotes = make([]*Eth1Data, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Eth1DataVotes, buf, 72, 2048, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (11) 'Validators'
 	{
 		buf = tail[o11:o12]
-		num, err := ssz.DivideInt2(len(buf), 121, 1099511627776)
-		if err != nil {
-			return err
-		}
-		b.Validators = make([]*Validator, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Validators, buf, 121, 1099511627776, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (12) 'Balances'
 	{
 		buf = tail[o12:o15]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.Balances[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
-		for ii := 0; ii < num; ii++ {
-			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 
@@ -5487,13 +5424,12 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (21) 'InactivityScores'
 	{
 		buf = tail[o21:o24]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.InactivityScores, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.InactivityScores = ssz.ExtendUint64(b.InactivityScores, num)
-		for ii := 0; ii < num; ii++ {
-			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 
@@ -6476,12 +6412,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'Transactions'
 	{
 		buf = tail[o13:]
-		num, err := ssz.DecodeDynamicLength(buf, 1048576)
-		if err != nil {
-			return err
-		}
-		e.Transactions = make([][]byte, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, buf, 1048576, func(indx int, buf []byte) (err error) {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
@@ -6936,12 +6867,7 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Transactions'
 	{
 		buf = tail[o0:]
-		num, err := ssz.DecodeDynamicLength(buf, 1048576)
-		if err != nil {
-			return err
-		}
-		e.Transactions = make([][]byte, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, buf, 1048576, func(indx int, buf []byte) (err error) {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
@@ -7185,12 +7111,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'Transactions'
 	{
 		buf = tail[o13:o14]
-		num, err := ssz.DecodeDynamicLength(buf, 1048576)
-		if err != nil {
-			return err
-		}
-		e.Transactions = make([][]byte, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, buf, 1048576, func(indx int, buf []byte) (err error) {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
@@ -7205,15 +7126,14 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (14) 'Withdrawals'
 	{
 		buf = tail[o14:]
-		num, err := ssz.DivideInt2(len(buf), 44, 16)
-		if err != nil {
-			return err
-		}
-		e.Withdrawals = make([]*Withdrawal, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&e.Withdrawals[ii], buf[ii*44:(ii+1)*44]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&e.Withdrawals, buf, 44, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&e.Withdrawals[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
@@ -8247,56 +8167,52 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (7) 'HistoricalRoots'
 	{
 		buf = tail[o7:o9]
-		num, err := ssz.DivideInt2(len(buf), 32, 16777216)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, buf, 32, 16777216, func(ii int, buf []byte) (err error) {
+			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.HistoricalRoots = make([][]byte, num)
-		for ii := 0; ii < num; ii++ {
-			b.HistoricalRoots[ii] = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf[ii*32:(ii+1)*32])
 		}
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	{
 		buf = tail[o9:o11]
-		num, err := ssz.DivideInt2(len(buf), 72, 2048)
-		if err != nil {
-			return err
-		}
-		b.Eth1DataVotes = make([]*Eth1Data, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Eth1DataVotes, buf, 72, 2048, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (11) 'Validators'
 	{
 		buf = tail[o11:o12]
-		num, err := ssz.DivideInt2(len(buf), 121, 1099511627776)
-		if err != nil {
-			return err
-		}
-		b.Validators = make([]*Validator, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Validators, buf, 121, 1099511627776, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (12) 'Balances'
 	{
 		buf = tail[o12:o15]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.Balances[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.Balances = ssz.ExtendUint64(b.Balances, num)
-		for ii := 0; ii < num; ii++ {
-			b.Balances[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 
@@ -8321,13 +8237,12 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (21) 'InactivityScores'
 	{
 		buf = tail[o21:o24]
-		num, err := ssz.DivideInt2(len(buf), 8, 1099511627776)
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.InactivityScores, buf, 8, 1099511627776, func(ii int, buf []byte) (err error) {
+			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf)
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-		b.InactivityScores = ssz.ExtendUint64(b.InactivityScores, num)
-		for ii := 0; ii < num; ii++ {
-			b.InactivityScores[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
 		}
 	}
 
@@ -8342,15 +8257,14 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (27) 'HistoricalSummaries'
 	{
 		buf = tail[o27:]
-		num, err := ssz.DivideInt2(len(buf), 64, 16777216)
-		if err != nil {
-			return err
-		}
-		b.HistoricalSummaries = make([]*HistoricalSummary, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.HistoricalSummaries[ii], buf[ii*64:(ii+1)*64]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalSummaries, buf, 64, 16777216, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.HistoricalSummaries[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
@@ -9108,27 +9022,21 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (3) 'ProposerSlashings'
 	{
 		buf = tail[o3:o4]
-		num, err := ssz.DivideInt2(len(buf), 416, 16)
-		if err != nil {
-			return err
-		}
-		b.ProposerSlashings = make([]*ProposerSlashing, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.ProposerSlashings, buf, 416, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (4) 'AttesterSlashings'
 	{
 		buf = tail[o4:o5]
-		num, err := ssz.DecodeDynamicLength(buf, 2)
-		if err != nil {
-			return err
-		}
-		b.AttesterSlashings = make([]*AttesterSlashing, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.AttesterSlashings, buf, 2, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
@@ -9142,12 +9050,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'Attestations'
 	{
 		buf = tail[o5:o6]
-		num, err := ssz.DecodeDynamicLength(buf, 128)
-		if err != nil {
-			return err
-		}
-		b.Attestations = make([]*Attestation, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&b.Attestations, buf, 128, func(indx int, buf []byte) (err error) {
 			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
@@ -9161,30 +9064,28 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (6) 'Deposits'
 	{
 		buf = tail[o6:o7]
-		num, err := ssz.DivideInt2(len(buf), 1240, 16)
-		if err != nil {
-			return err
-		}
-		b.Deposits = make([]*Deposit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.Deposits, buf, 1240, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
 	// Field (7) 'VoluntaryExits'
 	{
 		buf = tail[o7:o9]
-		num, err := ssz.DivideInt2(len(buf), 112, 16)
-		if err != nil {
-			return err
-		}
-		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.VoluntaryExits, buf, 112, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
@@ -9199,15 +9100,14 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (10) 'BlsToExecutionChanges'
 	{
 		buf = tail[o10:]
-		num, err := ssz.DivideInt2(len(buf), 172, 16)
-		if err != nil {
-			return err
-		}
-		b.BlsToExecutionChanges = make([]*SignedBLSToExecutionChange, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&b.BlsToExecutionChanges[ii], buf[ii*172:(ii+1)*172]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&b.BlsToExecutionChanges, buf, 172, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&b.BlsToExecutionChanges[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
@@ -9583,12 +9483,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'Transactions'
 	{
 		buf = tail[o13:o14]
-		num, err := ssz.DecodeDynamicLength(buf, 1048576)
-		if err != nil {
-			return err
-		}
-		e.Transactions = make([][]byte, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+		err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, buf, 1048576, func(indx int, buf []byte) (err error) {
 			if len(buf) > 1073741824 {
 				return ssz.ErrBytesLength
 			}
@@ -9603,15 +9498,14 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	// Field (14) 'Withdrawals'
 	{
 		buf = tail[o14:]
-		num, err := ssz.DivideInt2(len(buf), 44, 16)
-		if err != nil {
-			return err
-		}
-		e.Withdrawals = make([]*Withdrawal, num)
-		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&e.Withdrawals[ii], buf[ii*44:(ii+1)*44]); err != nil {
+		err = ssz.UnmarshalSliceWithIndexCallback(&e.Withdrawals, buf, 44, 16, func(ii int, buf []byte) (err error) {
+			if err := ssz.UnmarshalField(&e.Withdrawals[ii], buf); err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return err
