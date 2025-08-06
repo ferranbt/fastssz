@@ -51,7 +51,7 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'D'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&p.D, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
-		copy(p.D[ii][:], buf)
+		ssz.UnmarshalFixedBytes(p.D[ii][:], buf)
 		return nil
 	}); err != nil {
 		return err

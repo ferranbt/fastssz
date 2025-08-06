@@ -37,13 +37,13 @@ func (i *Issue153) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Value1'
-	copy(i.Value1[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(i.Value1[:], buf[0:32])
 
 	// Field (1) 'Value2'
-	copy(i.Value2[:], buf[32:80])
+	ssz.UnmarshalFixedBytes(i.Value2[:], buf[32:80])
 
 	// Field (2) 'Value'
-	copy(i.Value[:], buf[80:128])
+	ssz.UnmarshalFixedBytes(i.Value[:], buf[80:128])
 
 	return err
 }

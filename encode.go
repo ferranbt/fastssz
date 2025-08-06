@@ -40,6 +40,10 @@ func ErrListTooBigFn(name string, found, max int) error {
 
 // ---- Unmarshal functions ----
 
+func UnmarshalFixedBytes(buf []byte, src []byte) {
+	copy(buf, src)
+}
+
 // UnmarshalBytes unmarshals a byte slice from the src input
 // If the src is nil, it will create a new byte slice with the content of buf.
 func UnmarshalBytes(src []byte, buf []byte, maxSize ...int) ([]byte, error) {

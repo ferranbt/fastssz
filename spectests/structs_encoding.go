@@ -55,7 +55,7 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'SelectionProof'
-	copy(a.SelectionProof[:], buf[12:108])
+	ssz.UnmarshalFixedBytes(a.SelectionProof[:], buf[12:108])
 
 	// Field (1) 'Aggregate'
 	if err := ssz.UnmarshalField(&a.Aggregate, tail[o1:]); err != nil {
@@ -232,7 +232,7 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 	a.Index = ssz.UnmarshallUint64(buf[8:16])
 
 	// Field (2) 'BeaconBlockHash'
-	copy(a.BeaconBlockHash[:], buf[16:48])
+	ssz.UnmarshalFixedBytes(a.BeaconBlockHash[:], buf[16:48])
 
 	// Field (3) 'Source'
 	if err := ssz.UnmarshalField(&a.Source, buf[48:88]); err != nil {
@@ -353,7 +353,7 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Signature'
-	copy(a.Signature[:], buf[132:228])
+	ssz.UnmarshalFixedBytes(a.Signature[:], buf[132:228])
 
 	// Field (0) 'AggregationBits'
 	if err = ssz.ValidateBitlist(tail[o0:], 2048); err != nil {
@@ -450,10 +450,10 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Pubkey'
-	copy(d.Pubkey[:], buf[0:48])
+	ssz.UnmarshalFixedBytes(d.Pubkey[:], buf[0:48])
 
 	// Field (1) 'WithdrawalCredentials'
-	copy(d.WithdrawalCredentials[:], buf[48:80])
+	ssz.UnmarshalFixedBytes(d.WithdrawalCredentials[:], buf[48:80])
 
 	// Field (2) 'Amount'
 	d.Amount = ssz.UnmarshallUint64(buf[80:88])
@@ -1285,7 +1285,7 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	copy(s.Signature[:], buf[16:112])
+	ssz.UnmarshalFixedBytes(s.Signature[:], buf[16:112])
 
 	return err
 }
@@ -1619,13 +1619,13 @@ func (h *HistoricalBatch) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'BlockRoots'
 	h.BlockRoots = make([][32]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		copy(h.BlockRoots[ii][:], buf[0:262144][ii*32:(ii+1)*32])
+		ssz.UnmarshalFixedBytes(h.BlockRoots[ii][:], buf[0:262144][ii*32:(ii+1)*32])
 	}
 
 	// Field (1) 'StateRoots'
 	h.StateRoots = make([][32]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		copy(h.StateRoots[ii][:], buf[262144:524288][ii*32:(ii+1)*32])
+		ssz.UnmarshalFixedBytes(h.StateRoots[ii][:], buf[262144:524288][ii*32:(ii+1)*32])
 	}
 
 	return err
@@ -3059,7 +3059,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Graffiti'
-	copy(b.Graffiti[:], buf[168:200])
+	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
 	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
@@ -3412,7 +3412,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Graffiti'
-	copy(b.Graffiti[:], buf[168:200])
+	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
 	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
@@ -3787,7 +3787,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Graffiti'
-	copy(b.Graffiti[:], buf[168:200])
+	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
 	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
@@ -5861,7 +5861,7 @@ func (s *SyncCommittee) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'AggregatePubKey'
-	copy(s.AggregatePubKey[:], buf[24576:24624])
+	ssz.UnmarshalFixedBytes(s.AggregatePubKey[:], buf[24576:24624])
 
 	return err
 }
@@ -5944,7 +5944,7 @@ func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
 	s.SyncCommiteeBits, _ = ssz.UnmarshalBytes(s.SyncCommiteeBits, buf[0:64])
 
 	// Field (1) 'SyncCommiteeSignature'
-	copy(s.SyncCommiteeSignature[:], buf[64:160])
+	ssz.UnmarshalFixedBytes(s.SyncCommiteeSignature[:], buf[64:160])
 
 	return err
 }
@@ -6079,22 +6079,22 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 508)
 
 	// Field (0) 'ParentHash'
-	copy(e.ParentHash[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
 
 	// Field (1) 'FeeRecipient'
-	copy(e.FeeRecipient[:], buf[32:52])
+	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
 
 	// Field (2) 'StateRoot'
-	copy(e.StateRoot[:], buf[52:84])
+	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
 
 	// Field (3) 'ReceiptsRoot'
-	copy(e.ReceiptsRoot[:], buf[84:116])
+	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	copy(e.LogsBloom[:], buf[116:372])
+	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'PrevRandao'
-	copy(e.PrevRandao[:], buf[372:404])
+	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
 
 	// Field (6) 'BlockNumber'
 	e.BlockNumber = ssz.UnmarshallUint64(buf[404:412])
@@ -6114,10 +6114,10 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	copy(e.BaseFeePerGas[:], buf[440:472])
+	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
 
 	// Field (12) 'BlockHash'
-	copy(e.BlockHash[:], buf[472:504])
+	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
 
 	// Offset (13) 'Transactions'
 	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
@@ -6758,22 +6758,22 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 512)
 
 	// Field (0) 'ParentHash'
-	copy(e.ParentHash[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
 
 	// Field (1) 'FeeRecipient'
-	copy(e.FeeRecipient[:], buf[32:52])
+	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
 
 	// Field (2) 'StateRoot'
-	copy(e.StateRoot[:], buf[52:84])
+	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
 
 	// Field (3) 'ReceiptsRoot'
-	copy(e.ReceiptsRoot[:], buf[84:116])
+	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	copy(e.LogsBloom[:], buf[116:372])
+	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'PrevRandao'
-	copy(e.PrevRandao[:], buf[372:404])
+	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
 
 	// Field (6) 'BlockNumber'
 	e.BlockNumber = ssz.UnmarshallUint64(buf[404:412])
@@ -6793,10 +6793,10 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	copy(e.BaseFeePerGas[:], buf[440:472])
+	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
 
 	// Field (12) 'BlockHash'
-	copy(e.BlockHash[:], buf[472:504])
+	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
 
 	// Offset (13) 'Transactions'
 	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
@@ -7033,22 +7033,22 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 568)
 
 	// Field (0) 'ParentHash'
-	copy(e.ParentHash[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
 
 	// Field (1) 'FeeRecipient'
-	copy(e.FeeRecipient[:], buf[32:52])
+	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
 
 	// Field (2) 'StateRoot'
-	copy(e.StateRoot[:], buf[52:84])
+	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
 
 	// Field (3) 'ReceiptsRoot'
-	copy(e.ReceiptsRoot[:], buf[84:116])
+	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	copy(e.LogsBloom[:], buf[116:372])
+	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'PrevRandao'
-	copy(e.PrevRandao[:], buf[372:404])
+	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
 
 	// Field (6) 'BlockNumber'
 	e.BlockNumber = ssz.UnmarshallUint64(buf[404:412])
@@ -7068,16 +7068,16 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	copy(e.BaseFeePerGas[:], buf[440:472])
+	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
 
 	// Field (12) 'BlockHash'
-	copy(e.BlockHash[:], buf[472:504])
+	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
 
 	// Field (13) 'TransactionsRoot'
-	copy(e.TransactionsRoot[:], buf[504:536])
+	ssz.UnmarshalFixedBytes(e.TransactionsRoot[:], buf[504:536])
 
 	// Field (14) 'WithdrawalRoot'
-	copy(e.WithdrawalRoot[:], buf[536:568])
+	ssz.UnmarshalFixedBytes(e.WithdrawalRoot[:], buf[536:568])
 
 	// Field (10) 'ExtraData'
 	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:], 32); err != nil {
@@ -7202,10 +7202,10 @@ func (b *BLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 	b.ValidatorIndex = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'FromBLSPubKey'
-	copy(b.FromBLSPubKey[:], buf[8:56])
+	ssz.UnmarshalFixedBytes(b.FromBLSPubKey[:], buf[8:56])
 
 	// Field (2) 'ToExecutionAddress'
-	copy(b.ToExecutionAddress[:], buf[56:76])
+	ssz.UnmarshalFixedBytes(b.ToExecutionAddress[:], buf[56:76])
 
 	return err
 }
@@ -7270,10 +7270,10 @@ func (h *HistoricalSummary) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'BlockSummaryRoot'
-	copy(h.BlockSummaryRoot[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(h.BlockSummaryRoot[:], buf[0:32])
 
 	// Field (1) 'StateSummaryRoot'
-	copy(h.StateSummaryRoot[:], buf[32:64])
+	ssz.UnmarshalFixedBytes(h.StateSummaryRoot[:], buf[32:64])
 
 	return err
 }
@@ -7345,7 +7345,7 @@ func (s *SignedBLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Signature'
-	copy(s.Signature[:], buf[76:172])
+	ssz.UnmarshalFixedBytes(s.Signature[:], buf[76:172])
 
 	return err
 }
@@ -7424,7 +7424,7 @@ func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 	w.ValidatorIndex = ssz.UnmarshallUint64(buf[8:16])
 
 	// Field (2) 'Address'
-	copy(w.Address[:], buf[16:36])
+	ssz.UnmarshalFixedBytes(w.Address[:], buf[16:36])
 
 	// Field (3) 'Amount'
 	w.Amount = ssz.UnmarshallUint64(buf[36:44])
@@ -7727,7 +7727,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
 
 	// Field (1) 'GenesisValidatorsRoot'
-	copy(b.GenesisValidatorsRoot[:], buf[8:40])
+	ssz.UnmarshalFixedBytes(b.GenesisValidatorsRoot[:], buf[8:40])
 
 	// Field (2) 'Slot'
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
@@ -7745,13 +7745,13 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (5) 'BlockRoots'
 
 	for ii := 0; ii < 8192; ii++ {
-		copy(b.BlockRoots[ii][:], buf[176:262320][ii*32:(ii+1)*32])
+		ssz.UnmarshalFixedBytes(b.BlockRoots[ii][:], buf[176:262320][ii*32:(ii+1)*32])
 	}
 
 	// Field (6) 'StateRoots'
 
 	for ii := 0; ii < 8192; ii++ {
-		copy(b.StateRoots[ii][:], buf[262320:524464][ii*32:(ii+1)*32])
+		ssz.UnmarshalFixedBytes(b.StateRoots[ii][:], buf[262320:524464][ii*32:(ii+1)*32])
 	}
 
 	// Offset (7) 'HistoricalRoots'
@@ -7785,7 +7785,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (13) 'RandaoMixes'
 
 	for ii := 0; ii < 65536; ii++ {
-		copy(b.RandaoMixes[ii][:], buf[524560:2621712][ii*32:(ii+1)*32])
+		ssz.UnmarshalFixedBytes(b.RandaoMixes[ii][:], buf[524560:2621712][ii*32:(ii+1)*32])
 	}
 
 	// Field (14) 'Slashings'
@@ -7805,7 +7805,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (17) 'JustificationBits'
-	copy(b.JustificationBits[:], buf[2687256:2687257])
+	ssz.UnmarshalFixedBytes(b.JustificationBits[:], buf[2687256:2687257])
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
 	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
@@ -8366,10 +8366,10 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	b.ProposerIndex = ssz.UnmarshallUint64(buf[8:16])
 
 	// Field (2) 'ParentRoot'
-	copy(b.ParentRoot[:], buf[16:48])
+	ssz.UnmarshalFixedBytes(b.ParentRoot[:], buf[16:48])
 
 	// Field (3) 'StateRoot'
-	copy(b.StateRoot[:], buf[48:80])
+	ssz.UnmarshalFixedBytes(b.StateRoot[:], buf[48:80])
 
 	// Offset (4) 'Body'
 	if o4, err = marker.ReadOffset(buf[80:84]); err != nil {
@@ -8613,7 +8613,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'Graffiti'
-	copy(b.Graffiti[:], buf[168:200])
+	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
 	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
@@ -8995,22 +8995,22 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 528)
 
 	// Field (0) 'ParentHash'
-	copy(e.ParentHash[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
 
 	// Field (1) 'FeeRecipient'
-	copy(e.FeeRecipient[:], buf[32:52])
+	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
 
 	// Field (2) 'StateRoot'
-	copy(e.StateRoot[:], buf[52:84])
+	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
 
 	// Field (3) 'ReceiptsRoot'
-	copy(e.ReceiptsRoot[:], buf[84:116])
+	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	copy(e.LogsBloom[:], buf[116:372])
+	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'PrevRandao'
-	copy(e.PrevRandao[:], buf[372:404])
+	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
 
 	// Field (6) 'BlockNumber'
 	e.BlockNumber = ssz.UnmarshallUint64(buf[404:412])
@@ -9030,10 +9030,10 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	copy(e.BaseFeePerGas[:], buf[440:472])
+	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
 
 	// Field (12) 'BlockHash'
-	copy(e.BlockHash[:], buf[472:504])
+	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
 
 	// Offset (13) 'Transactions'
 	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
@@ -9288,22 +9288,22 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 584)
 
 	// Field (0) 'ParentHash'
-	copy(e.ParentHash[:], buf[0:32])
+	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
 
 	// Field (1) 'FeeRecipient'
-	copy(e.FeeRecipient[:], buf[32:52])
+	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
 
 	// Field (2) 'StateRoot'
-	copy(e.StateRoot[:], buf[52:84])
+	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
 
 	// Field (3) 'ReceiptsRoot'
-	copy(e.ReceiptsRoot[:], buf[84:116])
+	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	copy(e.LogsBloom[:], buf[116:372])
+	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'PrevRandao'
-	copy(e.PrevRandao[:], buf[372:404])
+	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
 
 	// Field (6) 'BlockNumber'
 	e.BlockNumber = ssz.UnmarshallUint64(buf[404:412])
@@ -9323,16 +9323,16 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	copy(e.BaseFeePerGas[:], buf[440:472])
+	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
 
 	// Field (12) 'BlockHash'
-	copy(e.BlockHash[:], buf[472:504])
+	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
 
 	// Field (13) 'TransactionsRoot'
-	copy(e.TransactionsRoot[:], buf[504:536])
+	ssz.UnmarshalFixedBytes(e.TransactionsRoot[:], buf[504:536])
 
 	// Field (14) 'WithdrawalRoot'
-	copy(e.WithdrawalRoot[:], buf[536:568])
+	ssz.UnmarshalFixedBytes(e.WithdrawalRoot[:], buf[536:568])
 
 	// Field (15) 'BlobGasUsed'
 	e.BlobGasUsed = ssz.UnmarshallUint64(buf[568:576])
