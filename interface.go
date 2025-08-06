@@ -44,3 +44,15 @@ type HashWalker interface {
 	Merkleize(indx int)
 	MerkleizeWithMixin(indx int, num, limit uint64)
 }
+
+type PtrConstraint[T any] interface {
+	*T
+	Unmarshaler
+}
+
+func UnmarshalField[T any, PT PtrConstraint[T]](field *PT, buf []byte) error {
+	if *field == nil {
+		*field = PT(new(T))
+	}
+	return (*field).UnmarshalSSZ(buf)
+}

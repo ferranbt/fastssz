@@ -63,10 +63,7 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'Aggregate'
 	{
 		buf = tail[o1:]
-		if a.Aggregate == nil {
-			a.Aggregate = new(Attestation)
-		}
-		if err = a.Aggregate.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&a.Aggregate, buf); err != nil {
 			return err
 		}
 	}
@@ -246,18 +243,12 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 	copy(a.BeaconBlockHash[:], buf[16:48])
 
 	// Field (3) 'Source'
-	if a.Source == nil {
-		a.Source = new(Checkpoint)
-	}
-	if err = a.Source.UnmarshalSSZ(buf[48:88]); err != nil {
+	if err := ssz.UnmarshalField(&a.Source, buf[48:88]); err != nil {
 		return err
 	}
 
 	// Field (4) 'Target'
-	if a.Target == nil {
-		a.Target = new(Checkpoint)
-	}
-	if err = a.Target.UnmarshalSSZ(buf[88:128]); err != nil {
+	if err := ssz.UnmarshalField(&a.Target, buf[88:128]); err != nil {
 		return err
 	}
 
@@ -368,10 +359,7 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Data'
-	if a.Data == nil {
-		a.Data = new(AttestationData)
-	}
-	if err = a.Data.UnmarshalSSZ(buf[4:132]); err != nil {
+	if err := ssz.UnmarshalField(&a.Data, buf[4:132]); err != nil {
 		return err
 	}
 
@@ -583,10 +571,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Data'
-	if d.Data == nil {
-		d.Data = new(DepositData)
-	}
-	if err = d.Data.UnmarshalSSZ(buf[1056:1240]); err != nil {
+	if err := ssz.UnmarshalField(&d.Data, buf[1056:1240]); err != nil {
 		return err
 	}
 
@@ -799,10 +784,7 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Data'
-	if i.Data == nil {
-		i.Data = new(AttestationData)
-	}
-	if err = i.Data.UnmarshalSSZ(buf[4:132]); err != nil {
+	if err := ssz.UnmarshalField(&i.Data, buf[4:132]); err != nil {
 		return err
 	}
 
@@ -943,10 +925,7 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Data'
-	if p.Data == nil {
-		p.Data = new(AttestationData)
-	}
-	if err = p.Data.UnmarshalSSZ(buf[4:132]); err != nil {
+	if err := ssz.UnmarshalField(&p.Data, buf[4:132]); err != nil {
 		return err
 	}
 
@@ -1353,10 +1332,7 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Exit'
-	if s.Exit == nil {
-		s.Exit = new(VoluntaryExit)
-	}
-	if err = s.Exit.UnmarshalSSZ(buf[0:16]); err != nil {
+	if err := ssz.UnmarshalField(&s.Exit, buf[0:16]); err != nil {
 		return err
 	}
 
@@ -1809,18 +1785,12 @@ func (p *ProposerSlashing) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Header1'
-	if p.Header1 == nil {
-		p.Header1 = new(SignedBeaconBlockHeader)
-	}
-	if err = p.Header1.UnmarshalSSZ(buf[0:208]); err != nil {
+	if err := ssz.UnmarshalField(&p.Header1, buf[0:208]); err != nil {
 		return err
 	}
 
 	// Field (1) 'Header2'
-	if p.Header2 == nil {
-		p.Header2 = new(SignedBeaconBlockHeader)
-	}
-	if err = p.Header2.UnmarshalSSZ(buf[208:416]); err != nil {
+	if err := ssz.UnmarshalField(&p.Header2, buf[208:416]); err != nil {
 		return err
 	}
 
@@ -1928,10 +1898,7 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Attestation1'
 	{
 		buf = tail[o0:o1]
-		if a.Attestation1 == nil {
-			a.Attestation1 = new(IndexedAttestation)
-		}
-		if err = a.Attestation1.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&a.Attestation1, buf); err != nil {
 			return err
 		}
 	}
@@ -1939,10 +1906,7 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'Attestation2'
 	{
 		buf = tail[o1:]
-		if a.Attestation2 == nil {
-			a.Attestation2 = new(IndexedAttestation)
-		}
-		if err = a.Attestation2.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&a.Attestation2, buf); err != nil {
 			return err
 		}
 	}
@@ -2078,10 +2042,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	// Field (4) 'Body'
 	{
 		buf = tail[o4:]
-		if b.Body == nil {
-			b.Body = new(BeaconBlockBodyPhase0)
-		}
-		if err = b.Body.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&b.Body, buf); err != nil {
 			return err
 		}
 	}
@@ -2201,10 +2162,7 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Block'
 	{
 		buf = tail[o0:]
-		if s.Block == nil {
-			s.Block = new(BeaconBlock)
-		}
-		if err = s.Block.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&s.Block, buf); err != nil {
 			return err
 		}
 	}
@@ -2648,18 +2606,12 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
 
 	// Field (3) 'Fork'
-	if b.Fork == nil {
-		b.Fork = new(Fork)
-	}
-	if err = b.Fork.UnmarshalSSZ(buf[48:64]); err != nil {
+	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
 		return err
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if b.LatestBlockHeader == nil {
-		b.LatestBlockHeader = new(BeaconBlockHeader)
-	}
-	if err = b.LatestBlockHeader.UnmarshalSSZ(buf[64:176]); err != nil {
+	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
 		return err
 	}
 
@@ -2691,10 +2643,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[524468:524540]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
 		return err
 	}
 
@@ -2748,26 +2697,17 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	b.JustificationBits = append(b.JustificationBits, buf[2687256:2687257]...)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if b.PreviousJustifiedCheckpoint == nil {
-		b.PreviousJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.PreviousJustifiedCheckpoint.UnmarshalSSZ(buf[2687257:2687297]); err != nil {
+	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
 		return err
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if b.CurrentJustifiedCheckpoint == nil {
-		b.CurrentJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.CurrentJustifiedCheckpoint.UnmarshalSSZ(buf[2687297:2687337]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
 		return err
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if b.FinalizedCheckpoint == nil {
-		b.FinalizedCheckpoint = new(Checkpoint)
-	}
-	if err = b.FinalizedCheckpoint.UnmarshalSSZ(buf[2687337:2687377]); err != nil {
+	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
 		return err
 	}
 
@@ -2796,10 +2736,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Eth1DataVotes = make([]*Eth1Data, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Eth1DataVotes[ii] == nil {
-				b.Eth1DataVotes[ii] = new(Eth1Data)
-			}
-			if err = b.Eth1DataVotes[ii].UnmarshalSSZ(buf[ii*72 : (ii+1)*72]); err != nil {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
 				return err
 			}
 		}
@@ -2814,10 +2751,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Validators = make([]*Validator, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Validators[ii] == nil {
-				b.Validators[ii] = new(Validator)
-			}
-			if err = b.Validators[ii].UnmarshalSSZ(buf[ii*121 : (ii+1)*121]); err != nil {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
 				return err
 			}
 		}
@@ -2845,10 +2779,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		}
 		b.PreviousEpochAttestations = make([]*PendingAttestation, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.PreviousEpochAttestations[indx] == nil {
-				b.PreviousEpochAttestations[indx] = new(PendingAttestation)
-			}
-			if err = b.PreviousEpochAttestations[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.PreviousEpochAttestations[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -2867,10 +2798,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 		}
 		b.CurrentEpochAttestations = make([]*PendingAttestation, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.CurrentEpochAttestations[indx] == nil {
-				b.CurrentEpochAttestations[indx] = new(PendingAttestation)
-			}
-			if err = b.CurrentEpochAttestations[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.CurrentEpochAttestations[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -3306,10 +3234,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
 
 	// Field (1) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[96:168]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
 		return err
 	}
 
@@ -3354,10 +3279,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 		}
 		b.ProposerSlashings = make([]*ProposerSlashing, num)
 		for ii := 0; ii < num; ii++ {
-			if b.ProposerSlashings[ii] == nil {
-				b.ProposerSlashings[ii] = new(ProposerSlashing)
-			}
-			if err = b.ProposerSlashings[ii].UnmarshalSSZ(buf[ii*416 : (ii+1)*416]); err != nil {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
 				return err
 			}
 		}
@@ -3372,10 +3294,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 		}
 		b.AttesterSlashings = make([]*AttesterSlashing, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.AttesterSlashings[indx] == nil {
-				b.AttesterSlashings[indx] = new(AttesterSlashing)
-			}
-			if err = b.AttesterSlashings[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -3394,10 +3313,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Attestations = make([]*Attestation, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.Attestations[indx] == nil {
-				b.Attestations[indx] = new(Attestation)
-			}
-			if err = b.Attestations[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -3416,10 +3332,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Deposits = make([]*Deposit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Deposits[ii] == nil {
-				b.Deposits[ii] = new(Deposit)
-			}
-			if err = b.Deposits[ii].UnmarshalSSZ(buf[ii*1240 : (ii+1)*1240]); err != nil {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
 				return err
 			}
 		}
@@ -3434,10 +3347,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 		}
 		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.VoluntaryExits[ii] == nil {
-				b.VoluntaryExits[ii] = new(SignedVoluntaryExit)
-			}
-			if err = b.VoluntaryExits[ii].UnmarshalSSZ(buf[ii*112 : (ii+1)*112]); err != nil {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
 				return err
 			}
 		}
@@ -3740,10 +3650,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
 
 	// Field (1) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[96:168]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
 		return err
 	}
 
@@ -3780,10 +3687,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'SyncAggregate'
-	if b.SyncAggregate == nil {
-		b.SyncAggregate = new(SyncAggregate)
-	}
-	if err = b.SyncAggregate.UnmarshalSSZ(buf[220:380]); err != nil {
+	if err := ssz.UnmarshalField(&b.SyncAggregate, buf[220:380]); err != nil {
 		return err
 	}
 
@@ -3796,10 +3700,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.ProposerSlashings = make([]*ProposerSlashing, num)
 		for ii := 0; ii < num; ii++ {
-			if b.ProposerSlashings[ii] == nil {
-				b.ProposerSlashings[ii] = new(ProposerSlashing)
-			}
-			if err = b.ProposerSlashings[ii].UnmarshalSSZ(buf[ii*416 : (ii+1)*416]); err != nil {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
 				return err
 			}
 		}
@@ -3814,10 +3715,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.AttesterSlashings = make([]*AttesterSlashing, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.AttesterSlashings[indx] == nil {
-				b.AttesterSlashings[indx] = new(AttesterSlashing)
-			}
-			if err = b.AttesterSlashings[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -3836,10 +3734,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Attestations = make([]*Attestation, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.Attestations[indx] == nil {
-				b.Attestations[indx] = new(Attestation)
-			}
-			if err = b.Attestations[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -3858,10 +3753,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Deposits = make([]*Deposit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Deposits[ii] == nil {
-				b.Deposits[ii] = new(Deposit)
-			}
-			if err = b.Deposits[ii].UnmarshalSSZ(buf[ii*1240 : (ii+1)*1240]); err != nil {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
 				return err
 			}
 		}
@@ -3876,10 +3768,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.VoluntaryExits[ii] == nil {
-				b.VoluntaryExits[ii] = new(SignedVoluntaryExit)
-			}
-			if err = b.VoluntaryExits[ii].UnmarshalSSZ(buf[ii*112 : (ii+1)*112]); err != nil {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
 				return err
 			}
 		}
@@ -4199,10 +4088,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
 
 	// Field (1) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[96:168]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
 		return err
 	}
 
@@ -4239,10 +4125,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'SyncAggregate'
-	if b.SyncAggregate == nil {
-		b.SyncAggregate = new(SyncAggregate)
-	}
-	if err = b.SyncAggregate.UnmarshalSSZ(buf[220:380]); err != nil {
+	if err := ssz.UnmarshalField(&b.SyncAggregate, buf[220:380]); err != nil {
 		return err
 	}
 
@@ -4260,10 +4143,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.ProposerSlashings = make([]*ProposerSlashing, num)
 		for ii := 0; ii < num; ii++ {
-			if b.ProposerSlashings[ii] == nil {
-				b.ProposerSlashings[ii] = new(ProposerSlashing)
-			}
-			if err = b.ProposerSlashings[ii].UnmarshalSSZ(buf[ii*416 : (ii+1)*416]); err != nil {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
 				return err
 			}
 		}
@@ -4278,10 +4158,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.AttesterSlashings = make([]*AttesterSlashing, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.AttesterSlashings[indx] == nil {
-				b.AttesterSlashings[indx] = new(AttesterSlashing)
-			}
-			if err = b.AttesterSlashings[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -4300,10 +4177,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Attestations = make([]*Attestation, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.Attestations[indx] == nil {
-				b.Attestations[indx] = new(Attestation)
-			}
-			if err = b.Attestations[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -4322,10 +4196,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Deposits = make([]*Deposit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Deposits[ii] == nil {
-				b.Deposits[ii] = new(Deposit)
-			}
-			if err = b.Deposits[ii].UnmarshalSSZ(buf[ii*1240 : (ii+1)*1240]); err != nil {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
 				return err
 			}
 		}
@@ -4340,10 +4211,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.VoluntaryExits[ii] == nil {
-				b.VoluntaryExits[ii] = new(SignedVoluntaryExit)
-			}
-			if err = b.VoluntaryExits[ii].UnmarshalSSZ(buf[ii*112 : (ii+1)*112]); err != nil {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
 				return err
 			}
 		}
@@ -4352,10 +4220,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (9) 'ExecutionPayload'
 	{
 		buf = tail[o9:]
-		if b.ExecutionPayload == nil {
-			b.ExecutionPayload = new(ExecutionPayload)
-		}
-		if err = b.ExecutionPayload.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&b.ExecutionPayload, buf); err != nil {
 			return err
 		}
 	}
@@ -4791,18 +4656,12 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
 
 	// Field (3) 'Fork'
-	if b.Fork == nil {
-		b.Fork = new(Fork)
-	}
-	if err = b.Fork.UnmarshalSSZ(buf[48:64]); err != nil {
+	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
 		return err
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if b.LatestBlockHeader == nil {
-		b.LatestBlockHeader = new(BeaconBlockHeader)
-	}
-	if err = b.LatestBlockHeader.UnmarshalSSZ(buf[64:176]); err != nil {
+	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
 		return err
 	}
 
@@ -4834,10 +4693,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[524468:524540]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
 		return err
 	}
 
@@ -4891,26 +4747,17 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	b.JustificationBits = append(b.JustificationBits, buf[2687256:2687257]...)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if b.PreviousJustifiedCheckpoint == nil {
-		b.PreviousJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.PreviousJustifiedCheckpoint.UnmarshalSSZ(buf[2687257:2687297]); err != nil {
+	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
 		return err
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if b.CurrentJustifiedCheckpoint == nil {
-		b.CurrentJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.CurrentJustifiedCheckpoint.UnmarshalSSZ(buf[2687297:2687337]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
 		return err
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if b.FinalizedCheckpoint == nil {
-		b.FinalizedCheckpoint = new(Checkpoint)
-	}
-	if err = b.FinalizedCheckpoint.UnmarshalSSZ(buf[2687337:2687377]); err != nil {
+	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
 		return err
 	}
 
@@ -4920,18 +4767,12 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
-	if b.CurrentSyncCommittee == nil {
-		b.CurrentSyncCommittee = new(SyncCommittee)
-	}
-	if err = b.CurrentSyncCommittee.UnmarshalSSZ(buf[2687381:2712005]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentSyncCommittee, buf[2687381:2712005]); err != nil {
 		return err
 	}
 
 	// Field (23) 'NextSyncCommittee'
-	if b.NextSyncCommittee == nil {
-		b.NextSyncCommittee = new(SyncCommittee)
-	}
-	if err = b.NextSyncCommittee.UnmarshalSSZ(buf[2712005:2736629]); err != nil {
+	if err := ssz.UnmarshalField(&b.NextSyncCommittee, buf[2712005:2736629]); err != nil {
 		return err
 	}
 
@@ -4960,10 +4801,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Eth1DataVotes = make([]*Eth1Data, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Eth1DataVotes[ii] == nil {
-				b.Eth1DataVotes[ii] = new(Eth1Data)
-			}
-			if err = b.Eth1DataVotes[ii].UnmarshalSSZ(buf[ii*72 : (ii+1)*72]); err != nil {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
 				return err
 			}
 		}
@@ -4978,10 +4816,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Validators = make([]*Validator, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Validators[ii] == nil {
-				b.Validators[ii] = new(Validator)
-			}
-			if err = b.Validators[ii].UnmarshalSSZ(buf[ii*121 : (ii+1)*121]); err != nil {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
 				return err
 			}
 		}
@@ -5615,18 +5450,12 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
 
 	// Field (3) 'Fork'
-	if b.Fork == nil {
-		b.Fork = new(Fork)
-	}
-	if err = b.Fork.UnmarshalSSZ(buf[48:64]); err != nil {
+	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
 		return err
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if b.LatestBlockHeader == nil {
-		b.LatestBlockHeader = new(BeaconBlockHeader)
-	}
-	if err = b.LatestBlockHeader.UnmarshalSSZ(buf[64:176]); err != nil {
+	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
 		return err
 	}
 
@@ -5658,10 +5487,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[524468:524540]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
 		return err
 	}
 
@@ -5715,26 +5541,17 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	b.JustificationBits = append(b.JustificationBits, buf[2687256:2687257]...)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if b.PreviousJustifiedCheckpoint == nil {
-		b.PreviousJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.PreviousJustifiedCheckpoint.UnmarshalSSZ(buf[2687257:2687297]); err != nil {
+	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
 		return err
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if b.CurrentJustifiedCheckpoint == nil {
-		b.CurrentJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.CurrentJustifiedCheckpoint.UnmarshalSSZ(buf[2687297:2687337]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
 		return err
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if b.FinalizedCheckpoint == nil {
-		b.FinalizedCheckpoint = new(Checkpoint)
-	}
-	if err = b.FinalizedCheckpoint.UnmarshalSSZ(buf[2687337:2687377]); err != nil {
+	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
 		return err
 	}
 
@@ -5744,18 +5561,12 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
-	if b.CurrentSyncCommittee == nil {
-		b.CurrentSyncCommittee = new(SyncCommittee)
-	}
-	if err = b.CurrentSyncCommittee.UnmarshalSSZ(buf[2687381:2712005]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentSyncCommittee, buf[2687381:2712005]); err != nil {
 		return err
 	}
 
 	// Field (23) 'NextSyncCommittee'
-	if b.NextSyncCommittee == nil {
-		b.NextSyncCommittee = new(SyncCommittee)
-	}
-	if err = b.NextSyncCommittee.UnmarshalSSZ(buf[2712005:2736629]); err != nil {
+	if err := ssz.UnmarshalField(&b.NextSyncCommittee, buf[2712005:2736629]); err != nil {
 		return err
 	}
 
@@ -5789,10 +5600,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Eth1DataVotes = make([]*Eth1Data, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Eth1DataVotes[ii] == nil {
-				b.Eth1DataVotes[ii] = new(Eth1Data)
-			}
-			if err = b.Eth1DataVotes[ii].UnmarshalSSZ(buf[ii*72 : (ii+1)*72]); err != nil {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
 				return err
 			}
 		}
@@ -5807,10 +5615,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Validators = make([]*Validator, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Validators[ii] == nil {
-				b.Validators[ii] = new(Validator)
-			}
-			if err = b.Validators[ii].UnmarshalSSZ(buf[ii*121 : (ii+1)*121]); err != nil {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
 				return err
 			}
 		}
@@ -5869,10 +5674,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	// Field (24) 'LatestExecutionPayloadHeader'
 	{
 		buf = tail[o24:]
-		if b.LatestExecutionPayloadHeader == nil {
-			b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeader)
-		}
-		if err = b.LatestExecutionPayloadHeader.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&b.LatestExecutionPayloadHeader, buf); err != nil {
 			return err
 		}
 	}
@@ -6227,10 +6029,7 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Header'
-	if s.Header == nil {
-		s.Header = new(BeaconBlockHeader)
-	}
-	if err = s.Header.UnmarshalSSZ(buf[0:112]); err != nil {
+	if err := ssz.UnmarshalField(&s.Header, buf[0:112]); err != nil {
 		return err
 	}
 
@@ -7667,10 +7466,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		e.Withdrawals = make([]*Withdrawal, num)
 		for ii := 0; ii < num; ii++ {
-			if e.Withdrawals[ii] == nil {
-				e.Withdrawals[ii] = new(Withdrawal)
-			}
-			if err = e.Withdrawals[ii].UnmarshalSSZ(buf[ii*44 : (ii+1)*44]); err != nil {
+			if err := ssz.UnmarshalField(&e.Withdrawals[ii], buf[ii*44:(ii+1)*44]); err != nil {
 				return err
 			}
 		}
@@ -8196,10 +7992,7 @@ func (s *SignedBLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Message'
-	if s.Message == nil {
-		s.Message = new(BLSToExecutionChange)
-	}
-	if err = s.Message.UnmarshalSSZ(buf[0:76]); err != nil {
+	if err := ssz.UnmarshalField(&s.Message, buf[0:76]); err != nil {
 		return err
 	}
 
@@ -8591,18 +8384,12 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	b.Slot = ssz.UnmarshallUint64(buf[40:48])
 
 	// Field (3) 'Fork'
-	if b.Fork == nil {
-		b.Fork = new(Fork)
-	}
-	if err = b.Fork.UnmarshalSSZ(buf[48:64]); err != nil {
+	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
 		return err
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if b.LatestBlockHeader == nil {
-		b.LatestBlockHeader = new(BeaconBlockHeader)
-	}
-	if err = b.LatestBlockHeader.UnmarshalSSZ(buf[64:176]); err != nil {
+	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
 		return err
 	}
 
@@ -8628,10 +8415,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[524468:524540]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
 		return err
 	}
 
@@ -8679,26 +8463,17 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	copy(b.JustificationBits[:], buf[2687256:2687257])
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if b.PreviousJustifiedCheckpoint == nil {
-		b.PreviousJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.PreviousJustifiedCheckpoint.UnmarshalSSZ(buf[2687257:2687297]); err != nil {
+	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
 		return err
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if b.CurrentJustifiedCheckpoint == nil {
-		b.CurrentJustifiedCheckpoint = new(Checkpoint)
-	}
-	if err = b.CurrentJustifiedCheckpoint.UnmarshalSSZ(buf[2687297:2687337]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
 		return err
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if b.FinalizedCheckpoint == nil {
-		b.FinalizedCheckpoint = new(Checkpoint)
-	}
-	if err = b.FinalizedCheckpoint.UnmarshalSSZ(buf[2687337:2687377]); err != nil {
+	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
 		return err
 	}
 
@@ -8708,18 +8483,12 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
-	if b.CurrentSyncCommittee == nil {
-		b.CurrentSyncCommittee = new(SyncCommittee)
-	}
-	if err = b.CurrentSyncCommittee.UnmarshalSSZ(buf[2687381:2712005]); err != nil {
+	if err := ssz.UnmarshalField(&b.CurrentSyncCommittee, buf[2687381:2712005]); err != nil {
 		return err
 	}
 
 	// Field (23) 'NextSyncCommittee'
-	if b.NextSyncCommittee == nil {
-		b.NextSyncCommittee = new(SyncCommittee)
-	}
-	if err = b.NextSyncCommittee.UnmarshalSSZ(buf[2712005:2736629]); err != nil {
+	if err := ssz.UnmarshalField(&b.NextSyncCommittee, buf[2712005:2736629]); err != nil {
 		return err
 	}
 
@@ -8764,10 +8533,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Eth1DataVotes = make([]*Eth1Data, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Eth1DataVotes[ii] == nil {
-				b.Eth1DataVotes[ii] = new(Eth1Data)
-			}
-			if err = b.Eth1DataVotes[ii].UnmarshalSSZ(buf[ii*72 : (ii+1)*72]); err != nil {
+			if err := ssz.UnmarshalField(&b.Eth1DataVotes[ii], buf[ii*72:(ii+1)*72]); err != nil {
 				return err
 			}
 		}
@@ -8782,10 +8548,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Validators = make([]*Validator, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Validators[ii] == nil {
-				b.Validators[ii] = new(Validator)
-			}
-			if err = b.Validators[ii].UnmarshalSSZ(buf[ii*121 : (ii+1)*121]); err != nil {
+			if err := ssz.UnmarshalField(&b.Validators[ii], buf[ii*121:(ii+1)*121]); err != nil {
 				return err
 			}
 		}
@@ -8844,10 +8607,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (24) 'LatestExecutionPayloadHeader'
 	{
 		buf = tail[o24:o27]
-		if b.LatestExecutionPayloadHeader == nil {
-			b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeaderCapella)
-		}
-		if err = b.LatestExecutionPayloadHeader.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&b.LatestExecutionPayloadHeader, buf); err != nil {
 			return err
 		}
 	}
@@ -8861,10 +8621,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.HistoricalSummaries = make([]*HistoricalSummary, num)
 		for ii := 0; ii < num; ii++ {
-			if b.HistoricalSummaries[ii] == nil {
-				b.HistoricalSummaries[ii] = new(HistoricalSummary)
-			}
-			if err = b.HistoricalSummaries[ii].UnmarshalSSZ(buf[ii*64 : (ii+1)*64]); err != nil {
+			if err := ssz.UnmarshalField(&b.HistoricalSummaries[ii], buf[ii*64:(ii+1)*64]); err != nil {
 				return err
 			}
 		}
@@ -9234,10 +8991,7 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Block'
 	{
 		buf = tail[o0:]
-		if s.Block == nil {
-			s.Block = new(BeaconBlockCapella)
-		}
-		if err = s.Block.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&s.Block, buf); err != nil {
 			return err
 		}
 	}
@@ -9355,10 +9109,7 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (4) 'Body'
 	{
 		buf = tail[o4:]
-		if b.Body == nil {
-			b.Body = new(BeaconBlockBodyCapella)
-		}
-		if err = b.Body.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&b.Body, buf); err != nil {
 			return err
 		}
 	}
@@ -9591,10 +9342,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	b.RandaoReveal = append(b.RandaoReveal, buf[0:96]...)
 
 	// Field (1) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[96:168]); err != nil {
+	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
 		return err
 	}
 
@@ -9631,10 +9379,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (8) 'SyncAggregate'
-	if b.SyncAggregate == nil {
-		b.SyncAggregate = new(SyncAggregate)
-	}
-	if err = b.SyncAggregate.UnmarshalSSZ(buf[220:380]); err != nil {
+	if err := ssz.UnmarshalField(&b.SyncAggregate, buf[220:380]); err != nil {
 		return err
 	}
 
@@ -9657,10 +9402,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.ProposerSlashings = make([]*ProposerSlashing, num)
 		for ii := 0; ii < num; ii++ {
-			if b.ProposerSlashings[ii] == nil {
-				b.ProposerSlashings[ii] = new(ProposerSlashing)
-			}
-			if err = b.ProposerSlashings[ii].UnmarshalSSZ(buf[ii*416 : (ii+1)*416]); err != nil {
+			if err := ssz.UnmarshalField(&b.ProposerSlashings[ii], buf[ii*416:(ii+1)*416]); err != nil {
 				return err
 			}
 		}
@@ -9675,10 +9417,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.AttesterSlashings = make([]*AttesterSlashing, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.AttesterSlashings[indx] == nil {
-				b.AttesterSlashings[indx] = new(AttesterSlashing)
-			}
-			if err = b.AttesterSlashings[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.AttesterSlashings[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -9697,10 +9436,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Attestations = make([]*Attestation, num)
 		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.Attestations[indx] == nil {
-				b.Attestations[indx] = new(Attestation)
-			}
-			if err = b.Attestations[indx].UnmarshalSSZ(buf); err != nil {
+			if err := ssz.UnmarshalField(&b.Attestations[indx], buf); err != nil {
 				return err
 			}
 			return nil
@@ -9719,10 +9455,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.Deposits = make([]*Deposit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.Deposits[ii] == nil {
-				b.Deposits[ii] = new(Deposit)
-			}
-			if err = b.Deposits[ii].UnmarshalSSZ(buf[ii*1240 : (ii+1)*1240]); err != nil {
+			if err := ssz.UnmarshalField(&b.Deposits[ii], buf[ii*1240:(ii+1)*1240]); err != nil {
 				return err
 			}
 		}
@@ -9737,10 +9470,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.VoluntaryExits = make([]*SignedVoluntaryExit, num)
 		for ii := 0; ii < num; ii++ {
-			if b.VoluntaryExits[ii] == nil {
-				b.VoluntaryExits[ii] = new(SignedVoluntaryExit)
-			}
-			if err = b.VoluntaryExits[ii].UnmarshalSSZ(buf[ii*112 : (ii+1)*112]); err != nil {
+			if err := ssz.UnmarshalField(&b.VoluntaryExits[ii], buf[ii*112:(ii+1)*112]); err != nil {
 				return err
 			}
 		}
@@ -9749,10 +9479,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	// Field (9) 'ExecutionPayload'
 	{
 		buf = tail[o9:o10]
-		if b.ExecutionPayload == nil {
-			b.ExecutionPayload = new(ExecutionPayloadCapella)
-		}
-		if err = b.ExecutionPayload.UnmarshalSSZ(buf); err != nil {
+		if err := ssz.UnmarshalField(&b.ExecutionPayload, buf); err != nil {
 			return err
 		}
 	}
@@ -9766,10 +9493,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 		b.BlsToExecutionChanges = make([]*SignedBLSToExecutionChange, num)
 		for ii := 0; ii < num; ii++ {
-			if b.BlsToExecutionChanges[ii] == nil {
-				b.BlsToExecutionChanges[ii] = new(SignedBLSToExecutionChange)
-			}
-			if err = b.BlsToExecutionChanges[ii].UnmarshalSSZ(buf[ii*172 : (ii+1)*172]); err != nil {
+			if err := ssz.UnmarshalField(&b.BlsToExecutionChanges[ii], buf[ii*172:(ii+1)*172]); err != nil {
 				return err
 			}
 		}
@@ -10182,10 +9906,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 		}
 		e.Withdrawals = make([]*Withdrawal, num)
 		for ii := 0; ii < num; ii++ {
-			if e.Withdrawals[ii] == nil {
-				e.Withdrawals[ii] = new(Withdrawal)
-			}
-			if err = e.Withdrawals[ii].UnmarshalSSZ(buf[ii*44 : (ii+1)*44]); err != nil {
+			if err := ssz.UnmarshalField(&e.Withdrawals[ii], buf[ii*44:(ii+1)*44]); err != nil {
 				return err
 			}
 		}

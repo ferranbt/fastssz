@@ -56,15 +56,12 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'A'
-	if err = c.A.UnmarshalSSZ(buf[0:96]); err != nil {
+	if err := ssz.UnmarshalField(&c.A, buf[0:96]); err != nil {
 		return err
 	}
 
 	// Field (1) 'B'
-	if c.B == nil {
-		c.B = new(other.Case4Interface)
-	}
-	if err = c.B.UnmarshalSSZ(buf[96:192]); err != nil {
+	if err := ssz.UnmarshalField(&c.B, buf[96:192]); err != nil {
 		return err
 	}
 

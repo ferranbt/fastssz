@@ -102,28 +102,22 @@ func (c *Case3A) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'A'
-	if err = c.A.UnmarshalSSZ(buf[0:0]); err != nil {
+	if err := ssz.UnmarshalField(&c.A, buf[0:0]); err != nil {
 		return err
 	}
 
 	// Field (1) 'B'
-	if c.B == nil {
-		c.B = new(Case3B)
-	}
-	if err = c.B.UnmarshalSSZ(buf[0:0]); err != nil {
+	if err := ssz.UnmarshalField(&c.B, buf[0:0]); err != nil {
 		return err
 	}
 
 	// Field (2) 'C'
-	if err = c.C.UnmarshalSSZ(buf[0:0]); err != nil {
+	if err := ssz.UnmarshalField(&c.C, buf[0:0]); err != nil {
 		return err
 	}
 
 	// Field (3) 'D'
-	if c.D == nil {
-		c.D = new(other.Case3B)
-	}
-	if err = c.D.UnmarshalSSZ(buf[0:0]); err != nil {
+	if err := ssz.UnmarshalField(&c.D, buf[0:0]); err != nil {
 		return err
 	}
 

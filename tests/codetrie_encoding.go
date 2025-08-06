@@ -215,10 +215,7 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 	var o1 uint64
 
 	// Field (0) 'Metadata'
-	if c.Metadata == nil {
-		c.Metadata = new(Metadata)
-	}
-	if err = c.Metadata.UnmarshalSSZ(buf[0:35]); err != nil {
+	if err := ssz.UnmarshalField(&c.Metadata, buf[0:35]); err != nil {
 		return err
 	}
 
@@ -240,10 +237,7 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 		}
 		c.Chunks = make([]*Chunk, num)
 		for ii := 0; ii < num; ii++ {
-			if c.Chunks[ii] == nil {
-				c.Chunks[ii] = new(Chunk)
-			}
-			if err = c.Chunks[ii].UnmarshalSSZ(buf[ii*33 : (ii+1)*33]); err != nil {
+			if err := ssz.UnmarshalField(&c.Chunks[ii], buf[ii*33:(ii+1)*33]); err != nil {
 				return err
 			}
 		}
@@ -350,10 +344,7 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 	var o1 uint64
 
 	// Field (0) 'Metadata'
-	if c.Metadata == nil {
-		c.Metadata = new(Metadata)
-	}
-	if err = c.Metadata.UnmarshalSSZ(buf[0:35]); err != nil {
+	if err := ssz.UnmarshalField(&c.Metadata, buf[0:35]); err != nil {
 		return err
 	}
 
@@ -375,10 +366,7 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 		}
 		c.Chunks = make([]*Chunk, num)
 		for ii := 0; ii < num; ii++ {
-			if c.Chunks[ii] == nil {
-				c.Chunks[ii] = new(Chunk)
-			}
-			if err = c.Chunks[ii].UnmarshalSSZ(buf[ii*33 : (ii+1)*33]); err != nil {
+			if err := ssz.UnmarshalField(&c.Chunks[ii], buf[ii*33:(ii+1)*33]); err != nil {
 				return err
 			}
 		}
