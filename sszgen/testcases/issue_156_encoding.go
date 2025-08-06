@@ -53,10 +53,7 @@ func (i *Issue156) UnmarshalSSZ(buf []byte) error {
 	copy(i.A3[:], buf[64:96])
 
 	// Field (3) 'A4'
-	if cap(i.A4) == 0 {
-		i.A4 = make([]byte, 0, len(buf[96:128]))
-	}
-	i.A4 = append(i.A4, buf[96:128]...)
+	i.A4 = ssz.UnmarshalBytes(i.A4, buf[96:128])
 
 	return err
 }

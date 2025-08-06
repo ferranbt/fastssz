@@ -69,10 +69,7 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 	c.C = alias.Case4Slot(ssz.UnmarshallUint64(buf[192:200]))
 
 	// Field (3) 'D'
-	if cap(c.D) == 0 {
-		c.D = other.Case4Bytes(make([]byte, 0, len(buf[200:296])))
-	}
-	c.D = append(c.D, buf[200:296]...)
+	c.D = ssz.UnmarshalBytes(c.D, buf[200:296])
 
 	// Field (4) 'E'
 	copy(c.E[:], buf[296:392])

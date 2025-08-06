@@ -35,10 +35,7 @@ func (b *BytesWrapper) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Bytes'
-	if cap(b.Bytes) == 0 {
-		b.Bytes = make([]byte, 0, len(buf[0:48]))
-	}
-	b.Bytes = append(b.Bytes, buf[0:48]...)
+	b.Bytes = ssz.UnmarshalBytes(b.Bytes, buf[0:48])
 
 	return err
 }

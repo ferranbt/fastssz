@@ -69,28 +69,19 @@ func (c *Case5A) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'A'
 	c.A = make([][]byte, 2)
 	for ii := 0; ii < 2; ii++ {
-		if cap(c.A[ii]) == 0 {
-			c.A[ii] = make([]byte, 0, len(buf[0:4][ii*2:(ii+1)*2]))
-		}
-		c.A[ii] = append(c.A[ii], buf[0:4][ii*2:(ii+1)*2]...)
+		c.A[ii] = ssz.UnmarshalBytes(c.A[ii], buf[0:4][ii*2:(ii+1)*2])
 	}
 
 	// Field (1) 'B'
 	c.B = make([]Case5Bytes, 2)
 	for ii := 0; ii < 2; ii++ {
-		if cap(c.B[ii]) == 0 {
-			c.B[ii] = make([]byte, 0, len(buf[4:8][ii*2:(ii+1)*2]))
-		}
-		c.B[ii] = append(c.B[ii], buf[4:8][ii*2:(ii+1)*2]...)
+		c.B[ii] = ssz.UnmarshalBytes(c.B[ii], buf[4:8][ii*2:(ii+1)*2])
 	}
 
 	// Field (2) 'C'
 	c.C = make([][]byte, 2)
 	for ii := 0; ii < 2; ii++ {
-		if cap(c.C[ii]) == 0 {
-			c.C[ii] = make([]byte, 0, len(buf[8:12][ii*2:(ii+1)*2]))
-		}
-		c.C[ii] = append(c.C[ii], buf[8:12][ii*2:(ii+1)*2]...)
+		c.C[ii] = ssz.UnmarshalBytes(c.C[ii], buf[8:12][ii*2:(ii+1)*2])
 	}
 
 	return err

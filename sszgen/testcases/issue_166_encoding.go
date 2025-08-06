@@ -5,7 +5,6 @@ package testcases
 
 import (
 	ssz "github.com/ferranbt/fastssz"
-	"github.com/ferranbt/fastssz/sszgen/testcases/other"
 )
 
 // MarshalSSZ ssz marshals the Issue165 object
@@ -73,10 +72,7 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 0 {
 			return ssz.ErrBytesLength
 		}
-		if cap(i.A) == 0 {
-			i.A = other.Case4Bytes(make([]byte, 0, len(buf)))
-		}
-		i.A = append(i.A, buf...)
+		i.A = ssz.UnmarshalBytes(i.A, buf)
 	}
 
 	// Field (1) 'B'
@@ -85,10 +81,7 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 		if len(buf) > 0 {
 			return ssz.ErrBytesLength
 		}
-		if cap(i.B) == 0 {
-			i.B = make([]byte, 0, len(buf))
-		}
-		i.B = append(i.B, buf...)
+		i.B = ssz.UnmarshalBytes(i.B, buf)
 	}
 	return err
 }
