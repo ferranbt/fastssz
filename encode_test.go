@@ -160,9 +160,8 @@ func TestReadOffset_FirstOffsetDoesNotMatchFixedSize(t *testing.T) {
 	buf := WriteOffset(nil, 150)
 
 	_, err := om.ReadOffset(buf)
-
 	require.Error(t, err)
-	require.Equal(t, "expected first offset to match fixed size 100 but found 150", err.Error())
+	require.Equal(t, ErrInvalidVariableOffset, err)
 }
 
 func TestReadOffset_OffsetExceedsTotalSize(t *testing.T) {
@@ -172,7 +171,7 @@ func TestReadOffset_OffsetExceedsTotalSize(t *testing.T) {
 	_, err := om.ReadOffset(buf)
 
 	require.Error(t, err)
-	require.Equal(t, "offset 1500 is greater than total size 1000", err.Error())
+	require.Equal(t, err, ErrOffset)
 }
 
 func TestReadOffset_SequentialOffsets(t *testing.T) {
@@ -201,7 +200,7 @@ func TestReadOffset_SequentialOffsets(t *testing.T) {
 	buf4 := WriteOffset(nil, 250)
 	_, err = om.ReadOffset(buf4)
 	require.Error(t, err)
-	require.Equal(t, "offset 250 is less than last offset 300", err.Error())
+	require.Equal(t, err, ErrOffsetNotIncreasing)
 }
 
 func TestReadOffset_SecondOffsetExceedsTotalSize(t *testing.T) {
@@ -217,7 +216,7 @@ func TestReadOffset_SecondOffsetExceedsTotalSize(t *testing.T) {
 	_, err = om.ReadOffset(buf2)
 
 	require.Error(t, err)
-	require.Equal(t, "offset 1500 is greater than total size 1000", err.Error())
+	require.Equal(t, err, ErrOffset)
 }
 
 func TestReadOffset_MultipleValidOffsets(t *testing.T) {
