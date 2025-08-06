@@ -116,7 +116,12 @@ func (l *ListC) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Elems'
-	if err = ssz.UnmarshalSliceSSZ(&l.Elems, tail[o0:], 48, 32); err != nil {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
+		if err := l.Elems[ii].UnmarshalSSZ(buf); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return err
 	}
 

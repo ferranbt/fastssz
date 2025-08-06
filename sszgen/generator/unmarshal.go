@@ -121,7 +121,7 @@ func (v *Value) unmarshalList(dst string) string {
 	inner := getElem(v.typ)
 	if inner.isFixed() {
 		var tmpl string
-		if inner.isContainer() {
+		if inner.isContainer() && !inner.noPtr {
 			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}); err != nil {
 			return err
 		}`
@@ -147,7 +147,7 @@ func (v *Value) unmarshalList(dst string) string {
 
 	var tmpl string
 
-	if inner.isContainer() {
+	if inner.isContainer() && !inner.noPtr {
 		tmpl = `if err = ssz.UnmarshalDynamicSliceSSZ(&::.{{.name}}, {{.dst}}, {{.max}}); err != nil {
 			return err
 		}`
