@@ -56,7 +56,7 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'A'
-	if err := ssz.UnmarshalField(&c.A, buf[0:96]); err != nil {
+	if err := c.A.UnmarshalSSZ(buf[0:96]); err != nil {
 		return err
 	}
 

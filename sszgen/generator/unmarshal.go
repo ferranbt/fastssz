@@ -166,9 +166,11 @@ func (v *Value) unmarshalList() string {
 
 func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	if !start {
-		tmpl := `if err := ssz.UnmarshalField(&::.{{.name}}, {{.dst}}); err != nil {
+		tmpl := `{{if .ptr}}if err := ssz.UnmarshalField(&::.{{.name}}, {{.dst}}); err != nil {
 			return err
-		}`
+		}{{else}}if err := ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
+			return err
+		}{{end}}`
 		check := true
 		if v.noPtr {
 			check = false
@@ -178,6 +180,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			"obj":   v,
 			"dst":   dst,
 			"check": check,
+			"ptr":   !v.noPtr,
 		})
 	}
 

@@ -130,7 +130,7 @@ func (l *ListC) UnmarshalSSZ(buf []byte) error {
 		}
 		l.Elems = make([]BytesWrapper, num)
 		for ii := 0; ii < num; ii++ {
-			if err := ssz.UnmarshalField(&l.Elems[ii], buf[ii*48:(ii+1)*48]); err != nil {
+			if err := l.Elems[ii].UnmarshalSSZ(buf[ii*48 : (ii+1)*48]); err != nil {
 				return err
 			}
 		}
