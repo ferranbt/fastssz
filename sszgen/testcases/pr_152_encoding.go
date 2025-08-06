@@ -42,14 +42,11 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'D'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 4 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (0) 'D'

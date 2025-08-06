@@ -93,6 +93,7 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o4, o5, o6, o7 uint64
+	marker := ssz.NewOffsetMarker(size, 31)
 
 	// Field (0) 'A'
 	i.A = ssz.UnmarshallUint8(buf[0:1])
@@ -107,27 +108,23 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 	i.D = ssz.UnmarshallUint64(buf[7:15])
 
 	// Offset (4) 'A1'
-	if o4 = ssz.ReadOffset(buf[15:19]); o4 > size {
-		return ssz.ErrOffset
-	}
-
-	if o4 != 31 {
-		return ssz.ErrInvalidVariableOffset
+	if o4, err = marker.ReadOffset(buf[15:19]); err != nil {
+		return err
 	}
 
 	// Offset (5) 'A2'
-	if o5 = ssz.ReadOffset(buf[19:23]); o5 > size || o4 > o5 {
-		return ssz.ErrOffset
+	if o5, err = marker.ReadOffset(buf[19:23]); err != nil {
+		return err
 	}
 
 	// Offset (6) 'A3'
-	if o6 = ssz.ReadOffset(buf[23:27]); o6 > size || o5 > o6 {
-		return ssz.ErrOffset
+	if o6, err = marker.ReadOffset(buf[23:27]); err != nil {
+		return err
 	}
 
 	// Offset (7) 'A4'
-	if o7 = ssz.ReadOffset(buf[27:31]); o7 > size || o6 > o7 {
-		return ssz.ErrOffset
+	if o7, err = marker.ReadOffset(buf[27:31]); err != nil {
+		return err
 	}
 
 	// Field (4) 'A1'

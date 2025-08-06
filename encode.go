@@ -23,6 +23,7 @@ var (
 	ErrListTooBig            = fmt.Errorf("list length is higher than max value")
 	ErrEmptyBitlist          = fmt.Errorf("bitlist is empty")
 	ErrInvalidVariableOffset = fmt.Errorf("invalid ssz encoding. first variable element offset indexes into fixed value data")
+	ErrOffsetNotIncreasing   = fmt.Errorf("offsets are not increasing")
 )
 
 func ErrBytesLengthFn(name string, found, expected int) error {
@@ -326,4 +327,38 @@ func DivideInt2(a, b, max int) (int, error) {
 // DivideInt divides the int fully
 func DivideInt(a, b int) (int, bool) {
 	return a / b, a%b == 0
+}
+
+type OffsetMarker struct {
+	TotalSize  uint64
+	FixedSize  uint64
+	LastOffset *uint64
+}
+
+func NewOffsetMarker(totalSize, fixedSize uint64) *OffsetMarker {
+	return &OffsetMarker{
+		TotalSize:  totalSize,
+		FixedSize:  fixedSize,
+		LastOffset: nil,
+	}
+}
+
+func (o *OffsetMarker) ReadOffset(buf []byte) (uint64, error) {
+	offset := ReadOffset(buf)
+
+	if offset > o.TotalSize {
+		return 0, ErrOffset
+	}
+	if o.LastOffset == nil {
+		if offset != o.FixedSize {
+			return 0, ErrInvalidVariableOffset
+		}
+	} else {
+		if offset < *o.LastOffset {
+			return 0, ErrOffsetNotIncreasing
+		}
+	}
+
+	o.LastOffset = &offset
+	return offset, nil
 }

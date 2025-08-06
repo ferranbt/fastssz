@@ -207,6 +207,7 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o1 uint64
+	marker := ssz.NewOffsetMarker(size, 39)
 
 	// Field (0) 'Metadata'
 	if err := ssz.UnmarshalField(&c.Metadata, buf[0:35]); err != nil {
@@ -214,12 +215,8 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (1) 'Chunks'
-	if o1 = ssz.ReadOffset(buf[35:39]); o1 > size {
-		return ssz.ErrOffset
-	}
-
-	if o1 != 39 {
-		return ssz.ErrInvalidVariableOffset
+	if o1, err = marker.ReadOffset(buf[35:39]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Chunks'
@@ -336,6 +333,7 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o1 uint64
+	marker := ssz.NewOffsetMarker(size, 39)
 
 	// Field (0) 'Metadata'
 	if err := ssz.UnmarshalField(&c.Metadata, buf[0:35]); err != nil {
@@ -343,12 +341,8 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (1) 'Chunks'
-	if o1 = ssz.ReadOffset(buf[35:39]); o1 > size {
-		return ssz.ErrOffset
-	}
-
-	if o1 != 39 {
-		return ssz.ErrInvalidVariableOffset
+	if o1, err = marker.ReadOffset(buf[35:39]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Chunks'
