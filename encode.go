@@ -42,8 +42,8 @@ func ErrListTooBigFn(name string, found, max int) error {
 
 // UnmarshalBytes unmarshals a byte slice from the src input
 // If the src is nil, it will create a new byte slice with the content of buf.
-func UnmarshalBytes(src []byte, buf []byte, expectedSize ...int) ([]byte, error) {
-	if len(expectedSize) > 0 && len(buf) != expectedSize[0] {
+func UnmarshalBytes(src []byte, buf []byte, maxSize ...int) ([]byte, error) {
+	if len(maxSize) > 0 && len(buf) > maxSize[0] {
 		return nil, ErrBytesLength
 	}
 	if cap(src) == 0 {
