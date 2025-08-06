@@ -30,7 +30,7 @@ func (v *Value) unmarshal(dst string) string {
 
 	case *Bytes:
 		if !obj.IsList && !obj.IsGoDyn {
-			return fmt.Sprintf("copy(::.%s[:], %s)", v.name, dst)
+			return fmt.Sprintf("ssz.UnmarshalFixedBytes(::.%s[:], %s)", v.name, dst)
 		}
 
 		// both fixed and dynamic are decoded equally

@@ -31,7 +31,7 @@ func (i *Issue64) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'FeeRecipientAddress'
-	copy(i.FeeRecipientAddress[:], buf[0:120])
+	ssz.UnmarshalFixedBytes(i.FeeRecipientAddress[:], buf[0:120])
 
 	return err
 }

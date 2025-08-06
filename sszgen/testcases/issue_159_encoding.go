@@ -34,10 +34,10 @@ func (i *Issue159[B]) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Data'
-	copy(i.Data[:], buf[0:48])
+	ssz.UnmarshalFixedBytes(i.Data[:], buf[0:48])
 
 	// Field (1) 'Data2'
-	copy(i.Data2[:], buf[48:90])
+	ssz.UnmarshalFixedBytes(i.Data2[:], buf[48:90])
 
 	return err
 }

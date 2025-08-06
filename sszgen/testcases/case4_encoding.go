@@ -72,7 +72,7 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 	c.D, _ = ssz.UnmarshalBytes(c.D, buf[200:296])
 
 	// Field (4) 'E'
-	copy(c.E[:], buf[296:392])
+	ssz.UnmarshalFixedBytes(c.E[:], buf[296:392])
 
 	return err
 }
