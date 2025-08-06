@@ -69,19 +69,19 @@ func (c *Case5A) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'A'
 	c.A = make([][]byte, 2)
 	for ii := 0; ii < 2; ii++ {
-		c.A[ii] = ssz.UnmarshalBytes(c.A[ii], buf[0:4][ii*2:(ii+1)*2])
+		c.A[ii], _ = ssz.UnmarshalBytes(c.A[ii], buf[0:4][ii*2:(ii+1)*2])
 	}
 
 	// Field (1) 'B'
 	c.B = make([]Case5Bytes, 2)
 	for ii := 0; ii < 2; ii++ {
-		c.B[ii] = ssz.UnmarshalBytes(c.B[ii], buf[4:8][ii*2:(ii+1)*2])
+		c.B[ii], _ = ssz.UnmarshalBytes(c.B[ii], buf[4:8][ii*2:(ii+1)*2])
 	}
 
 	// Field (2) 'C'
 	c.C = make([][]byte, 2)
 	for ii := 0; ii < 2; ii++ {
-		c.C[ii] = ssz.UnmarshalBytes(c.C[ii], buf[8:12][ii*2:(ii+1)*2])
+		c.C[ii], _ = ssz.UnmarshalBytes(c.C[ii], buf[8:12][ii*2:(ii+1)*2])
 	}
 
 	return err

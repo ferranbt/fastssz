@@ -125,17 +125,13 @@ func (v *Vec2) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Values2'
-	{
-		buf = tail[o0:]
-		num, err := ssz.DivideInt2(len(buf), 4, 100)
-		if err != nil {
-			return err
-		}
-		v.Values2 = ssz.ExtendUint32(v.Values2, num)
-		for ii := 0; ii < num; ii++ {
-			v.Values2[ii] = ssz.UnmarshallUint32(buf[ii*4 : (ii+1)*4])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&v.Values2, tail[o0:], 4, 100, func(ii int, buf []byte) (err error) {
+		v.Values2[ii] = ssz.UnmarshallUint32(buf)
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return err
 }
 

@@ -97,6 +97,13 @@ func (v *Value) getObjs() []*Value {
 	return nil
 }
 
+func (v *Value) isContainer() bool {
+	if _, ok := v.typ.(*Container); ok {
+		return true
+	}
+	return false
+}
+
 func (v *Value) Type() string {
 	switch v.typ.(type) {
 	case *Bool:

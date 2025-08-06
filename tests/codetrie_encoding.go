@@ -44,7 +44,7 @@ func (m *Metadata) UnmarshalSSZ(buf []byte) error {
 	m.Version = ssz.UnmarshallUint8(buf[0:1])
 
 	// Field (1) 'CodeHash'
-	m.CodeHash = ssz.UnmarshalBytes(m.CodeHash, buf[1:33])
+	m.CodeHash, _ = ssz.UnmarshalBytes(m.CodeHash, buf[1:33])
 
 	// Field (2) 'CodeLength'
 	m.CodeLength = ssz.UnmarshallUint16(buf[33:35])
@@ -123,7 +123,7 @@ func (c *Chunk) UnmarshalSSZ(buf []byte) error {
 	c.FIO = ssz.UnmarshallUint8(buf[0:1])
 
 	// Field (1) 'Code'
-	c.Code = ssz.UnmarshalBytes(c.Code, buf[1:33])
+	c.Code, _ = ssz.UnmarshalBytes(c.Code, buf[1:33])
 
 	return err
 }
@@ -220,18 +220,10 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Chunks'
-	{
-		buf = tail[o1:]
-		err = ssz.UnmarshalSliceWithIndexCallback(&c.Chunks, buf, 33, 4, func(ii int, buf []byte) (err error) {
-			if err := ssz.UnmarshalField(&c.Chunks[ii], buf); err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
+	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 33, 4); err != nil {
+		return err
 	}
+
 	return err
 }
 
@@ -345,18 +337,10 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (1) 'Chunks'
-	{
-		buf = tail[o1:]
-		err = ssz.UnmarshalSliceWithIndexCallback(&c.Chunks, buf, 33, 1024, func(ii int, buf []byte) (err error) {
-			if err := ssz.UnmarshalField(&c.Chunks[ii], buf); err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
+	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 33, 1024); err != nil {
+		return err
 	}
+
 	return err
 }
 

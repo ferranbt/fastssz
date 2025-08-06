@@ -96,3 +96,27 @@ func UnmarshalDynamicSliceWithCallback[T any](
 	*slice = make([]T, num)
 	return UnmarshalDynamic(buf, num, unmarshalCallback)
 }
+
+func UnmarshalSliceSSZ[T any, PT PtrConstraint[T]](
+	slice *[]PT,
+	buf []byte,
+	itemSize int,
+	maxItems int,
+) error {
+	return UnmarshalSliceWithIndexCallback(slice, buf, itemSize, maxItems,
+		func(ii int, itemBuf []byte) error {
+			return UnmarshalField[T, PT](&(*slice)[ii], itemBuf)
+		})
+}
+
+// UnmarshalDynamicSliceSSZ handles dynamic slices of SSZ types
+func UnmarshalDynamicSliceSSZ[T any, PT PtrConstraint[T]](
+	slice *[]PT,
+	buf []byte,
+	maxElements int,
+) error {
+	return UnmarshalDynamicSliceWithCallback(slice, buf, maxElements,
+		func(indx int, itemBuf []byte) error {
+			return UnmarshalField[T, PT](&(*slice)[indx], itemBuf)
+		})
+}

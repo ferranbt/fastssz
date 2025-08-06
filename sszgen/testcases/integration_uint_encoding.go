@@ -128,56 +128,37 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (4) 'A1'
-	{
-		buf = tail[o4:o5]
-		num, err := ssz.DivideInt2(len(buf), 1, 400)
-		if err != nil {
-			return err
-		}
-		i.A1 = ssz.ExtendUint8(i.A1, num)
-		for ii := 0; ii < num; ii++ {
-			i.A1[ii] = ssz.UnmarshallUint8(buf[ii*1 : (ii+1)*1])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A1, tail[o4:o5], 1, 400, func(ii int, buf []byte) (err error) {
+		i.A1[ii] = ssz.UnmarshallUint8(buf)
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	// Field (5) 'A2'
-	{
-		buf = tail[o5:o6]
-		num, err := ssz.DivideInt2(len(buf), 2, 400)
-		if err != nil {
-			return err
-		}
-		i.A2 = ssz.ExtendUint16(i.A2, num)
-		for ii := 0; ii < num; ii++ {
-			i.A2[ii] = ssz.UnmarshallUint16(buf[ii*2 : (ii+1)*2])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A2, tail[o5:o6], 2, 400, func(ii int, buf []byte) (err error) {
+		i.A2[ii] = ssz.UnmarshallUint16(buf)
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	// Field (6) 'A3'
-	{
-		buf = tail[o6:o7]
-		num, err := ssz.DivideInt2(len(buf), 4, 400)
-		if err != nil {
-			return err
-		}
-		i.A3 = ssz.ExtendUint32(i.A3, num)
-		for ii := 0; ii < num; ii++ {
-			i.A3[ii] = ssz.UnmarshallUint32(buf[ii*4 : (ii+1)*4])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A3, tail[o6:o7], 4, 400, func(ii int, buf []byte) (err error) {
+		i.A3[ii] = ssz.UnmarshallUint32(buf)
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	// Field (7) 'A4'
-	{
-		buf = tail[o7:]
-		num, err := ssz.DivideInt2(len(buf), 8, 400)
-		if err != nil {
-			return err
-		}
-		i.A4 = ssz.ExtendUint64(i.A4, num)
-		for ii := 0; ii < num; ii++ {
-			i.A4[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A4, tail[o7:], 8, 400, func(ii int, buf []byte) (err error) {
+		i.A4[ii] = ssz.UnmarshallUint64(buf)
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return err
 }
 

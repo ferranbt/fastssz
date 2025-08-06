@@ -53,7 +53,7 @@ func (i *Issue156) UnmarshalSSZ(buf []byte) error {
 	copy(i.A3[:], buf[64:96])
 
 	// Field (3) 'A4'
-	i.A4 = ssz.UnmarshalBytes(i.A4, buf[96:128])
+	i.A4, _ = ssz.UnmarshalBytes(i.A4, buf[96:128])
 
 	return err
 }

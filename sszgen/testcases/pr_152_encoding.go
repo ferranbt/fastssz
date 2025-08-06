@@ -50,17 +50,13 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'D'
-	{
-		buf = tail[o0:]
-		num, err := ssz.DivideInt2(len(buf), 48, 32)
-		if err != nil {
-			return err
-		}
-		p.D = make([]Data152, num)
-		for ii := 0; ii < num; ii++ {
-			copy(p.D[ii][:], buf[ii*48:(ii+1)*48])
-		}
+	if err = ssz.UnmarshalSliceWithIndexCallback(&p.D, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
+		copy(p.D[ii][:], buf)
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return err
 }
 
