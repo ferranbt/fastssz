@@ -215,6 +215,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	{{if .offsets}}
 		tail := buf
 		var {{.offsets}} uint64
+		marker := ssz.NewOffsetMarker(size, {{.size}})
 	{{end}}
 	`
 
@@ -274,15 +275,9 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			}
 
 			tmpl := `// Offset ({{.indx}}) '{{.name}}'
-			if {{.offset}} = ssz.ReadOffset({{.dst}}); {{.offset}} > size {{.more}} {
-				return ssz.ErrOffset
-			}
-			{{ if .firstOffsetCheck }}
-			if {{.offset}} != {{.firstOffsetCheck}} {
-				return ssz.ErrInvalidVariableOffset
-			}
-			{{ end }}
-			`
+			if {{.offset}}, err = marker.ReadOffset({{.dst}}); err != nil {
+				return err
+			}`
 			res = execTmpl(tmpl, data)
 			firstOffsetCheck = ""
 		}

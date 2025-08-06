@@ -51,19 +51,16 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0, o1 uint64
+	marker := ssz.NewOffsetMarker(size, 8)
 
 	// Offset (0) 'A'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 8 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Offset (1) 'B'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
-		return ssz.ErrOffset
+	if o1, err = marker.ReadOffset(buf[4:8]); err != nil {
+		return err
 	}
 
 	// Field (0) 'A'

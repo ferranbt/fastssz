@@ -44,17 +44,14 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o1 uint64
+	marker := ssz.NewOffsetMarker(size, 108)
 
 	// Field (0) 'Index'
 	a.Index = ssz.UnmarshallUint64(buf[0:8])
 
 	// Offset (1) 'Aggregate'
-	if o1 = ssz.ReadOffset(buf[8:12]); o1 > size {
-		return ssz.ErrOffset
-	}
-
-	if o1 != 108 {
-		return ssz.ErrInvalidVariableOffset
+	if o1, err = marker.ReadOffset(buf[8:12]); err != nil {
+		return err
 	}
 
 	// Field (2) 'SelectionProof'
@@ -345,14 +342,11 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 228)
 
 	// Offset (0) 'AggregationBits'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 228 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Data'
@@ -758,14 +752,11 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 228)
 
 	// Offset (0) 'AttestationIndices'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 228 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Data'
@@ -896,14 +887,11 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 148)
 
 	// Offset (0) 'AggregationBits'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 148 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Data'
@@ -1835,19 +1823,16 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0, o1 uint64
+	marker := ssz.NewOffsetMarker(size, 8)
 
 	// Offset (0) 'Attestation1'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 8 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Offset (1) 'Attestation2'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
-		return ssz.ErrOffset
+	if o1, err = marker.ReadOffset(buf[4:8]); err != nil {
+		return err
 	}
 
 	// Field (0) 'Attestation1'
@@ -1966,6 +1951,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o4 uint64
+	marker := ssz.NewOffsetMarker(size, 84)
 
 	// Field (0) 'Slot'
 	b.Slot = ssz.UnmarshallUint64(buf[0:8])
@@ -1980,12 +1966,8 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	b.StateRoot = ssz.UnmarshalBytes(b.StateRoot, buf[48:80])
 
 	// Offset (4) 'Body'
-	if o4 = ssz.ReadOffset(buf[80:84]); o4 > size {
-		return ssz.ErrOffset
-	}
-
-	if o4 != 84 {
-		return ssz.ErrInvalidVariableOffset
+	if o4, err = marker.ReadOffset(buf[80:84]); err != nil {
+		return err
 	}
 
 	// Field (4) 'Body'
@@ -2092,14 +2074,11 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 100)
 
 	// Offset (0) 'Block'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 100 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Signature'
@@ -2532,6 +2511,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16 uint64
+	marker := ssz.NewOffsetMarker(size, 2687377)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
@@ -2565,12 +2545,8 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7 = ssz.ReadOffset(buf[524464:524468]); o7 > size {
-		return ssz.ErrOffset
-	}
-
-	if o7 != 2687377 {
-		return ssz.ErrInvalidVariableOffset
+	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
+		return err
 	}
 
 	// Field (8) 'Eth1Data'
@@ -2579,21 +2555,21 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9 = ssz.ReadOffset(buf[524540:524544]); o9 > size || o7 > o9 {
-		return ssz.ErrOffset
+	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
+		return err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
 	b.Eth1DepositIndex = ssz.UnmarshallUint64(buf[524544:524552])
 
 	// Offset (11) 'Validators'
-	if o11 = ssz.ReadOffset(buf[524552:524556]); o11 > size || o9 > o11 {
-		return ssz.ErrOffset
+	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
+		return err
 	}
 
 	// Offset (12) 'Balances'
-	if o12 = ssz.ReadOffset(buf[524556:524560]); o12 > size || o11 > o12 {
-		return ssz.ErrOffset
+	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
+		return err
 	}
 
 	// Field (13) 'RandaoMixes'
@@ -2609,13 +2585,13 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (15) 'PreviousEpochAttestations'
-	if o15 = ssz.ReadOffset(buf[2687248:2687252]); o15 > size || o12 > o15 {
-		return ssz.ErrOffset
+	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
+		return err
 	}
 
 	// Offset (16) 'CurrentEpochAttestations'
-	if o16 = ssz.ReadOffset(buf[2687252:2687256]); o16 > size || o15 > o16 {
-		return ssz.ErrOffset
+	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
+		return err
 	}
 
 	// Field (17) 'JustificationBits'
@@ -3148,6 +3124,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o3, o4, o5, o6, o7 uint64
+	marker := ssz.NewOffsetMarker(size, 220)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
@@ -3161,32 +3138,28 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	copy(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
-	if o3 = ssz.ReadOffset(buf[200:204]); o3 > size {
-		return ssz.ErrOffset
-	}
-
-	if o3 != 220 {
-		return ssz.ErrInvalidVariableOffset
+	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
+		return err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4 = ssz.ReadOffset(buf[204:208]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
+	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
+		return err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5 = ssz.ReadOffset(buf[208:212]); o5 > size || o4 > o5 {
-		return ssz.ErrOffset
+	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
+		return err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6 = ssz.ReadOffset(buf[212:216]); o6 > size || o5 > o6 {
-		return ssz.ErrOffset
+	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
+		return err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7 = ssz.ReadOffset(buf[216:220]); o7 > size || o6 > o7 {
-		return ssz.ErrOffset
+	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
+		return err
 	}
 
 	// Field (3) 'ProposerSlashings'
@@ -3561,6 +3534,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o3, o4, o5, o6, o7 uint64
+	marker := ssz.NewOffsetMarker(size, 380)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
@@ -3574,32 +3548,28 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	copy(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
-	if o3 = ssz.ReadOffset(buf[200:204]); o3 > size {
-		return ssz.ErrOffset
-	}
-
-	if o3 != 380 {
-		return ssz.ErrInvalidVariableOffset
+	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
+		return err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4 = ssz.ReadOffset(buf[204:208]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
+	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
+		return err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5 = ssz.ReadOffset(buf[208:212]); o5 > size || o4 > o5 {
-		return ssz.ErrOffset
+	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
+		return err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6 = ssz.ReadOffset(buf[212:216]); o6 > size || o5 > o6 {
-		return ssz.ErrOffset
+	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
+		return err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7 = ssz.ReadOffset(buf[216:220]); o7 > size || o6 > o7 {
-		return ssz.ErrOffset
+	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
+		return err
 	}
 
 	// Field (8) 'SyncAggregate'
@@ -3996,6 +3966,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o3, o4, o5, o6, o7, o9 uint64
+	marker := ssz.NewOffsetMarker(size, 384)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
@@ -4009,32 +3980,28 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	copy(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
-	if o3 = ssz.ReadOffset(buf[200:204]); o3 > size {
-		return ssz.ErrOffset
-	}
-
-	if o3 != 384 {
-		return ssz.ErrInvalidVariableOffset
+	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
+		return err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4 = ssz.ReadOffset(buf[204:208]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
+	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
+		return err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5 = ssz.ReadOffset(buf[208:212]); o5 > size || o4 > o5 {
-		return ssz.ErrOffset
+	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
+		return err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6 = ssz.ReadOffset(buf[212:216]); o6 > size || o5 > o6 {
-		return ssz.ErrOffset
+	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
+		return err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7 = ssz.ReadOffset(buf[216:220]); o7 > size || o6 > o7 {
-		return ssz.ErrOffset
+	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
+		return err
 	}
 
 	// Field (8) 'SyncAggregate'
@@ -4043,8 +4010,8 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (9) 'ExecutionPayload'
-	if o9 = ssz.ReadOffset(buf[380:384]); o9 > size || o7 > o9 {
-		return ssz.ErrOffset
+	if o9, err = marker.ReadOffset(buf[380:384]); err != nil {
+		return err
 	}
 
 	// Field (3) 'ProposerSlashings'
@@ -4555,6 +4522,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16, o21 uint64
+	marker := ssz.NewOffsetMarker(size, 2736629)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
@@ -4588,12 +4556,8 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7 = ssz.ReadOffset(buf[524464:524468]); o7 > size {
-		return ssz.ErrOffset
-	}
-
-	if o7 != 2736629 {
-		return ssz.ErrInvalidVariableOffset
+	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
+		return err
 	}
 
 	// Field (8) 'Eth1Data'
@@ -4602,21 +4566,21 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9 = ssz.ReadOffset(buf[524540:524544]); o9 > size || o7 > o9 {
-		return ssz.ErrOffset
+	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
+		return err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
 	b.Eth1DepositIndex = ssz.UnmarshallUint64(buf[524544:524552])
 
 	// Offset (11) 'Validators'
-	if o11 = ssz.ReadOffset(buf[524552:524556]); o11 > size || o9 > o11 {
-		return ssz.ErrOffset
+	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
+		return err
 	}
 
 	// Offset (12) 'Balances'
-	if o12 = ssz.ReadOffset(buf[524556:524560]); o12 > size || o11 > o12 {
-		return ssz.ErrOffset
+	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
+		return err
 	}
 
 	// Field (13) 'RandaoMixes'
@@ -4632,13 +4596,13 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (15) 'PreviousEpochParticipation'
-	if o15 = ssz.ReadOffset(buf[2687248:2687252]); o15 > size || o12 > o15 {
-		return ssz.ErrOffset
+	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
+		return err
 	}
 
 	// Offset (16) 'CurrentEpochParticipation'
-	if o16 = ssz.ReadOffset(buf[2687252:2687256]); o16 > size || o15 > o16 {
-		return ssz.ErrOffset
+	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
+		return err
 	}
 
 	// Field (17) 'JustificationBits'
@@ -4660,8 +4624,8 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (21) 'InactivityScores'
-	if o21 = ssz.ReadOffset(buf[2687377:2687381]); o21 > size || o16 > o21 {
-		return ssz.ErrOffset
+	if o21, err = marker.ReadOffset(buf[2687377:2687381]); err != nil {
+		return err
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
@@ -5325,6 +5289,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16, o21, o24 uint64
+	marker := ssz.NewOffsetMarker(size, 2736633)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
@@ -5358,12 +5323,8 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7 = ssz.ReadOffset(buf[524464:524468]); o7 > size {
-		return ssz.ErrOffset
-	}
-
-	if o7 != 2736633 {
-		return ssz.ErrInvalidVariableOffset
+	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
+		return err
 	}
 
 	// Field (8) 'Eth1Data'
@@ -5372,21 +5333,21 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9 = ssz.ReadOffset(buf[524540:524544]); o9 > size || o7 > o9 {
-		return ssz.ErrOffset
+	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
+		return err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
 	b.Eth1DepositIndex = ssz.UnmarshallUint64(buf[524544:524552])
 
 	// Offset (11) 'Validators'
-	if o11 = ssz.ReadOffset(buf[524552:524556]); o11 > size || o9 > o11 {
-		return ssz.ErrOffset
+	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
+		return err
 	}
 
 	// Offset (12) 'Balances'
-	if o12 = ssz.ReadOffset(buf[524556:524560]); o12 > size || o11 > o12 {
-		return ssz.ErrOffset
+	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
+		return err
 	}
 
 	// Field (13) 'RandaoMixes'
@@ -5402,13 +5363,13 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (15) 'PreviousEpochParticipation'
-	if o15 = ssz.ReadOffset(buf[2687248:2687252]); o15 > size || o12 > o15 {
-		return ssz.ErrOffset
+	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
+		return err
 	}
 
 	// Offset (16) 'CurrentEpochParticipation'
-	if o16 = ssz.ReadOffset(buf[2687252:2687256]); o16 > size || o15 > o16 {
-		return ssz.ErrOffset
+	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
+		return err
 	}
 
 	// Field (17) 'JustificationBits'
@@ -5430,8 +5391,8 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (21) 'InactivityScores'
-	if o21 = ssz.ReadOffset(buf[2687377:2687381]); o21 > size || o16 > o21 {
-		return ssz.ErrOffset
+	if o21, err = marker.ReadOffset(buf[2687377:2687381]); err != nil {
+		return err
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
@@ -5445,8 +5406,8 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (24) 'LatestExecutionPayloadHeader'
-	if o24 = ssz.ReadOffset(buf[2736629:2736633]); o24 > size || o21 > o24 {
-		return ssz.ErrOffset
+	if o24, err = marker.ReadOffset(buf[2736629:2736633]); err != nil {
+		return err
 	}
 
 	// Field (7) 'HistoricalRoots'
@@ -6092,14 +6053,11 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Message'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 4 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (0) 'Message'
@@ -6458,6 +6416,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o10, o13 uint64
+	marker := ssz.NewOffsetMarker(size, 508)
 
 	// Field (0) 'ParentHash'
 	copy(e.ParentHash[:], buf[0:32])
@@ -6490,12 +6449,8 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[428:436])
 
 	// Offset (10) 'ExtraData'
-	if o10 = ssz.ReadOffset(buf[436:440]); o10 > size {
-		return ssz.ErrOffset
-	}
-
-	if o10 != 508 {
-		return ssz.ErrInvalidVariableOffset
+	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
+		return err
 	}
 
 	// Field (11) 'BaseFeePerGas'
@@ -6505,8 +6460,8 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	copy(e.BlockHash[:], buf[472:504])
 
 	// Offset (13) 'Transactions'
-	if o13 = ssz.ReadOffset(buf[504:508]); o13 > size || o10 > o13 {
-		return ssz.ErrOffset
+	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
+		return err
 	}
 
 	// Field (10) 'ExtraData'
@@ -6753,6 +6708,7 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o10 uint64
+	marker := ssz.NewOffsetMarker(size, 536)
 
 	// Field (0) 'ParentHash'
 	e.ParentHash = ssz.UnmarshalBytes(e.ParentHash, buf[0:32])
@@ -6785,12 +6741,8 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[428:436])
 
 	// Offset (10) 'ExtraData'
-	if o10 = ssz.ReadOffset(buf[436:440]); o10 > size {
-		return ssz.ErrOffset
-	}
-
-	if o10 != 536 {
-		return ssz.ErrInvalidVariableOffset
+	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
+		return err
 	}
 
 	// Field (11) 'BaseFeePerGas'
@@ -6974,14 +6926,11 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Transactions'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 4 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (0) 'Transactions'
@@ -7171,6 +7120,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o10, o13, o14 uint64
+	marker := ssz.NewOffsetMarker(size, 512)
 
 	// Field (0) 'ParentHash'
 	copy(e.ParentHash[:], buf[0:32])
@@ -7203,12 +7153,8 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[428:436])
 
 	// Offset (10) 'ExtraData'
-	if o10 = ssz.ReadOffset(buf[436:440]); o10 > size {
-		return ssz.ErrOffset
-	}
-
-	if o10 != 512 {
-		return ssz.ErrInvalidVariableOffset
+	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
+		return err
 	}
 
 	// Field (11) 'BaseFeePerGas'
@@ -7218,13 +7164,13 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	copy(e.BlockHash[:], buf[472:504])
 
 	// Offset (13) 'Transactions'
-	if o13 = ssz.ReadOffset(buf[504:508]); o13 > size || o10 > o13 {
-		return ssz.ErrOffset
+	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
+		return err
 	}
 
 	// Offset (14) 'Withdrawals'
-	if o14 = ssz.ReadOffset(buf[508:512]); o14 > size || o13 > o14 {
-		return ssz.ErrOffset
+	if o14, err = marker.ReadOffset(buf[508:512]); err != nil {
+		return err
 	}
 
 	// Field (10) 'ExtraData'
@@ -7472,6 +7418,7 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o10 uint64
+	marker := ssz.NewOffsetMarker(size, 568)
 
 	// Field (0) 'ParentHash'
 	copy(e.ParentHash[:], buf[0:32])
@@ -7504,12 +7451,8 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[428:436])
 
 	// Offset (10) 'ExtraData'
-	if o10 = ssz.ReadOffset(buf[436:440]); o10 > size {
-		return ssz.ErrOffset
-	}
-
-	if o10 != 568 {
-		return ssz.ErrInvalidVariableOffset
+	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
+		return err
 	}
 
 	// Field (11) 'BaseFeePerGas'
@@ -8169,6 +8112,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16, o21, o24, o27 uint64
+	marker := ssz.NewOffsetMarker(size, 2736653)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime = ssz.UnmarshallUint64(buf[0:8])
@@ -8202,12 +8146,8 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7 = ssz.ReadOffset(buf[524464:524468]); o7 > size {
-		return ssz.ErrOffset
-	}
-
-	if o7 != 2736653 {
-		return ssz.ErrInvalidVariableOffset
+	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
+		return err
 	}
 
 	// Field (8) 'Eth1Data'
@@ -8216,21 +8156,21 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9 = ssz.ReadOffset(buf[524540:524544]); o9 > size || o7 > o9 {
-		return ssz.ErrOffset
+	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
+		return err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
 	b.Eth1DepositIndex = ssz.UnmarshallUint64(buf[524544:524552])
 
 	// Offset (11) 'Validators'
-	if o11 = ssz.ReadOffset(buf[524552:524556]); o11 > size || o9 > o11 {
-		return ssz.ErrOffset
+	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
+		return err
 	}
 
 	// Offset (12) 'Balances'
-	if o12 = ssz.ReadOffset(buf[524556:524560]); o12 > size || o11 > o12 {
-		return ssz.ErrOffset
+	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
+		return err
 	}
 
 	// Field (13) 'RandaoMixes'
@@ -8246,13 +8186,13 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (15) 'PreviousEpochParticipation'
-	if o15 = ssz.ReadOffset(buf[2687248:2687252]); o15 > size || o12 > o15 {
-		return ssz.ErrOffset
+	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
+		return err
 	}
 
 	// Offset (16) 'CurrentEpochParticipation'
-	if o16 = ssz.ReadOffset(buf[2687252:2687256]); o16 > size || o15 > o16 {
-		return ssz.ErrOffset
+	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
+		return err
 	}
 
 	// Field (17) 'JustificationBits'
@@ -8274,8 +8214,8 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (21) 'InactivityScores'
-	if o21 = ssz.ReadOffset(buf[2687377:2687381]); o21 > size || o16 > o21 {
-		return ssz.ErrOffset
+	if o21, err = marker.ReadOffset(buf[2687377:2687381]); err != nil {
+		return err
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
@@ -8289,8 +8229,8 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (24) 'LatestExecutionPayloadHeader'
-	if o24 = ssz.ReadOffset(buf[2736629:2736633]); o24 > size || o21 > o24 {
-		return ssz.ErrOffset
+	if o24, err = marker.ReadOffset(buf[2736629:2736633]); err != nil {
+		return err
 	}
 
 	// Field (25) 'NextWithdrawalIndex'
@@ -8300,8 +8240,8 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	b.NextWithdrawalValidatorIndex = ssz.UnmarshallUint64(buf[2736641:2736649])
 
 	// Offset (27) 'HistoricalSummaries'
-	if o27 = ssz.ReadOffset(buf[2736649:2736653]); o27 > size || o24 > o27 {
-		return ssz.ErrOffset
+	if o27, err = marker.ReadOffset(buf[2736649:2736653]); err != nil {
+		return err
 	}
 
 	// Field (7) 'HistoricalRoots'
@@ -8759,14 +8699,11 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o0 uint64
+	marker := ssz.NewOffsetMarker(size, 100)
 
 	// Offset (0) 'Block'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 != 100 {
-		return ssz.ErrInvalidVariableOffset
+	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
+		return err
 	}
 
 	// Field (1) 'Signature'
@@ -8868,6 +8805,7 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o4 uint64
+	marker := ssz.NewOffsetMarker(size, 84)
 
 	// Field (0) 'Slot'
 	b.Slot = ssz.UnmarshallUint64(buf[0:8])
@@ -8882,12 +8820,8 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	copy(b.StateRoot[:], buf[48:80])
 
 	// Offset (4) 'Body'
-	if o4 = ssz.ReadOffset(buf[80:84]); o4 > size {
-		return ssz.ErrOffset
-	}
-
-	if o4 != 84 {
-		return ssz.ErrInvalidVariableOffset
+	if o4, err = marker.ReadOffset(buf[80:84]); err != nil {
+		return err
 	}
 
 	// Field (4) 'Body'
@@ -9118,6 +9052,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o3, o4, o5, o6, o7, o9, o10 uint64
+	marker := ssz.NewOffsetMarker(size, 388)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
@@ -9131,32 +9066,28 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	copy(b.Graffiti[:], buf[168:200])
 
 	// Offset (3) 'ProposerSlashings'
-	if o3 = ssz.ReadOffset(buf[200:204]); o3 > size {
-		return ssz.ErrOffset
-	}
-
-	if o3 != 388 {
-		return ssz.ErrInvalidVariableOffset
+	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
+		return err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4 = ssz.ReadOffset(buf[204:208]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
+	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
+		return err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5 = ssz.ReadOffset(buf[208:212]); o5 > size || o4 > o5 {
-		return ssz.ErrOffset
+	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
+		return err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6 = ssz.ReadOffset(buf[212:216]); o6 > size || o5 > o6 {
-		return ssz.ErrOffset
+	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
+		return err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7 = ssz.ReadOffset(buf[216:220]); o7 > size || o6 > o7 {
-		return ssz.ErrOffset
+	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
+		return err
 	}
 
 	// Field (8) 'SyncAggregate'
@@ -9165,13 +9096,13 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Offset (9) 'ExecutionPayload'
-	if o9 = ssz.ReadOffset(buf[380:384]); o9 > size || o7 > o9 {
-		return ssz.ErrOffset
+	if o9, err = marker.ReadOffset(buf[380:384]); err != nil {
+		return err
 	}
 
 	// Offset (10) 'BlsToExecutionChanges'
-	if o10 = ssz.ReadOffset(buf[384:388]); o10 > size || o9 > o10 {
-		return ssz.ErrOffset
+	if o10, err = marker.ReadOffset(buf[384:388]); err != nil {
+		return err
 	}
 
 	// Field (3) 'ProposerSlashings'
@@ -9581,6 +9512,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o10, o13, o14 uint64
+	marker := ssz.NewOffsetMarker(size, 528)
 
 	// Field (0) 'ParentHash'
 	copy(e.ParentHash[:], buf[0:32])
@@ -9613,12 +9545,8 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[428:436])
 
 	// Offset (10) 'ExtraData'
-	if o10 = ssz.ReadOffset(buf[436:440]); o10 > size {
-		return ssz.ErrOffset
-	}
-
-	if o10 != 528 {
-		return ssz.ErrInvalidVariableOffset
+	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
+		return err
 	}
 
 	// Field (11) 'BaseFeePerGas'
@@ -9628,13 +9556,13 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	copy(e.BlockHash[:], buf[472:504])
 
 	// Offset (13) 'Transactions'
-	if o13 = ssz.ReadOffset(buf[504:508]); o13 > size || o10 > o13 {
-		return ssz.ErrOffset
+	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
+		return err
 	}
 
 	// Offset (14) 'Withdrawals'
-	if o14 = ssz.ReadOffset(buf[508:512]); o14 > size || o13 > o14 {
-		return ssz.ErrOffset
+	if o14, err = marker.ReadOffset(buf[508:512]); err != nil {
+		return err
 	}
 
 	// Field (15) 'BlobGasUsed'
@@ -9900,6 +9828,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 
 	tail := buf
 	var o10 uint64
+	marker := ssz.NewOffsetMarker(size, 584)
 
 	// Field (0) 'ParentHash'
 	copy(e.ParentHash[:], buf[0:32])
@@ -9932,12 +9861,8 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 	e.Timestamp = ssz.UnmarshallUint64(buf[428:436])
 
 	// Offset (10) 'ExtraData'
-	if o10 = ssz.ReadOffset(buf[436:440]); o10 > size {
-		return ssz.ErrOffset
-	}
-
-	if o10 != 584 {
-		return ssz.ErrInvalidVariableOffset
+	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
+		return err
 	}
 
 	// Field (11) 'BaseFeePerGas'

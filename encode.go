@@ -327,3 +327,39 @@ func DivideInt2(a, b, max int) (int, error) {
 func DivideInt(a, b int) (int, bool) {
 	return a / b, a%b == 0
 }
+
+type OffsetMarker struct {
+	TotalSize  uint64
+	FixedSize  uint64
+	LastOffset *uint64
+}
+
+func NewOffsetMarker(totalSize, fixedSize uint64) *OffsetMarker {
+	return &OffsetMarker{
+		TotalSize:  totalSize,
+		FixedSize:  fixedSize,
+		LastOffset: nil,
+	}
+}
+
+func (o *OffsetMarker) ReadOffset(buf []byte) (uint64, error) {
+	offset := ReadOffset(buf)
+
+	fmt.Println("offset inside", offset)
+
+	if offset > o.TotalSize {
+		return 0, fmt.Errorf("offset %d is greater than total size %d", offset, o.TotalSize)
+	}
+	if o.LastOffset == nil {
+		if offset != o.FixedSize {
+			return 0, fmt.Errorf("expected first offset to match fixed size %d but found %d", o.FixedSize, offset)
+		}
+	} else {
+		if offset < *o.LastOffset {
+			return 0, fmt.Errorf("offset %d is less than last offset %d", offset, *o.LastOffset)
+		}
+	}
+
+	o.LastOffset = &offset
+	return offset, nil
+}
