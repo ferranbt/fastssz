@@ -23,6 +23,7 @@ var (
 	ErrListTooBig            = fmt.Errorf("list length is higher than max value")
 	ErrEmptyBitlist          = fmt.Errorf("bitlist is empty")
 	ErrInvalidVariableOffset = fmt.Errorf("invalid ssz encoding. first variable element offset indexes into fixed value data")
+	ErrOffsetNotIncreasing   = fmt.Errorf("offsets are not increasing")
 )
 
 func ErrBytesLengthFn(name string, found, expected int) error {
@@ -345,18 +346,16 @@ func NewOffsetMarker(totalSize, fixedSize uint64) *OffsetMarker {
 func (o *OffsetMarker) ReadOffset(buf []byte) (uint64, error) {
 	offset := ReadOffset(buf)
 
-	fmt.Println("offset inside", offset)
-
 	if offset > o.TotalSize {
-		return 0, fmt.Errorf("offset %d is greater than total size %d", offset, o.TotalSize)
+		return 0, ErrOffset
 	}
 	if o.LastOffset == nil {
 		if offset != o.FixedSize {
-			return 0, fmt.Errorf("expected first offset to match fixed size %d but found %d", o.FixedSize, offset)
+			return 0, ErrInvalidVariableOffset
 		}
 	} else {
 		if offset < *o.LastOffset {
-			return 0, fmt.Errorf("offset %d is less than last offset %d", offset, *o.LastOffset)
+			return 0, ErrOffsetNotIncreasing
 		}
 	}
 
