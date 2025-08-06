@@ -74,7 +74,7 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 			return ssz.ErrBytesLength
 		}
 		if cap(i.A) == 0 {
-			i.A = other.Case4Bytes(make([]byte, 0, len(buf)))
+			i.A = other.Case4Bytes(make([]byte, 0, 0))
 		}
 		i.A = append(i.A, buf...)
 	}
@@ -86,7 +86,7 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 			return ssz.ErrBytesLength
 		}
 		if cap(i.B) == 0 {
-			i.B = make([]byte, 0, len(buf))
+			i.B = make([]byte, 0, 0)
 		}
 		i.B = append(i.B, buf...)
 	}

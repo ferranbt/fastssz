@@ -54,7 +54,7 @@ func (i *Issue156) UnmarshalSSZ(buf []byte) error {
 
 	// Field (3) 'A4'
 	if cap(i.A4) == 0 {
-		i.A4 = make([]byte, 0, len(buf[96:128]))
+		i.A4 = make([]byte, 0, 32)
 	}
 	i.A4 = append(i.A4, buf[96:128]...)
 

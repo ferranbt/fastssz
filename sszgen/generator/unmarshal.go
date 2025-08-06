@@ -40,7 +40,7 @@ func (v *Value) unmarshal(dst string) string {
 
 		// both fixed and dynamic are decoded equally
 		tmpl := `{{.validate}}if cap(::.{{.name}}) == 0 {
-			{{if .isRef}} ::.{{.name}} = {{ ref .obj }}(make([]byte, 0, len({{.dst}}))) {{ else }} ::.{{.name}} = make([]byte, 0, len({{.dst}})) {{ end }}
+			{{if .isRef}} ::.{{.name}} = {{ ref .obj }}(make([]byte, 0, {{.size}})) {{ else }} ::.{{.name}} = make([]byte, 0, {{.size}}) {{ end }}
 		}
 		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
 		return execTmpl(tmpl, map[string]interface{}{

@@ -45,7 +45,7 @@ func (m *Metadata) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'CodeHash'
 	if cap(m.CodeHash) == 0 {
-		m.CodeHash = make([]byte, 0, len(buf[1:33]))
+		m.CodeHash = make([]byte, 0, 32)
 	}
 	m.CodeHash = append(m.CodeHash, buf[1:33]...)
 
@@ -127,7 +127,7 @@ func (c *Chunk) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'Code'
 	if cap(c.Code) == 0 {
-		c.Code = make([]byte, 0, len(buf[1:33]))
+		c.Code = make([]byte, 0, 32)
 	}
 	c.Code = append(c.Code, buf[1:33]...)
 

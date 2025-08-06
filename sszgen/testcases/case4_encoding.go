@@ -73,7 +73,7 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 
 	// Field (3) 'D'
 	if cap(c.D) == 0 {
-		c.D = other.Case4Bytes(make([]byte, 0, len(buf[200:296])))
+		c.D = other.Case4Bytes(make([]byte, 0, 96))
 	}
 	c.D = append(c.D, buf[200:296]...)
 

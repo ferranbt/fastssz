@@ -43,13 +43,13 @@ func (i *Issue188) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'Name'
 	if cap(i.Name) == 0 {
-		i.Name = make([]byte, 0, len(buf[0:32]))
+		i.Name = make([]byte, 0, 32)
 	}
 	i.Name = append(i.Name, buf[0:32]...)
 
 	// Field (1) 'Address'
 	if cap(i.Address) == 0 {
-		i.Address = make([]byte, 0, len(buf[32:64]))
+		i.Address = make([]byte, 0, 32)
 	}
 	i.Address = append(i.Address, buf[32:64]...)
 
