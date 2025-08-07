@@ -44,16 +44,32 @@ func (u *Uints) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'Uint8'
-	u.Uint8, buf = ssz.UnmarshallValue[Uint8](buf)
+	{
+		var val uint8
+		val, buf = ssz.UnmarshallValue[uint8](buf)
+		u.Uint8 = Uint8(val)
+	}
 
 	// Field (1) 'Uint16'
-	u.Uint16, buf = ssz.UnmarshallValue[Uint16](buf)
+	{
+		var val uint16
+		val, buf = ssz.UnmarshallValue[uint16](buf)
+		u.Uint16 = Uint16(val)
+	}
 
 	// Field (2) 'Uint32'
-	u.Uint32, buf = ssz.UnmarshallValue[Uint32](buf)
+	{
+		var val uint32
+		val, buf = ssz.UnmarshallValue[uint32](buf)
+		u.Uint32 = Uint32(val)
+	}
 
 	// Field (3) 'Uint64'
-	u.Uint64, buf = ssz.UnmarshallValue[Uint64](buf)
+	{
+		var val uint64
+		val, buf = ssz.UnmarshallValue[uint64](buf)
+		u.Uint64 = Uint64(val)
+	}
 
 	return buf, nil
 }

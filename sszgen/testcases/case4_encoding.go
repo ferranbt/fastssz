@@ -70,7 +70,11 @@ func (c *Case4) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (2) 'C'
-	c.C, buf = ssz.UnmarshallValue[alias.Case4Slot](buf)
+	{
+		var val uint64
+		val, buf = ssz.UnmarshallValue[uint64](buf)
+		c.C = alias.Case4Slot(val)
+	}
 
 	// Field (3) 'D'
 	c.D, buf = ssz.UnmarshalBytes(c.D, buf, 96)
