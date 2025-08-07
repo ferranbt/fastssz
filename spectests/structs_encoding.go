@@ -69,7 +69,7 @@ func (a *AggregateAndProof) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
-const aggregateAndProofFixedSize = 0 + 8 + attestationFixedSize + 96
+const aggregateAndProofFixedSize = 0 + 8 + 4 + 96
 
 // SizeSSZ returns the ssz encoded size in bytes for the AggregateAndProof object
 func (a *AggregateAndProof) SizeSSZ() (size int) {
@@ -389,7 +389,7 @@ func (a *Attestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const attestationFixedSize = 0 + 2048 + attestationDataFixedSize + 96
+const attestationFixedSize = 0 + 4 + attestationDataFixedSize + 96
 
 // SizeSSZ returns the ssz encoded size in bytes for the Attestation object
 func (a *Attestation) SizeSSZ() (size int) {
@@ -820,7 +820,7 @@ func (i *IndexedAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-const indexedAttestationFixedSize = 0 + 0 /*list*/ + attestationDataFixedSize + 96
+const indexedAttestationFixedSize = 0 + 4 + attestationDataFixedSize + 96
 
 // SizeSSZ returns the ssz encoded size in bytes for the IndexedAttestation object
 func (i *IndexedAttestation) SizeSSZ() (size int) {
@@ -957,7 +957,7 @@ func (p *PendingAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-const pendingAttestationFixedSize = 0 + 2048 + attestationDataFixedSize + 8 + 8
+const pendingAttestationFixedSize = 0 + 4 + attestationDataFixedSize + 8 + 8
 
 // SizeSSZ returns the ssz encoded size in bytes for the PendingAttestation object
 func (p *PendingAttestation) SizeSSZ() (size int) {
@@ -1946,7 +1946,7 @@ func (a *AttesterSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return
 }
 
-const attesterSlashingFixedSize = 0 + indexedAttestationFixedSize + indexedAttestationFixedSize
+const attesterSlashingFixedSize = 0 + 4 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the AttesterSlashing object
 func (a *AttesterSlashing) SizeSSZ() (size int) {
@@ -2077,7 +2077,7 @@ func (b *BeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const beaconBlockFixedSize = 0 + 8 + 8 + 32 + 32 + beaconBlockBodyPhase0FixedSize
+const beaconBlockFixedSize = 0 + 8 + 8 + 32 + 32 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlock object
 func (b *BeaconBlock) SizeSSZ() (size int) {
@@ -2195,7 +2195,7 @@ func (s *SignedBeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
-const signedBeaconBlockFixedSize = 0 + beaconBlockFixedSize + 96
+const signedBeaconBlockFixedSize = 0 + 4 + 96
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlock object
 func (s *SignedBeaconBlock) SizeSSZ() (size int) {
@@ -2764,7 +2764,7 @@ func (b *BeaconState) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const beaconStateFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 0 /*list*/ + 0 /*list*/ + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize
+const beaconStateFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 4 + eth1DataFixedSize + 4 + 8 + 4 + 4 + 65536*32 + 8192*8 + 4 + 4 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
 func (b *BeaconState) SizeSSZ() (size int) {
@@ -3252,7 +3252,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
-const beaconBlockBodyPhase0FixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/
+const beaconBlockBodyPhase0FixedSize = 0 + 96 + eth1DataFixedSize + 32 + 4 + 4 + 4 + 4 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyPhase0 object
 func (b *BeaconBlockBodyPhase0) SizeSSZ() (size int) {
@@ -3616,7 +3616,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
-const beaconBlockBodyAltairFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + syncAggregateFixedSize
+const beaconBlockBodyAltairFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 4 + 4 + 4 + 4 + 4 + syncAggregateFixedSize
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyAltair object
 func (b *BeaconBlockBodyAltair) SizeSSZ() (size int) {
@@ -4007,7 +4007,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, er
 	return
 }
 
-const beaconBlockBodyBellatrixFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + syncAggregateFixedSize + executionPayloadFixedSize
+const beaconBlockBodyBellatrixFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 4 + 4 + 4 + 4 + 4 + syncAggregateFixedSize + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyBellatrix object
 func (b *BeaconBlockBodyBellatrix) SizeSSZ() (size int) {
@@ -4591,7 +4591,7 @@ func (b *BeaconStateAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
-const beaconStateAltairFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 0 /*list*/ + syncCommitteeFixedSize + syncCommitteeFixedSize
+const beaconStateAltairFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 4 + eth1DataFixedSize + 4 + 8 + 4 + 4 + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 4 + syncCommitteeFixedSize + syncCommitteeFixedSize
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateAltair object
 func (b *BeaconStateAltair) SizeSSZ() (size int) {
@@ -5332,7 +5332,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err er
 	return
 }
 
-const beaconStateBellatrixFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 0 /*list*/ + syncCommitteeFixedSize + syncCommitteeFixedSize + executionPayloadHeaderFixedSize
+const beaconStateBellatrixFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 4 + eth1DataFixedSize + 4 + 8 + 4 + 4 + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 4 + syncCommitteeFixedSize + syncCommitteeFixedSize + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateBellatrix object
 func (b *BeaconStateBellatrix) SizeSSZ() (size int) {
@@ -6346,7 +6346,7 @@ func (e *ExecutionPayload) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return
 }
 
-const executionPayloadFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 0 /*list*/
+const executionPayloadFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayload object
 func (e *ExecutionPayload) SizeSSZ() (size int) {
@@ -6806,7 +6806,7 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZTail(buf []byte) (rest []byte
 	return
 }
 
-const executionPayloadTransactionsFixedSize = 0 + 0 /*list*/
+const executionPayloadTransactionsFixedSize = 0 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadTransactions object
 func (e *ExecutionPayloadTransactions) SizeSSZ() (size int) {
@@ -7053,7 +7053,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err
 	return
 }
 
-const executionPayloadCapellaFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 0 /*list*/ + 0 /*list*/
+const executionPayloadCapellaFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 4 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadCapella object
 func (e *ExecutionPayloadCapella) SizeSSZ() (size int) {
@@ -8168,7 +8168,7 @@ func (b *BeaconStateCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-const beaconStateCapellaFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 0 /*list*/ + syncCommitteeFixedSize + syncCommitteeFixedSize + executionPayloadHeaderCapellaFixedSize + 8 + 8 + 0 /*list*/
+const beaconStateCapellaFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 4 + eth1DataFixedSize + 4 + 8 + 4 + 4 + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 4 + syncCommitteeFixedSize + syncCommitteeFixedSize + 4 + 8 + 8 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateCapella object
 func (b *BeaconStateCapella) SizeSSZ() (size int) {
@@ -8535,7 +8535,7 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, er
 	return
 }
 
-const signedBeaconBlockCapellaFixedSize = 0 + beaconBlockCapellaFixedSize + 96
+const signedBeaconBlockCapellaFixedSize = 0 + 4 + 96
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockCapella object
 func (s *SignedBeaconBlockCapella) SizeSSZ() (size int) {
@@ -8654,7 +8654,7 @@ func (b *BeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-const beaconBlockCapellaFixedSize = 0 + 8 + 8 + 32 + 32 + beaconBlockBodyCapellaFixedSize
+const beaconBlockCapellaFixedSize = 0 + 8 + 8 + 32 + 32 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockCapella object
 func (b *BeaconBlockCapella) SizeSSZ() (size int) {
@@ -8969,7 +8969,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err 
 	return
 }
 
-const beaconBlockBodyCapellaFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + syncAggregateFixedSize + executionPayloadCapellaFixedSize + 0 /*list*/
+const beaconBlockBodyCapellaFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 4 + 4 + 4 + 4 + 4 + syncAggregateFixedSize + 4 + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyCapella object
 func (b *BeaconBlockBodyCapella) SizeSSZ() (size int) {
@@ -9356,7 +9356,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
-const executionPayloadDenebFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 0 /*list*/ + 0 /*list*/ + 8 + 8
+const executionPayloadDenebFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 4 + 4 + 8 + 8
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadDeneb object
 func (e *ExecutionPayloadDeneb) SizeSSZ() (size int) {

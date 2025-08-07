@@ -51,7 +51,7 @@ func (v *Value) fixedSizeForContainer() string {
 			}
 		case *List:
 			// lists are variable size, so we don't add them to the fixed size
-			sizes = append(sizes, "0 /*list*/")
+			sizes = append(sizes, fmt.Sprintf("%d", bytesPerLengthOffset))
 		default:
 			sizes = append(sizes, f.fixedSize())
 		}
@@ -71,9 +71,13 @@ func (v *Value) fixedSize() string {
 	case *Bytes:
 		return fmt.Sprintf("%d", obj.Size)
 	case *BitList:
-		return fmt.Sprintf("%d", obj.Size)
+		return fmt.Sprintf("%d", bytesPerLengthOffset)
 	case *Container:
-		return v.fixedSizeName()
+		if v.isFixed() {
+			return v.fixedSizeName()
+		} else {
+			return fmt.Sprintf("%d", bytesPerLengthOffset)
+		}
 	default:
 		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.typ)))
 	}

@@ -243,7 +243,7 @@ func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const codeTrieSmallFixedSize = 0 + metadataFixedSize + 0 /*list*/
+const codeTrieSmallFixedSize = 0 + metadataFixedSize + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieSmall object
 func (c *CodeTrieSmall) SizeSSZ() (size int) {
@@ -366,7 +366,7 @@ func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const codeTrieBigFixedSize = 0 + metadataFixedSize + 0 /*list*/
+const codeTrieBigFixedSize = 0 + metadataFixedSize + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieBig object
 func (c *CodeTrieBig) SizeSSZ() (size int) {
