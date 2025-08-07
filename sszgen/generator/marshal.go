@@ -38,7 +38,7 @@ func (e *env) marshal(name string, v *Value) string {
 func (v *Value) marshal() string {
 	switch obj := v.typ.(type) {
 	case *Bool:
-		return fmt.Sprintf("dst = ssz.MarshalBool(dst, ::.%s)", v.name)
+		return fmt.Sprintf("dst = ssz.MarshalValue(dst, ::.%s)", v.name)
 
 	case *Bytes:
 		name := v.name
@@ -60,7 +60,7 @@ func (v *Value) marshal() string {
 		} else {
 			name = "::." + v.name
 		}
-		return fmt.Sprintf("dst = ssz.Marshal%s(dst, %s)", uintVToName2(*obj), name)
+		return fmt.Sprintf("dst = ssz.MarshalValue(dst, %s)", name)
 
 	case *BitList:
 		return fmt.Sprintf("%sdst = append(dst, ::.%s...)", v.validate(), v.name)

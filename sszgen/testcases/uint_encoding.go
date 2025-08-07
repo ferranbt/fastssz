@@ -17,16 +17,16 @@ func (u *Uints) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Uint8'
-	dst = ssz.MarshalUint8(dst, uint8(u.Uint8))
+	dst = ssz.MarshalValue(dst, uint8(u.Uint8))
 
 	// Field (1) 'Uint16'
-	dst = ssz.MarshalUint16(dst, uint16(u.Uint16))
+	dst = ssz.MarshalValue(dst, uint16(u.Uint16))
 
 	// Field (2) 'Uint32'
-	dst = ssz.MarshalUint32(dst, uint32(u.Uint32))
+	dst = ssz.MarshalValue(dst, uint32(u.Uint32))
 
 	// Field (3) 'Uint64'
-	dst = ssz.MarshalUint64(dst, uint64(u.Uint64))
+	dst = ssz.MarshalValue(dst, uint64(u.Uint64))
 
 	return
 }
@@ -40,16 +40,16 @@ func (u *Uints) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Uint8'
-	u.Uint8 = Uint8(ssz.UnmarshallUint8(buf[0:1]))
+	u.Uint8 = Uint8(ssz.UnmarshallValue[uint8](buf[0:1]))
 
 	// Field (1) 'Uint16'
-	u.Uint16 = Uint16(ssz.UnmarshallUint16(buf[1:3]))
+	u.Uint16 = Uint16(ssz.UnmarshallValue[uint16](buf[1:3]))
 
 	// Field (2) 'Uint32'
-	u.Uint32 = Uint32(ssz.UnmarshallUint32(buf[3:7]))
+	u.Uint32 = Uint32(ssz.UnmarshallValue[uint32](buf[3:7]))
 
 	// Field (3) 'Uint64'
-	u.Uint64 = Uint64(ssz.UnmarshallUint64(buf[7:15]))
+	u.Uint64 = Uint64(ssz.UnmarshallValue[uint64](buf[7:15]))
 
 	return err
 }

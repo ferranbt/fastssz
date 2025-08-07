@@ -18,16 +18,16 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset := int(31)
 
 	// Field (0) 'A'
-	dst = ssz.MarshalUint8(dst, i.A)
+	dst = ssz.MarshalValue(dst, i.A)
 
 	// Field (1) 'B'
-	dst = ssz.MarshalUint16(dst, i.B)
+	dst = ssz.MarshalValue(dst, i.B)
 
 	// Field (2) 'C'
-	dst = ssz.MarshalUint32(dst, i.C)
+	dst = ssz.MarshalValue(dst, i.C)
 
 	// Field (3) 'D'
-	dst = ssz.MarshalUint64(dst, i.D)
+	dst = ssz.MarshalValue(dst, i.D)
 
 	// Offset (4) 'A1'
 	dst = ssz.WriteOffset(dst, offset)
@@ -50,7 +50,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A1); ii++ {
-		dst = ssz.MarshalUint8(dst, i.A1[ii])
+		dst = ssz.MarshalValue(dst, i.A1[ii])
 	}
 
 	// Field (5) 'A2'
@@ -59,7 +59,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A2); ii++ {
-		dst = ssz.MarshalUint16(dst, i.A2[ii])
+		dst = ssz.MarshalValue(dst, i.A2[ii])
 	}
 
 	// Field (6) 'A3'
@@ -68,7 +68,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A3); ii++ {
-		dst = ssz.MarshalUint32(dst, i.A3[ii])
+		dst = ssz.MarshalValue(dst, i.A3[ii])
 	}
 
 	// Field (7) 'A4'
@@ -77,7 +77,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A4); ii++ {
-		dst = ssz.MarshalUint64(dst, i.A4[ii])
+		dst = ssz.MarshalValue(dst, i.A4[ii])
 	}
 
 	return
@@ -96,16 +96,16 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 31)
 
 	// Field (0) 'A'
-	i.A = ssz.UnmarshallUint8(buf[0:1])
+	i.A = ssz.UnmarshallValue[uint8](buf[0:1])
 
 	// Field (1) 'B'
-	i.B = ssz.UnmarshallUint16(buf[1:3])
+	i.B = ssz.UnmarshallValue[uint16](buf[1:3])
 
 	// Field (2) 'C'
-	i.C = ssz.UnmarshallUint32(buf[3:7])
+	i.C = ssz.UnmarshallValue[uint32](buf[3:7])
 
 	// Field (3) 'D'
-	i.D = ssz.UnmarshallUint64(buf[7:15])
+	i.D = ssz.UnmarshallValue[uint64](buf[7:15])
 
 	// Offset (4) 'A1'
 	if o4, err = marker.ReadOffset(buf[15:19]); err != nil {
@@ -129,7 +129,7 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 	// Field (4) 'A1'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A1, tail[o4:o5], 1, 400, func(ii int, buf []byte) (err error) {
-		i.A1[ii] = ssz.UnmarshallUint8(buf)
+		i.A1[ii] = ssz.UnmarshallValue[uint8](buf)
 		return nil
 	}); err != nil {
 		return err
@@ -137,7 +137,7 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 	// Field (5) 'A2'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A2, tail[o5:o6], 2, 400, func(ii int, buf []byte) (err error) {
-		i.A2[ii] = ssz.UnmarshallUint16(buf)
+		i.A2[ii] = ssz.UnmarshallValue[uint16](buf)
 		return nil
 	}); err != nil {
 		return err
@@ -145,7 +145,7 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 	// Field (6) 'A3'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A3, tail[o6:o7], 4, 400, func(ii int, buf []byte) (err error) {
-		i.A3[ii] = ssz.UnmarshallUint32(buf)
+		i.A3[ii] = ssz.UnmarshallValue[uint32](buf)
 		return nil
 	}); err != nil {
 		return err
@@ -153,7 +153,7 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 	// Field (7) 'A4'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A4, tail[o7:], 8, 400, func(ii int, buf []byte) (err error) {
-		i.A4[ii] = ssz.UnmarshallUint64(buf)
+		i.A4[ii] = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
 		return err

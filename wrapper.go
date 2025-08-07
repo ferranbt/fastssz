@@ -28,19 +28,19 @@ func (w *Wrapper) Append(i []byte) {
 }
 
 func (w *Wrapper) AppendUint64(i uint64) {
-	w.buf = MarshalUint64(w.buf, i)
+	w.buf = MarshalValue(w.buf, i)
 }
 
 func (w *Wrapper) AppendUint16(i uint16) {
-	w.buf = MarshalUint16(w.buf, i)
+	w.buf = MarshalValue(w.buf, i)
 }
 
 func (w *Wrapper) AppendUint32(i uint32) {
-	w.buf = MarshalUint32(w.buf, i)
+	w.buf = MarshalValue(w.buf, i)
 }
 
 func (w *Wrapper) AppendUint8(i uint8) {
-	w.buf = MarshalUint8(w.buf, i)
+	w.buf = MarshalValue(w.buf, i)
 }
 
 func (w *Wrapper) AppendBytes32(b []byte) {
