@@ -2,6 +2,7 @@ package ssz
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -232,4 +233,48 @@ func TestReadOffset_MultipleValidOffsets(t *testing.T) {
 	}
 
 	require.Equal(t, uint64(500), *om.LastOffset)
+}
+
+// Benchmark data - 8 bytes for uint64
+var testData = []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08}
+
+func BenchmarkUint64DirectConversion(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		_ = binary.LittleEndian.Uint64(testData)
+	}
+}
+
+func BenchmarkUint64GenericConversion(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		_ = UnmarshallValue[uint64](testData)
+	}
+}
+
+func marshalUint64(dst []byte, i uint64) []byte {
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, i)
+	dst = append(dst, buf...)
+	return dst
+}
+
+func BenchmarkUint64MarshalDirect(b *testing.B) {
+	b.ReportAllocs()
+
+	buf := make([]byte, 8)
+	for i := 0; i < b.N; i++ {
+		marshalUint64(buf[:0], 0x0102030405060708)
+	}
+}
+
+func BenchmarkUint64MarshalGeneric(b *testing.B) {
+	b.ReportAllocs()
+
+	buf := make([]byte, 8)
+	for i := 0; i < b.N; i++ {
+		_ = MarshalValue[uint64](buf[:0], 0x0102030405060708)
+	}
 }

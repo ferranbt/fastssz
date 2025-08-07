@@ -68,88 +68,83 @@ func UnmarshalBytes(src []byte, buf []byte, maxSize ...int) ([]byte, error) {
 	return src, nil
 }
 
-// UnmarshallUint64 unmarshals a little endian uint64 from the src input
-func UnmarshallUint64(src []byte) uint64 {
+type UnmarshallableType interface {
+	~uint8 | ~uint16 | ~uint32 | ~uint64 | ~bool
+}
+
+func UnmarshallValue[T UnmarshallableType](src []byte) T {
+	var result any
+
+	switch any(*new(T)).(type) {
+	case uint8:
+		result = src[0]
+	case uint16:
+		result = binary.LittleEndian.Uint16(src[:2])
+	case uint32:
+		result = binary.LittleEndian.Uint32(src[:4])
+	case uint64:
+		result = binary.LittleEndian.Uint64(src[:8])
+	case bool:
+		result = src[0] != 0
+	default:
+		panic("unsupported type")
+	}
+
+	return result.(T)
+}
+
+func unmarshallUint64(src []byte) uint64 {
 	return binary.LittleEndian.Uint64(src)
-}
-
-// UnmarshallUint32 unmarshals a little endian uint32 from the src input
-func UnmarshallUint32(src []byte) uint32 {
-	return binary.LittleEndian.Uint32(src[:4])
-}
-
-// UnmarshallUint16 unmarshals a little endian uint16 from the src input
-func UnmarshallUint16(src []byte) uint16 {
-	return binary.LittleEndian.Uint16(src[:2])
-}
-
-// UnmarshallUint8 unmarshals a little endian uint8 from the src input
-func UnmarshallUint8(src []byte) uint8 {
-	return uint8(src[0])
-}
-
-// UnmarshalBool unmarshals a boolean from the src input
-func UnmarshalBool(src []byte) bool {
-	return src[0] != 0
 }
 
 // UnmarshalTime unmarshals a time.Time from the src input
 func UnmarshalTime(src []byte) time.Time {
-	return time.Unix(int64(UnmarshallUint64(src)), 0).UTC()
+	return time.Unix(int64(unmarshallUint64(src)), 0).UTC()
 }
 
 // ---- Marshal functions ----
 
-// MarshalUint64 marshals a little endian uint64 to dst
-func MarshalUint64(dst []byte, i uint64) []byte {
-	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, i)
-	dst = append(dst, buf...)
-	return dst
+type MarshallableType interface {
+	~uint8 | ~uint16 | ~uint32 | ~uint64 | ~bool
 }
 
-// MarshalUint32 marshals a little endian uint32 to dst
-func MarshalUint32(dst []byte, i uint32) []byte {
-	buf := make([]byte, 4)
-	binary.LittleEndian.PutUint32(buf, i)
-	dst = append(dst, buf...)
-	return dst
-}
-
-// MarshalUint16 marshals a little endian uint16 to dst
-func MarshalUint16(dst []byte, i uint16) []byte {
-	buf := make([]byte, 2)
-	binary.LittleEndian.PutUint16(buf, i)
-	dst = append(dst, buf...)
-	return dst
-}
-
-// MarshalUint8 marshals a little endian uint8 to dst
-func MarshalUint8(dst []byte, i uint8) []byte {
-	dst = append(dst, byte(i))
-	return dst
-}
-
-// MarshalBool marshals a boolean to dst
-func MarshalBool(dst []byte, b bool) []byte {
-	if b {
-		dst = append(dst, 1)
-	} else {
-		dst = append(dst, 0)
+func MarshalValue[T MarshallableType](dst []byte, value T) []byte {
+	switch any(value).(type) {
+	case uint8:
+		return append(dst, any(value).(uint8))
+	case uint16:
+		buf := make([]byte, 2)
+		binary.LittleEndian.PutUint16(buf, any(value).(uint16))
+		return append(dst, buf...)
+	case uint32:
+		buf := make([]byte, 4)
+		binary.LittleEndian.PutUint32(buf, any(value).(uint32))
+		return append(dst, buf...)
+	case uint64:
+		buf := make([]byte, 8)
+		binary.LittleEndian.PutUint64(buf, any(value).(uint64))
+		return append(dst, buf...)
+	case bool:
+		if any(value).(bool) {
+			return append(dst, 1)
+		} else {
+			return append(dst, 0)
+		}
+	default:
+		panic("unsupported type")
 	}
-	return dst
 }
 
 // MarshalTime marshals a time to dst
 func MarshalTime(dst []byte, t time.Time) []byte {
-	return MarshalUint64(dst, uint64(t.Unix()))
+	return MarshalValue[uint64](dst, uint64(t.Unix()))
 }
 
 // ---- offset functions ----
 
 // WriteOffset writes an offset to dst
 func WriteOffset(dst []byte, i int) []byte {
-	return MarshalUint32(dst, uint32(i))
+	return MarshalValue[uint32](dst, uint32(i))
 }
 
 // ReadOffset reads an offset from buf

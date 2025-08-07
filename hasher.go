@@ -146,19 +146,19 @@ func (h *Hasher) FillUpTo32() {
 }
 
 func (h *Hasher) AppendUint8(i uint8) {
-	h.buf = MarshalUint8(h.buf, i)
+	h.buf = MarshalValue(h.buf, i)
 }
 
 func (h *Hasher) AppendUint16(i uint16) {
-	h.buf = MarshalUint16(h.buf, i)
+	h.buf = MarshalValue(h.buf, i)
 }
 
 func (h *Hasher) AppendUint32(i uint32) {
-	h.buf = MarshalUint32(h.buf, i)
+	h.buf = MarshalValue(h.buf, i)
 }
 
 func (h *Hasher) AppendUint64(i uint64) {
-	h.buf = MarshalUint64(h.buf, i)
+	h.buf = MarshalValue(h.buf, i)
 }
 
 func (h *Hasher) Append(i []byte) {
@@ -296,7 +296,7 @@ func (h *Hasher) MerkleizeWithMixin(indx int, num, limit uint64) {
 	for indx := range output {
 		output[indx] = 0
 	}
-	MarshalUint64(output[:0], num)
+	MarshalValue[uint64](output[:0], num)
 	input = append(input, output...)
 
 	// input is of the form [<input><size>] of 64 bytes

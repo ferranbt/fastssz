@@ -66,6 +66,9 @@ func (v *Value) fixedSize() uint64 {
 		}
 		return obj.Size
 
+	case *Time:
+		return 8
+
 	default:
 		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.typ)))
 	}

@@ -22,7 +22,7 @@ func (v *Vec) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < 6; ii++ {
-		dst = ssz.MarshalUint64(dst, v.Values[ii])
+		dst = ssz.MarshalValue[uint64](dst, v.Values[ii])
 	}
 
 	return
@@ -39,7 +39,7 @@ func (v *Vec) UnmarshalSSZ(buf []byte) error {
 	// Field (0) 'Values'
 	v.Values = ssz.Extend(v.Values, 6)
 	for ii := 0; ii < 6; ii++ {
-		v.Values[ii] = ssz.UnmarshallUint64(buf[0:48][ii*8 : (ii+1)*8])
+		v.Values[ii] = ssz.UnmarshallValue[uint64](buf[0:48][ii*8 : (ii+1)*8])
 	}
 
 	return err
@@ -101,7 +101,7 @@ func (v *Vec2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(v.Values2); ii++ {
-		dst = ssz.MarshalUint32(dst, v.Values2[ii])
+		dst = ssz.MarshalValue[uint32](dst, v.Values2[ii])
 	}
 
 	return
@@ -126,7 +126,7 @@ func (v *Vec2) UnmarshalSSZ(buf []byte) error {
 
 	// Field (0) 'Values2'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&v.Values2, tail[o0:], 4, 100, func(ii int, buf []byte) (err error) {
-		v.Values2[ii] = ssz.UnmarshallUint32(buf)
+		v.Values2[ii] = ssz.UnmarshallValue[uint32](buf)
 		return nil
 	}); err != nil {
 		return err

@@ -32,7 +32,7 @@ func (c *Case4) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (2) 'C'
-	dst = ssz.MarshalUint64(dst, uint64(c.C))
+	dst = ssz.MarshalValue[uint64](dst, uint64(c.C))
 
 	// Field (3) 'D'
 	if size := len(c.D); size != 96 {
@@ -66,7 +66,7 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (2) 'C'
-	c.C = alias.Case4Slot(ssz.UnmarshallUint64(buf[192:200]))
+	c.C = alias.Case4Slot(ssz.UnmarshallValue[uint64](buf[192:200]))
 
 	// Field (3) 'D'
 	c.D, _ = ssz.UnmarshalBytes(c.D, buf[200:296])

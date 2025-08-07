@@ -17,7 +17,7 @@ func (m *Metadata) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Version'
-	dst = ssz.MarshalUint8(dst, m.Version)
+	dst = ssz.MarshalValue(dst, m.Version)
 
 	// Field (1) 'CodeHash'
 	if size := len(m.CodeHash); size != 32 {
@@ -27,7 +27,7 @@ func (m *Metadata) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = append(dst, m.CodeHash...)
 
 	// Field (2) 'CodeLength'
-	dst = ssz.MarshalUint16(dst, m.CodeLength)
+	dst = ssz.MarshalValue(dst, m.CodeLength)
 
 	return
 }
@@ -41,13 +41,13 @@ func (m *Metadata) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Version'
-	m.Version = ssz.UnmarshallUint8(buf[0:1])
+	m.Version = ssz.UnmarshallValue[uint8](buf[0:1])
 
 	// Field (1) 'CodeHash'
 	m.CodeHash, _ = ssz.UnmarshalBytes(m.CodeHash, buf[1:33])
 
 	// Field (2) 'CodeLength'
-	m.CodeLength = ssz.UnmarshallUint16(buf[33:35])
+	m.CodeLength = ssz.UnmarshallValue[uint16](buf[33:35])
 
 	return err
 }
@@ -99,7 +99,7 @@ func (c *Chunk) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'FIO'
-	dst = ssz.MarshalUint8(dst, c.FIO)
+	dst = ssz.MarshalValue(dst, c.FIO)
 
 	// Field (1) 'Code'
 	if size := len(c.Code); size != 32 {
@@ -120,7 +120,7 @@ func (c *Chunk) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'FIO'
-	c.FIO = ssz.UnmarshallUint8(buf[0:1])
+	c.FIO = ssz.UnmarshallValue[uint8](buf[0:1])
 
 	// Field (1) 'Code'
 	c.Code, _ = ssz.UnmarshalBytes(c.Code, buf[1:33])

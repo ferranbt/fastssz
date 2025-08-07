@@ -63,18 +63,20 @@ func (v *Value) unmarshal(dst string) string {
 		})
 
 	case *Uint:
+		intType := uintVToLowerCaseName2(obj)
+
 		if v.ref != "" {
 			// alias, we need to cast the value
-			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.objRef(), uintVToName2(*obj), dst)
+			return fmt.Sprintf("::.%s = %s(ssz.UnmarshallValue[%s](%s))", v.name, v.objRef(), intType, dst)
 		}
 		if v.obj != "" {
 			// alias to a type on the same package
-			return fmt.Sprintf("::.%s = %s(ssz.Unmarshall%s(%s))", v.name, v.obj, uintVToName2(*obj), dst)
+			return fmt.Sprintf("::.%s = %s(ssz.UnmarshallValue[%s](%s))", v.name, v.obj, intType, dst)
 		}
-		return fmt.Sprintf("::.%s = ssz.Unmarshall%s(%s)", v.name, uintVToName2(*obj), dst)
+		return fmt.Sprintf("::.%s = ssz.UnmarshallValue[%s](%s)", v.name, intType, dst)
 
 	case *Bool:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalBool(%s)", v.name, dst)
+		return fmt.Sprintf("::.%s = ssz.UnmarshallValue[bool](%s)", v.name, dst)
 
 	case *Time:
 		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
