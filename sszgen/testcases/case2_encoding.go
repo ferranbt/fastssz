@@ -24,16 +24,20 @@ func (c *Case2A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case2A object
 func (c *Case2A) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case2A object and returns the remaining bufferº
+func (c *Case2A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 8 {
-		return ssz.ErrSize
+	if size < 8 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
-	c.A = ssz.UnmarshallValue[uint64](buf[0:8])
+	c.A, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case2A object
@@ -83,19 +87,23 @@ func (c *Case2B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case2B object
 func (c *Case2B) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case2B object and returns the remaining bufferº
+func (c *Case2B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 16 {
-		return ssz.ErrSize
+	if size < 16 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
-	c.A = ssz.UnmarshallValue[uint64](buf[0:8])
+	c.A, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'B'
-	c.B = ssz.UnmarshallValue[uint64](buf[8:16])
+	c.B, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case2B object

@@ -21,13 +21,17 @@ func (c *Case3B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case3B object
 func (c *Case3B) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case3B object and returns the remaining bufferº
+func (c *Case3B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 0 {
-		return ssz.ErrSize
+	if size < 0 {
+		return nil, ssz.ErrSize
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case3B object

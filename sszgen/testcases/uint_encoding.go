@@ -33,25 +33,29 @@ func (u *Uints) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Uints object
 func (u *Uints) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(u, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Uints object and returns the remaining bufferº
+func (u *Uints) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 15 {
-		return ssz.ErrSize
+	if size < 15 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Uint8'
-	u.Uint8 = Uint8(ssz.UnmarshallValue[uint8](buf[0:1]))
+	u.Uint8, buf = ssz.UnmarshallValue[Uint8](buf)
 
 	// Field (1) 'Uint16'
-	u.Uint16 = Uint16(ssz.UnmarshallValue[uint16](buf[1:3]))
+	u.Uint16, buf = ssz.UnmarshallValue[Uint16](buf)
 
 	// Field (2) 'Uint32'
-	u.Uint32 = Uint32(ssz.UnmarshallValue[uint32](buf[3:7]))
+	u.Uint32, buf = ssz.UnmarshallValue[Uint32](buf)
 
 	// Field (3) 'Uint64'
-	u.Uint64 = Uint64(ssz.UnmarshallValue[uint64](buf[7:15]))
+	u.Uint64, buf = ssz.UnmarshallValue[Uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Uints object

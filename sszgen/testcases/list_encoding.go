@@ -28,16 +28,20 @@ func (b *BytesWrapper) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BytesWrapper object
 func (b *BytesWrapper) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BytesWrapper object and returns the remaining bufferº
+func (b *BytesWrapper) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 48 {
-		return ssz.ErrSize
+	if size < 48 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Bytes'
-	b.Bytes, _ = ssz.UnmarshalBytes(b.Bytes, buf[0:48])
+	b.Bytes, buf = ssz.UnmarshalBytes(b.Bytes, buf, 48)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BytesWrapper object
@@ -100,10 +104,14 @@ func (l *ListC) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the ListC object
 func (l *ListC) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(l, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ListC object and returns the remaining bufferº
+func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -111,21 +119,21 @@ func (l *ListC) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Elems'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Elems'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
-		if err := l.Elems[ii].UnmarshalSSZ(buf); err != nil {
-			return err
+		if buf, err = l.Elems[ii].UnmarshalSSZTail(buf); err != nil {
+			return
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ListC object
@@ -201,10 +209,14 @@ func (l *ListP) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the ListP object
 func (l *ListP) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(l, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ListP object and returns the remaining bufferº
+func (l *ListP) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -212,16 +224,16 @@ func (l *ListP) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Elems'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Elems'
 	if err = ssz.UnmarshalSliceSSZ(&l.Elems, tail[o0:], 48, 32); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ListP object

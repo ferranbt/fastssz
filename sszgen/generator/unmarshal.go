@@ -10,9 +10,12 @@ import (
 func (e *env) unmarshal(name string, v *Value) string {
 	tmpl := `// UnmarshalSSZ ssz unmarshals the {{.name}} object
 	func (:: *{{.name}}) UnmarshalSSZ(buf []byte) error {
-		var err error
+		return ssz.UnmarshalSSZ(::, buf)
+	}
+	
+	// UnmarshalSSZTail unmarshals the {{.name}} object and returns the remaining bufferº
+	func (:: *{{.name}}) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 		{{.unmarshal}}
-		return err
 	}`
 
 	str := execTmpl(tmpl, map[string]interface{}{
@@ -30,18 +33,18 @@ func (v *Value) unmarshal(dst string) string {
 
 	case *Bytes:
 		if !obj.IsList && !obj.IsGoDyn {
-			return fmt.Sprintf("ssz.UnmarshalFixedBytes(::.%s[:], %s)", v.name, dst)
+			return fmt.Sprintf("buf = ssz.UnmarshalFixedBytes(::.%s[:], buf)", v.name)
 		}
 
 		// both fixed and dynamic are decoded equally
 		var tmpl string
 		if !v.isFixed() {
 			// dynamic bytes, we need to validate the size of the buffer
-			tmpl = `if ::.{{.name}}, err = ssz.UnmarshalBytes(::.{{.name}}, {{.dst}}, {{.size}}); err != nil {
-			return err
+			tmpl = `if ::.{{.name}}, err = ssz.UnmarshalDynamicBytes(::.{{.name}}, {{.dst}}, {{.size}}); err != nil {
+			return
 			}`
 		} else {
-			tmpl = `::.{{.name}}, _ = ssz.UnmarshalBytes(::.{{.name}}, {{.dst}})`
+			tmpl = `::.{{.name}}, buf = ssz.UnmarshalBytes(::.{{.name}}, buf, {{.size}})`
 		}
 
 		return execTmpl(tmpl, map[string]interface{}{
@@ -53,8 +56,9 @@ func (v *Value) unmarshal(dst string) string {
 		})
 
 	case *BitList:
+		// This is always a dynamic element type so we do not need to consume buffer
 		tmpl := `if ::.{{.name}}, err = ssz.UnmarshalBitList(::.{{.name}}, {{.dst}}, {{.size}}); err != nil {
-			return err
+			return nil, err
 		}`
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,
@@ -65,26 +69,50 @@ func (v *Value) unmarshal(dst string) string {
 	case *Uint:
 		intType := uintVToLowerCaseName2(obj)
 
+		var objRef string
 		if v.ref != "" {
-			// alias, we need to cast the value
-			return fmt.Sprintf("::.%s = %s(ssz.UnmarshallValue[%s](%s))", v.name, v.objRef(), intType, dst)
+			objRef = v.objRef()
+		} else if v.obj != "" {
+			objRef = v.obj
 		}
-		if v.obj != "" {
-			// alias to a type on the same package
-			return fmt.Sprintf("::.%s = %s(ssz.UnmarshallValue[%s](%s))", v.name, v.obj, intType, dst)
+
+		var tmpl string
+		if objRef != "" {
+			tmpl = `{
+				var val {{.type}}
+				val, buf = ssz.UnmarshallValue[{{.type}}](buf)
+				::.{{.name}} = {{.objRef}}(val)
+			}`
+		} else {
+			tmpl = `::.{{.name}}, buf = ssz.UnmarshallValue[{{.type}}](buf)`
 		}
-		return fmt.Sprintf("::.%s = ssz.UnmarshallValue[%s](%s)", v.name, intType, dst)
+
+		return execTmpl(tmpl, map[string]interface{}{
+			"name":   v.name,
+			"type":   intType,
+			"objRef": objRef,
+		})
+
+		/*
+			if v.ref != "" {
+				// alias, we need to cast the value
+				return fmt.Sprintf("::.%s, buf = %s(ssz.UnmarshallValue[%s](buf))", v.name, v.objRef(), intType)
+			}
+			if v.obj != "" {
+				// alias to a type on the same package
+				return fmt.Sprintf("::.%s, buf = %s(ssz.UnmarshallValue[%s](buf))", v.name, v.obj, intType)
+			}
+			return fmt.Sprintf("::.%s, buf = ssz.UnmarshallValue[%s](buf)", v.name, intType)
+		*/
 
 	case *Bool:
-		return fmt.Sprintf("::.%s = ssz.UnmarshallValue[bool](%s)", v.name, dst)
+		return fmt.Sprintf("::.%s, buf = ssz.UnmarshallValue[bool](buf)", v.name)
 
 	case *Time:
-		return fmt.Sprintf("::.%s = ssz.UnmarshalTime(%s)", v.name, dst)
+		return fmt.Sprintf("::.%s, buf = ssz.UnmarshalTime(buf)", v.name)
 
 	case *Vector:
 		if obj.Elem.isFixed() {
-			dst = fmt.Sprintf("%s[ii*%d: (ii+1)*%d]", dst, obj.Elem.fixedSize(), obj.Elem.fixedSize())
-
 			tmpl := `{{.create}}
 			for ii := 0; ii < {{.size}}; ii++ {
 				{{.unmarshal}}
@@ -92,7 +120,7 @@ func (v *Value) unmarshal(dst string) string {
 			return execTmpl(tmpl, map[string]interface{}{
 				"create":    v.createSlice(false),
 				"size":      obj.Size,
-				"unmarshal": obj.Elem.unmarshal(dst),
+				"unmarshal": obj.Elem.unmarshal("buf"),
 			})
 		} else {
 			return v.unmarshalList(dst)
@@ -121,14 +149,14 @@ func (v *Value) unmarshalList(dst string) string {
 		var tmpl string
 		if inner.isContainer() && !inner.noPtr {
 			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}); err != nil {
-			return err
+			return nil, err
 		}`
 		} else {
 			tmpl = `if err = ssz.UnmarshalSliceWithIndexCallback(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}, func(ii int, buf []byte) (err error) {
 			{{.unmarshal}}
 			return nil
 		}); err != nil {
-			return err
+			return nil, err
 		}`
 		}
 		return execTmpl(tmpl, map[string]interface{}{
@@ -147,14 +175,14 @@ func (v *Value) unmarshalList(dst string) string {
 
 	if inner.isContainer() && !inner.noPtr {
 		tmpl = `if err = ssz.UnmarshalDynamicSliceSSZ(&::.{{.name}}, {{.dst}}, {{.max}}); err != nil {
-			return err
+			return nil, err
 		}`
 	} else {
 		tmpl = `if err = ssz.UnmarshalDynamicSliceWithCallback(&::.{{.name}}, {{.dst}}, {{.max}}, func(indx int, buf []byte) (err error) {
 		{{.unmarshal}}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}`
 	}
 
@@ -170,13 +198,26 @@ func (v *Value) unmarshalList(dst string) string {
 	return execTmpl(tmpl, data)
 }
 
+func isInOffset(dst string) bool {
+	return strings.HasPrefix(dst, "tail[")
+}
+
 func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	if !start {
-		tmpl := `{{if .ptr}}if err := ssz.UnmarshalField(&::.{{.name}}, {{.dst}}); err != nil {
-			return err
-		}{{else}}if err := ::.{{.name}}.UnmarshalSSZ({{.dst}}); err != nil {
-			return err
+		var tmpl string
+		if isInOffset(dst) {
+			tmpl = `{{if .ptr}}if err = ssz.UnmarshalField(&::.{{.name}}, {{.dst}}); err != nil {
+			return
+		}{{else}}if err = ::.{{.name}}.UnmarshalSSZ(buf); err != nil {
+			return
 		}{{end}}`
+		} else {
+			tmpl = `{{if .ptr}}if buf, err = ssz.UnmarshalFieldTail(&::.{{.name}}, buf); err != nil {
+			return
+		}{{else}}if buf, err = ::.{{.name}}.UnmarshalSSZTail(buf); err != nil {
+			return
+		}{{end}}`
+		}
 		check := true
 		if v.noPtr {
 			check = false
@@ -217,8 +258,8 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// If the struct is dynamic we create a set of offset variables that will be readed later.
 
 	tmpl := `size := uint64(len(buf))
-	if size {{.cmp}} {{.size}} {
-		return ssz.ErrSize
+	if size < {{.size}} {
+		return nil, ssz.ErrSize
 	}
 	{{if .offsets}}
 		tail := buf
@@ -283,8 +324,8 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 			}
 
 			tmpl := `// Offset ({{.indx}}) '{{.name}}'
-			if {{.offset}}, err = marker.ReadOffset({{.dst}}); err != nil {
-				return err
+			if {{.offset}}, buf, err = marker.ReadOffset(buf); err != nil {
+				return nil, err
 			}`
 			res = execTmpl(tmpl, data)
 			firstOffsetCheck = ""
@@ -323,6 +364,16 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	}
 
 	str += strings.Join(outs, "\n\n")
+
+	if len(offsets) != 0 {
+		// it is a dynamic element, we received the
+		// str += fmt.Sprintf("\nreturn tail[%s:], nil", offsets[len(offsets)-1])
+		str += "\nreturn"
+	} else {
+		// it is a static element, it should have consumed the whole buffer
+		str += "\nreturn buf, nil"
+	}
+
 	return
 }
 

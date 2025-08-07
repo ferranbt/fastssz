@@ -24,16 +24,20 @@ func (i *Issue64) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Issue64 object
 func (i *Issue64) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(i, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Issue64 object and returns the remaining bufferº
+func (i *Issue64) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 120 {
-		return ssz.ErrSize
+	if size < 120 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'FeeRecipientAddress'
-	ssz.UnmarshalFixedBytes(i.FeeRecipientAddress[:], buf[0:120])
+	buf = ssz.UnmarshalFixedBytes(i.FeeRecipientAddress[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Issue64 object

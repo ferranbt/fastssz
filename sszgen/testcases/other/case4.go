@@ -21,6 +21,10 @@ func (s *Case4Interface) UnmarshalSSZ(buf []byte) error {
 	return nil
 }
 
+func (s *Case4Interface) UnmarshalSSZTail(buf []byte) ([]byte, error) {
+	return nil, nil
+}
+
 type Case4FixedSignature [96]byte
 
 type Case4Bytes []byte
