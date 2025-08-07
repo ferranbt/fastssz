@@ -1,12 +1,16 @@
 package spectests
 
 var (
-	ethDataVotes      uint32
-	epochAttestations uint32
-	slashings         uint32
-	randaoMixes       uint32
-	rootsSize         uint32
+	ethDataVotes      int
+	epochAttestations int
+	slashings         int
+	randaoMixes       int
+	rootsSize         int
 )
+
+func init() {
+	setMainnetSpec()
+}
 
 func setMinimalSpec() {
 	ethDataVotes = 32

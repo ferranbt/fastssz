@@ -12,7 +12,7 @@ import (
 // Note that if any of the internal fields of the struct is nil, we will not fail, only not add up
 // that field to the size. It is up to other methods like marshal to fail on that scenario.
 func (e *env) size(name string, v *Value) string {
-	tmpl := `const {{.fixedName}} = {{.fixed}} 
+	tmpl := `var {{.fixedName}} = {{.fixed}} 
 
 	// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
 	func (:: *{{.name}}) SizeSSZ() (size int) {
@@ -40,7 +40,7 @@ func (v *Value) fixedSizeForContainer() string {
 		panic(fmt.Sprintf("fixedSizeForContainer called on non-container type %s", reflect.TypeOf(v.typ)))
 	}
 
-	sizes := []string{"0"}
+	sizes := []string{}
 	for _, f := range v.getObjs() {
 		switch obj := f.typ.(type) {
 		case *Vector:
@@ -57,6 +57,9 @@ func (v *Value) fixedSizeForContainer() string {
 		}
 	}
 
+	if len(sizes) == 0 {
+		return "0"
+	}
 	return strings.Join(sizes, " + ")
 }
 

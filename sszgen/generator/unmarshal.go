@@ -269,14 +269,14 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 	// If the struct is dynamic we create a set of offset variables that will be readed later.
 
-	tmpl := `size := uint64(len(buf))
+	tmpl := `size := len(buf)
 	if size < {{.fixedSizeName}} {
 		return nil, ssz.ErrSize
 	}
 	{{if .offsets}}
 		tail := buf
 		var {{.offsets}} uint64
-		marker := ssz.NewOffsetMarker(size, {{.fixedSizeName}})
+		marker := ssz.NewOffsetMarker(uint64(size), uint64({{.fixedSizeName}}))
 	{{end}}
 	`
 

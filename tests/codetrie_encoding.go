@@ -39,7 +39,7 @@ func (m *Metadata) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Metadata object and returns the remaining bufferº
 func (m *Metadata) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
+	size := len(buf)
 	if size < metadataFixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -56,7 +56,7 @@ func (m *Metadata) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
-const metadataFixedSize = 0 + 1 + 32 + 2
+var metadataFixedSize = 1 + 32 + 2
 
 // SizeSSZ returns the ssz encoded size in bytes for the Metadata object
 func (m *Metadata) SizeSSZ() (size int) {
@@ -124,7 +124,7 @@ func (c *Chunk) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Chunk object and returns the remaining bufferº
 func (c *Chunk) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
+	size := len(buf)
 	if size < chunkFixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -138,7 +138,7 @@ func (c *Chunk) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
-const chunkFixedSize = 0 + 1 + 32
+var chunkFixedSize = 1 + 32
 
 // SizeSSZ returns the ssz encoded size in bytes for the Chunk object
 func (c *Chunk) SizeSSZ() (size int) {
@@ -216,14 +216,14 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the CodeTrieSmall object and returns the remaining bufferº
 func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
+	size := len(buf)
 	if size < codeTrieSmallFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o1 uint64
-	marker := ssz.NewOffsetMarker(size, codeTrieSmallFixedSize)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(codeTrieSmallFixedSize))
 
 	// Field (0) 'Metadata'
 	if buf, err = ssz.UnmarshalFieldTail(&c.Metadata, buf); err != nil {
@@ -243,7 +243,7 @@ func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const codeTrieSmallFixedSize = 0 + metadataFixedSize + 4
+var codeTrieSmallFixedSize = metadataFixedSize + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieSmall object
 func (c *CodeTrieSmall) SizeSSZ() (size int) {
@@ -339,14 +339,14 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the CodeTrieBig object and returns the remaining bufferº
 func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
+	size := len(buf)
 	if size < codeTrieBigFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o1 uint64
-	marker := ssz.NewOffsetMarker(size, codeTrieBigFixedSize)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(codeTrieBigFixedSize))
 
 	// Field (0) 'Metadata'
 	if buf, err = ssz.UnmarshalFieldTail(&c.Metadata, buf); err != nil {
@@ -366,7 +366,7 @@ func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-const codeTrieBigFixedSize = 0 + metadataFixedSize + 4
+var codeTrieBigFixedSize = metadataFixedSize + 4
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieBig object
 func (c *CodeTrieBig) SizeSSZ() (size int) {
