@@ -100,13 +100,13 @@ func TestBitlist_MaxValue(t *testing.T) {
 }
 
 func TestEncode_ExtendUint(t *testing.T) {
-	if v0 := ExtendUint64(nil, 0); v0 == nil {
+	if v0 := Extend([]uint64{}, 0); v0 == nil {
 		t.Fatal("uint64 cannot be nil")
 	}
-	if v1 := ExtendUint16(nil, 0); v1 == nil {
+	if v1 := Extend([]uint16{}, 0); v1 == nil {
 		t.Fatal("uint16 cannot be nil")
 	}
-	if v2 := ExtendUint8(nil, 0); v2 == nil {
+	if v2 := Extend([]uint8{}, 0); v2 == nil {
 		t.Fatal("uint8 cannot be nil")
 	}
 }

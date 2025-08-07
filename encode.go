@@ -90,10 +90,7 @@ func UnmarshallUint8(src []byte) uint8 {
 
 // UnmarshalBool unmarshals a boolean from the src input
 func UnmarshalBool(src []byte) bool {
-	if src[0] == 1 {
-		return true
-	}
-	return false
+	return src[0] != 0
 }
 
 // UnmarshalTime unmarshals a time.Time from the src input
@@ -170,58 +167,14 @@ func safeReadOffset(buf []byte) (uint64, []byte, error) {
 
 // ---- extend functions ----
 
-func extendByteSlice(b []byte, needLen int) []byte {
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]byte, n)...)
-	}
-	return b[:needLen]
-}
-
-// ExtendUint64 extends a uint64 buffer to a given size
-func ExtendUint64(b []uint64, needLen int) []uint64 {
+// Extend extends a slice buffer to a given size
+func Extend[T any](b []T, needLen int) []T {
 	if b == nil {
-		b = []uint64{}
+		b = []T{}
 	}
 	b = b[:cap(b)]
 	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint64, n)...)
-	}
-	return b[:needLen]
-}
-
-// ExtendUint32 extends a uint32 buffer to a given size
-func ExtendUint32(b []uint32, needLen int) []uint32 {
-	if b == nil {
-		b = []uint32{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint32, n)...)
-	}
-	return b[:needLen]
-}
-
-// ExtendUint16 extends a uint16 buffer to a given size
-func ExtendUint16(b []uint16, needLen int) []uint16 {
-	if b == nil {
-		b = []uint16{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint16, n)...)
-	}
-	return b[:needLen]
-}
-
-// ExtendUint16 extends a uint16 buffer to a given size
-func ExtendUint8(b []uint8, needLen int) []uint8 {
-	if b == nil {
-		b = []uint8{}
-	}
-	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
-		b = append(b, make([]uint8, n)...)
+		b = append(b, make([]T, n)...)
 	}
 	return b[:needLen]
 }

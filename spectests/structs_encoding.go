@@ -2552,7 +2552,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -4332,7 +4332,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -5057,7 +5057,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
@@ -7781,7 +7781,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (14) 'Slashings'
-	b.Slashings = ssz.ExtendUint64(b.Slashings, 8192)
+	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
 		b.Slashings[ii] = ssz.UnmarshallUint64(buf[2621712:2687248][ii*8 : (ii+1)*8])
 	}
