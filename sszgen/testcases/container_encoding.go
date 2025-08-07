@@ -37,7 +37,7 @@ func (v *Vec) UnmarshalSSZ(buf []byte) error {
 	}
 
 	// Field (0) 'Values'
-	v.Values = ssz.ExtendUint64(v.Values, 6)
+	v.Values = ssz.Extend(v.Values, 6)
 	for ii := 0; ii < 6; ii++ {
 		v.Values[ii] = ssz.UnmarshallUint64(buf[0:48][ii*8 : (ii+1)*8])
 	}
