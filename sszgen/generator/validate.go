@@ -48,7 +48,6 @@ func (v *Value) validate() string {
 			"name": v.name,
 			"size": obj.Size,
 		})
-
 	case *List:
 		tmpl := `if size := len(::.{{.name}}); size > {{.size}} {
 			err = ssz.ErrListTooBigFn("--.{{.name}}", size, {{.size}})

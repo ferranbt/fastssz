@@ -1104,7 +1104,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if astSize != nil {
 				outer.typ = &Vector{
 					Elem: innerTyp,
-					Size: *astSize,
+					Size: NewSizeNum(*astSize),
 				}
 			} else {
 				outer.typ = &List{
@@ -1137,15 +1137,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				// At this point we have a list because the internal vector/list did not have a concrete size
 				// Now is the time where we check the dimensions and update the size of the list type accordingly
 				// if it is a vector.
-				if obj.MaxSize != 0 {
+				if obj.MaxSize.Num() != 0 {
 					return nil, fmt.Errorf("list should not have a max size at this point")
 				}
 				if dim.IsList() {
-					obj.MaxSize = uint64(dim.ListLen())
+					obj.MaxSize = dim.ListLen()
 				} else if dim.IsVector() {
 					outerRef.typ = &Vector{
 						Elem:  obj.Elem,
-						Size:  uint64(dim.VectorLen()),
+						Size:  dim.VectorLen(),
 						IsDyn: true,
 					}
 				}
@@ -1153,12 +1153,12 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			case *Vector:
 				// Validate that the vector fixed size specified in the ssz tags matches the size of the Go array
 				if !dim.IsVector() {
-					return nil, fmt.Errorf("fixed size %d but the ssz tag is not a vector", obj.Size)
+					return nil, fmt.Errorf("fixed size %d but the ssz tag is not a vector", obj.Size.Num())
 				}
-				vectorLen := dim.VectorLen()
-				if vectorLen != int(obj.Size) {
-					return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size, vectorLen)
-				}
+				//vectorLen := dim.VectorLen()
+				//if vectorLen != int(obj.Size.Num()) {
+				//	return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size.Num(), vectorLen)
+				//}
 
 			case *Bytes:
 				if obj.IsList {
@@ -1168,10 +1168,10 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 						return nil, fmt.Errorf("bytes should not have a size at this point")
 					}
 					if dim.IsList() {
-						obj.Size = uint64(dim.ListLen())
+						obj.Size = dim.ListLen().Num()
 					} else if dim.IsVector() {
 						outerRef.typ = &Bytes{
-							Size:    uint64(dim.VectorLen()),
+							Size:    dim.VectorLen().Num(),
 							IsGoDyn: true,
 						}
 					}
@@ -1182,7 +1182,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 
 			if dim.IsBitlist() {
 				outerRef.typ = &BitList{
-					Size: uint64(dim.ListLen()),
+					Size: dim.ListLen().Num(),
 				}
 			}
 
@@ -1261,7 +1261,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{typ: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
+			return &Value{typ: &Bytes{Size: tailDim.VectorLen().Num()}}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1321,6 +1321,51 @@ func getTags(str string, field string) (string, bool) {
 	return "", false
 }
 
+// isFixedSize checks if the value is fixed size and returns the size if it is
+// If the value is not fixed size, it returns false and 0.
+// TODO: Try to merge with isFixed
+func (v *Value) isFixedSize() (bool, uint64) {
+	switch obj := v.typ.(type) {
+	case *Uint:
+		return true, obj.Size
+	case *Bool:
+		return true, 1
+	case *Time:
+		return true, 8
+	case *BitList:
+		return false, 0
+	case *Bytes:
+		if obj.IsList {
+			return false, 0
+		}
+		return true, obj.Size
+	case *List:
+		return false, 0
+	case *Vector:
+		panic("TODO")
+	case *Container:
+		sum := uint64(0)
+		for _, f := range v.getObjs() {
+			// if any contained value is not fixed, it is not fixed
+			ok, size := f.isFixedSize()
+			if !ok {
+				return false, 0
+			}
+			sum += size
+		}
+		// if all values within the container are fixed, it is fixed
+		return true, sum
+	case *Reference:
+		if obj.Size != 0 {
+			return true, obj.Size
+		}
+		return false, 0
+
+	default:
+		panic(fmt.Errorf("is fixed not implemented for type %s named %s, %s", v.Type(), v.name, reflect.TypeOf(v.typ)))
+	}
+}
+
 func (v *Value) isFixed() bool {
 	switch obj := v.typ.(type) {
 	case *Uint, *Bool, *Time:
@@ -1359,7 +1404,19 @@ func (v *Value) isFixed() bool {
 	}
 }
 
-func execTmpl(tpl string, input interface{}) string {
+type TemplateMarshal interface {
+	MarshalTemplate() string
+}
+
+func execTmpl(tpl string, input map[string]interface{}) string {
+	for k, v := range input {
+		if tmpl, ok := v.(TemplateMarshal); ok {
+			// if the value is a TemplateMarshal, we want to use its template
+			// instead of the default one.
+			input[k] = tmpl.MarshalTemplate()
+		}
+	}
+
 	funcs := template.FuncMap{
 		"ref": func(v *Value) string {
 			return v.objRef()

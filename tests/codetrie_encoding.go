@@ -232,7 +232,7 @@ func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (1) 'Chunks'
-	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 33, 4); err != nil {
+	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 4); err != nil {
 		return nil, err
 	}
 
@@ -353,7 +353,7 @@ func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (1) 'Chunks'
-	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 33, 1024); err != nil {
+	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 1024); err != nil {
 		return nil, err
 	}
 

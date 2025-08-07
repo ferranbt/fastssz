@@ -135,7 +135,7 @@ func (v *Value) unmarshal(dst string) string {
 }
 
 func (v *Value) unmarshalList(dst string) string {
-	var size uint64
+	var size Size
 	if obj, ok := v.typ.(*List); ok {
 		size = obj.MaxSize
 	} else if obj, ok := v.typ.(*Vector); ok {
@@ -148,7 +148,7 @@ func (v *Value) unmarshalList(dst string) string {
 	if inner.isFixed() {
 		var tmpl string
 		if inner.isContainer() && !inner.noPtr {
-			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}); err != nil {
+			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.max}}); err != nil {
 			return nil, err
 		}`
 		} else {
@@ -274,7 +274,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 		"offsets": strings.Join(offsets, ", "),
 	})
 
-	var o0 uint64
+	//var o0 uint64
 
 	// Marshal the fixed part and offsets
 
@@ -282,35 +282,21 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// for the first offset, use the size of the fixed-length data
 	// as the minimum boundary. subsequent offsets will replace this
 	// value with the name of the previous offset variable.
-	firstOffsetCheck := fmt.Sprintf("%d", v.fixedSize())
 	outs := []string{}
 	for indx, i := range v.getObjs() {
-
-		// How much it increases on every item
-		var incr uint64
-		if i.isFixed() {
-			incr = i.fixedSize()
-		} else {
-			incr = bytesPerLengthOffset
-		}
-
-		dst = fmt.Sprintf("%s[%d:%d]", "buf", o0, o0+incr)
-		o0 += incr
-
 		var res string
 		if i.isFixed() {
-			res = fmt.Sprintf("// Field (%d) '%s'\n%s\n\n", indx, i.name, i.unmarshal(dst))
+			res = fmt.Sprintf("// Field (%d) '%s'\n%s\n\n", indx, i.name, i.unmarshal("buf"))
 
 		} else {
 			// read the offset
 			offset := "o" + strconv.Itoa(indx)
 
 			data := map[string]interface{}{
-				"indx":             indx,
-				"name":             i.name,
-				"offset":           offset,
-				"dst":              dst,
-				"firstOffsetCheck": firstOffsetCheck,
+				"indx":   indx,
+				"name":   i.name,
+				"offset": offset,
+				"dst":    dst,
 			}
 
 			// We need to do two validations for the offset:
@@ -328,7 +314,6 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				return nil, err
 			}`
 			res = execTmpl(tmpl, data)
-			firstOffsetCheck = ""
 		}
 		outs = append(outs, res)
 	}
@@ -382,10 +367,10 @@ func (v *Value) createSlice(useNumVariable bool) string {
 	var sizeU64 uint64
 	var isVectorCreate bool
 	if obj, ok := v.typ.(*List); ok {
-		sizeU64 = obj.MaxSize
+		sizeU64 = obj.MaxSize.Num()
 		isVectorCreate = true
 	} else if obj, ok := v.typ.(*Vector); ok {
-		sizeU64 = obj.Size
+		sizeU64 = obj.Size.Num()
 		isVectorCreate = obj.IsDyn
 	} else {
 		panic("BUG: create item is only intended to be used with vectors and lists")

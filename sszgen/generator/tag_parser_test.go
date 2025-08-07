@@ -60,8 +60,8 @@ func TestWildcardSSZSize(t *testing.T) {
 	if dims[0].IsVector() {
 		t.Errorf("Expected the first dimension to not be a vector")
 	}
-	if dims[0].ListLen() != 16777216 {
-		t.Errorf("Expected max size of list to be %d, got %d", 16777216, dims[0].ListLen())
+	if dims[0].ListLength.Size != 16777216 {
+		t.Errorf("Expected max size of list to be %d, got %d", 16777216, dims[0].ListLength.Size)
 	}
 	if !dims[1].IsVector() {
 		t.Errorf("Expected the first dimension to be a vector")
@@ -69,8 +69,8 @@ func TestWildcardSSZSize(t *testing.T) {
 	if dims[1].IsList() {
 		t.Errorf("Expected the second dimension to not be a list")
 	}
-	if dims[1].VectorLen() != 32 {
-		t.Errorf("Expected size of vector to be %d, got %d", 32, dims[1].VectorLen())
+	if dims[1].VectorLength.Size != 32 {
+		t.Errorf("Expected size of vector to be %d, got %d", 32, dims[1].VectorLength.Size)
 	}
 }
 
@@ -96,11 +96,11 @@ func TestListOfList(t *testing.T) {
 	if dims[1].IsVector() {
 		t.Errorf("Expected neither dimension to be vector, but the second dimension is")
 	}
-	if dims[0].ListLen() != 1048576 {
-		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1048576, dims[0].ListLen())
+	if dims[0].ListLength.Size != 1048576 {
+		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1048576, dims[0].ListLength.Size)
 	}
-	if dims[1].ListLen() != 1073741824 {
-		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1073741824, dims[1].ListLen())
+	if dims[1].ListLength.Size != 1073741824 {
+		t.Errorf("Expected ssz-max of first dimension to be %d, got %d", 1073741824, dims[1].ListLength.Size)
 	}
 }
 

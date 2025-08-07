@@ -55,9 +55,9 @@ func (v *Value) fixedSize() uint64 {
 		return fixed
 	case *Vector:
 		if obj.Elem.isFixed() {
-			return obj.Size * obj.Elem.fixedSize()
+			return obj.Size.Num() * obj.Elem.fixedSize()
 		} else {
-			return obj.Size * bytesPerLengthOffset
+			return obj.Size.Num() * bytesPerLengthOffset
 		}
 
 	case *Reference:

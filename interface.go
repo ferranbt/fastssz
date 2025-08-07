@@ -7,6 +7,10 @@ type Marshaler interface {
 	SizeSSZ() int
 }
 
+type SSZSizer interface {
+	SizeSSZ() int
+}
+
 // Unmarshaler is the interface implemented by types that can unmarshal a SSZ description of themselves
 type Unmarshaler interface {
 	UnmarshalSSZ(buf []byte) error
@@ -49,6 +53,7 @@ type HashWalker interface {
 type PtrConstraint[T any] interface {
 	*T
 	Unmarshaler
+	SSZSizer
 }
 
 func UnmarshalFieldTail[T any, PT PtrConstraint[T]](field *PT, buf []byte) ([]byte, error) {
@@ -108,9 +113,13 @@ func UnmarshalDynamicSliceWithCallback[T any](
 func UnmarshalSliceSSZ[T any, PT PtrConstraint[T]](
 	slice *[]PT,
 	buf []byte,
-	itemSize int,
 	maxItems int,
 ) error {
+	// Create a zero value to get the size
+	var zero T
+	var zeroPtr PT = PT(&zero)
+	itemSize := zeroPtr.SizeSSZ()
+
 	return UnmarshalSliceWithIndexCallback(slice, buf, itemSize, maxItems,
 		func(ii int, itemBuf []byte) error {
 			return UnmarshalField[T, PT](&(*slice)[ii], itemBuf)
