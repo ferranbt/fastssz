@@ -147,11 +147,23 @@ func (v *Value) unmarshalList(dst string) string {
 	inner := getElem(v.typ)
 	if inner.isFixed() {
 		var tmpl string
+		var innerSize uint64
+
 		if inner.isContainer() && !inner.noPtr {
 			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.max}}); err != nil {
 			return nil, err
 		}`
 		} else {
+			// it is a basic type, manually infer the size
+			switch obj := inner.typ.(type) {
+			case *Uint:
+				innerSize = obj.Size
+			case *Bytes:
+				innerSize = obj.Size
+			default:
+				panic(fmt.Errorf("unmarshalList not implemented for type %s", inner.Type()))
+			}
+
 			tmpl = `if err = ssz.UnmarshalSliceWithIndexCallback(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}, func(ii int, buf []byte) (err error) {
 			{{.unmarshal}}
 			return nil
@@ -160,7 +172,7 @@ func (v *Value) unmarshalList(dst string) string {
 		}`
 		}
 		return execTmpl(tmpl, map[string]interface{}{
-			"size":      inner.fixedSize(),
+			"size":      innerSize,
 			"max":       size,
 			"name":      v.name,
 			"unmarshal": inner.unmarshal("buf"),
@@ -258,20 +270,20 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// If the struct is dynamic we create a set of offset variables that will be readed later.
 
 	tmpl := `size := uint64(len(buf))
-	if size < {{.size}} {
+	if size < {{.fixedSizeName}} {
 		return nil, ssz.ErrSize
 	}
 	{{if .offsets}}
 		tail := buf
 		var {{.offsets}} uint64
-		marker := ssz.NewOffsetMarker(size, {{.size}})
+		marker := ssz.NewOffsetMarker(size, {{.fixedSizeName}})
 	{{end}}
 	`
 
 	str += execTmpl(tmpl, map[string]interface{}{
-		"cmp":     cmp,
-		"size":    v.fixedSize(),
-		"offsets": strings.Join(offsets, ", "),
+		"cmp":           cmp,
+		"fixedSizeName": v.fixedSizeName(),
+		"offsets":       strings.Join(offsets, ", "),
 	})
 
 	//var o0 uint64
@@ -364,19 +376,19 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 
 // createItem is used to initialize slices of objects
 func (v *Value) createSlice(useNumVariable bool) string {
-	var sizeU64 uint64
+	var sizeU64 Size
 	var isVectorCreate bool
 	if obj, ok := v.typ.(*List); ok {
-		sizeU64 = obj.MaxSize.Num()
+		sizeU64 = obj.MaxSize
 		isVectorCreate = true
 	} else if obj, ok := v.typ.(*Vector); ok {
-		sizeU64 = obj.Size.Num()
+		sizeU64 = obj.Size
 		isVectorCreate = obj.IsDyn
 	} else {
 		panic("BUG: create item is only intended to be used with vectors and lists")
 	}
 
-	size := strconv.Itoa(int(sizeU64))
+	size := sizeU64.MarshalTemplate()
 	// when useNumVariable is specified, we assume there is a 'num' variable generated beforehand with the expected size.
 	if useNumVariable {
 		size = "num"

@@ -866,7 +866,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 			size, _ := getTagsInt(tags, "ssz-size")
 			v = &Value{noPtr: raw.obj == nil, typ: &Reference{Size: size}}
 		} else if raw.obj != nil {
-			v, err = e.parseASTStructType(name)
+			v, err = e.parseASTStructType(raw.name, name)
 		} else {
 			v, err = e.parseASTFieldType(name, tags, raw.typ)
 		}
@@ -890,13 +890,14 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 }
 
 // parse the Go AST struct
-func (e *env) parseASTStructType(name string) (*Value, error) {
+func (e *env) parseASTStructType(objTypeName string, name string) (*Value, error) {
 	v := &Value{
 		name: name,
 	}
 
 	v2 := &Container{
-		Elems: []*Value{},
+		ObjName: objTypeName,
+		Elems:   []*Value{},
 	}
 
 	visited := map[string]struct{}{}

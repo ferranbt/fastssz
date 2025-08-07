@@ -15,7 +15,7 @@ func (a *AggregateAndProof) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the AggregateAndProof object to a target array
 func (a *AggregateAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(108)
+	offset := int(aggregateAndProofFixedSize)
 
 	// Field (0) 'Index'
 	dst = ssz.MarshalValue(dst, a.Index)
@@ -42,13 +42,13 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the AggregateAndProof object and returns the remaining bufferº
 func (a *AggregateAndProof) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 108 {
+	if size < aggregateAndProofFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o1 uint64
-	marker := ssz.NewOffsetMarker(size, 108)
+	marker := ssz.NewOffsetMarker(size, aggregateAndProofFixedSize)
 
 	// Field (0) 'Index'
 	a.Index, buf = ssz.UnmarshallValue[uint64](buf)
@@ -69,9 +69,11 @@ func (a *AggregateAndProof) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
+const aggregateAndProofFixedSize = 0 + 8 + attestationFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the AggregateAndProof object
 func (a *AggregateAndProof) SizeSSZ() (size int) {
-	size = 108
+	size = aggregateAndProofFixedSize
 
 	// Field (1) 'Aggregate'
 	if a.Aggregate == nil {
@@ -141,7 +143,7 @@ func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Checkpoint object and returns the remaining bufferº
 func (c *Checkpoint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 40 {
+	if size < checkpointFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -154,9 +156,11 @@ func (c *Checkpoint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const checkpointFixedSize = 0 + 8 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the Checkpoint object
 func (c *Checkpoint) SizeSSZ() (size int) {
-	size = 40
+	size = checkpointFixedSize
 	return
 }
 
@@ -233,7 +237,7 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the AttestationData object and returns the remaining bufferº
 func (a *AttestationData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 128 {
+	if size < attestationDataFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -263,9 +267,11 @@ func (a *AttestationData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	return buf, nil
 }
 
+const attestationDataFixedSize = 0 + 8 + 8 + 32 + checkpointFixedSize + checkpointFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the AttestationData object
 func (a *AttestationData) SizeSSZ() (size int) {
-	size = 128
+	size = attestationDataFixedSize
 	return
 }
 
@@ -320,7 +326,7 @@ func (a *Attestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Attestation object to a target array
 func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(228)
+	offset := int(attestationFixedSize)
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -354,13 +360,13 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Attestation object and returns the remaining bufferº
 func (a *Attestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 228 {
+	if size < attestationFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 228)
+	marker := ssz.NewOffsetMarker(size, attestationFixedSize)
 
 	// Offset (0) 'AggregationBits'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -383,9 +389,11 @@ func (a *Attestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+const attestationFixedSize = 0 + 2048 + attestationDataFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the Attestation object
 func (a *Attestation) SizeSSZ() (size int) {
-	size = 228
+	size = attestationFixedSize
 
 	// Field (0) 'AggregationBits'
 	size += len(a.AggregationBits)
@@ -465,7 +473,7 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the DepositData object and returns the remaining bufferº
 func (d *DepositData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 184 {
+	if size < depositDataFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -484,9 +492,11 @@ func (d *DepositData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const depositDataFixedSize = 0 + 48 + 32 + 8 + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the DepositData object
 func (d *DepositData) SizeSSZ() (size int) {
-	size = 184
+	size = depositDataFixedSize
 	return
 }
 
@@ -565,7 +575,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Deposit object and returns the remaining bufferº
 func (d *Deposit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 1240 {
+	if size < depositFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -583,9 +593,11 @@ func (d *Deposit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const depositFixedSize = 0 + 33*32 + depositDataFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the Deposit object
 func (d *Deposit) SizeSSZ() (size int) {
-	size = 1240
+	size = depositFixedSize
 	return
 }
 
@@ -669,7 +681,7 @@ func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the DepositMessage object and returns the remaining bufferº
 func (d *DepositMessage) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 88 {
+	if size < depositMessageFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -685,9 +697,11 @@ func (d *DepositMessage) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const depositMessageFixedSize = 0 + 48 + 32 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the DepositMessage object
 func (d *DepositMessage) SizeSSZ() (size int) {
-	size = 88
+	size = depositMessageFixedSize
 	return
 }
 
@@ -734,7 +748,7 @@ func (i *IndexedAttestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the IndexedAttestation object to a target array
 func (i *IndexedAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(228)
+	offset := int(indexedAttestationFixedSize)
 
 	// Offset (0) 'AttestationIndices'
 	dst = ssz.WriteOffset(dst, offset)
@@ -774,13 +788,13 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the IndexedAttestation object and returns the remaining bufferº
 func (i *IndexedAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 228 {
+	if size < indexedAttestationFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 228)
+	marker := ssz.NewOffsetMarker(size, indexedAttestationFixedSize)
 
 	// Offset (0) 'AttestationIndices'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -806,9 +820,11 @@ func (i *IndexedAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
+const indexedAttestationFixedSize = 0 + 0 /*list*/ + attestationDataFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the IndexedAttestation object
 func (i *IndexedAttestation) SizeSSZ() (size int) {
-	size = 228
+	size = indexedAttestationFixedSize
 
 	// Field (0) 'AttestationIndices'
 	size += len(i.AttestationIndices) * 8
@@ -872,7 +888,7 @@ func (p *PendingAttestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PendingAttestation object to a target array
 func (p *PendingAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(148)
+	offset := int(pendingAttestationFixedSize)
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -909,13 +925,13 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the PendingAttestation object and returns the remaining bufferº
 func (p *PendingAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 148 {
+	if size < pendingAttestationFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 148)
+	marker := ssz.NewOffsetMarker(size, pendingAttestationFixedSize)
 
 	// Offset (0) 'AggregationBits'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -941,9 +957,11 @@ func (p *PendingAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
+const pendingAttestationFixedSize = 0 + 2048 + attestationDataFixedSize + 8 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the PendingAttestation object
 func (p *PendingAttestation) SizeSSZ() (size int) {
-	size = 148
+	size = pendingAttestationFixedSize
 
 	// Field (0) 'AggregationBits'
 	size += len(p.AggregationBits)
@@ -1027,7 +1045,7 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Fork object and returns the remaining bufferº
 func (f *Fork) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 16 {
+	if size < forkFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1043,9 +1061,11 @@ func (f *Fork) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const forkFixedSize = 0 + 4 + 4 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the Fork object
 func (f *Fork) SizeSSZ() (size int) {
-	size = 16
+	size = forkFixedSize
 	return
 }
 
@@ -1136,7 +1156,7 @@ func (v *Validator) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Validator object and returns the remaining bufferº
 func (v *Validator) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 121 {
+	if size < validatorFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1167,9 +1187,11 @@ func (v *Validator) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const validatorFixedSize = 0 + 48 + 32 + 8 + 1 + 8 + 8 + 8 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the Validator object
 func (v *Validator) SizeSSZ() (size int) {
-	size = 121
+	size = validatorFixedSize
 	return
 }
 
@@ -1249,7 +1271,7 @@ func (v *VoluntaryExit) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the VoluntaryExit object and returns the remaining bufferº
 func (v *VoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 16 {
+	if size < voluntaryExitFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1262,9 +1284,11 @@ func (v *VoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const voluntaryExitFixedSize = 0 + 8 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the VoluntaryExit object
 func (v *VoluntaryExit) SizeSSZ() (size int) {
-	size = 16
+	size = voluntaryExitFixedSize
 	return
 }
 
@@ -1323,7 +1347,7 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedVoluntaryExit object and returns the remaining bufferº
 func (s *SignedVoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 112 {
+	if size < signedVoluntaryExitFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1338,9 +1362,11 @@ func (s *SignedVoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err err
 	return buf, nil
 }
 
+const signedVoluntaryExitFixedSize = 0 + voluntaryExitFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedVoluntaryExit object
 func (s *SignedVoluntaryExit) SizeSSZ() (size int) {
-	size = 112
+	size = signedVoluntaryExitFixedSize
 	return
 }
 
@@ -1406,7 +1432,7 @@ func (e *Eth1Block) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Eth1Block object and returns the remaining bufferº
 func (e *Eth1Block) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 48 {
+	if size < eth1BlockFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1422,9 +1448,11 @@ func (e *Eth1Block) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const eth1BlockFixedSize = 0 + 8 + 32 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the Eth1Block object
 func (e *Eth1Block) SizeSSZ() (size int) {
-	size = 48
+	size = eth1BlockFixedSize
 	return
 }
 
@@ -1496,7 +1524,7 @@ func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Eth1Data object and returns the remaining bufferº
 func (e *Eth1Data) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 72 {
+	if size < eth1DataFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1512,9 +1540,11 @@ func (e *Eth1Data) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const eth1DataFixedSize = 0 + 32 + 8 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the Eth1Data object
 func (e *Eth1Data) SizeSSZ() (size int) {
-	size = 72
+	size = eth1DataFixedSize
 	return
 }
 
@@ -1587,7 +1617,7 @@ func (s *SigningRoot) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SigningRoot object and returns the remaining bufferº
 func (s *SigningRoot) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 40 {
+	if size < signingRootFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1600,9 +1630,11 @@ func (s *SigningRoot) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const signingRootFixedSize = 0 + 32 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the SigningRoot object
 func (s *SigningRoot) SizeSSZ() (size int) {
-	size = 40
+	size = signingRootFixedSize
 	return
 }
 
@@ -1676,7 +1708,7 @@ func (h *HistoricalBatch) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the HistoricalBatch object and returns the remaining bufferº
 func (h *HistoricalBatch) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 524288 {
+	if size < historicalBatchFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1695,9 +1727,11 @@ func (h *HistoricalBatch) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	return buf, nil
 }
 
+const historicalBatchFixedSize = 0 + 8192*32 + 8192*32
+
 // SizeSSZ returns the ssz encoded size in bytes for the HistoricalBatch object
 func (h *HistoricalBatch) SizeSSZ() (size int) {
-	size = 524288
+	size = historicalBatchFixedSize
 	return
 }
 
@@ -1781,7 +1815,7 @@ func (p *ProposerSlashing) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ProposerSlashing object and returns the remaining bufferº
 func (p *ProposerSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 416 {
+	if size < proposerSlashingFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -1798,9 +1832,11 @@ func (p *ProposerSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return buf, nil
 }
 
+const proposerSlashingFixedSize = 0 + signedBeaconBlockHeaderFixedSize + signedBeaconBlockHeaderFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the ProposerSlashing object
 func (p *ProposerSlashing) SizeSSZ() (size int) {
-	size = 416
+	size = proposerSlashingFixedSize
 	return
 }
 
@@ -1846,7 +1882,7 @@ func (a *AttesterSlashing) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the AttesterSlashing object to a target array
 func (a *AttesterSlashing) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(8)
+	offset := int(attesterSlashingFixedSize)
 
 	// Offset (0) 'Attestation1'
 	dst = ssz.WriteOffset(dst, offset)
@@ -1879,13 +1915,13 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the AttesterSlashing object and returns the remaining bufferº
 func (a *AttesterSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 8 {
+	if size < attesterSlashingFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0, o1 uint64
-	marker := ssz.NewOffsetMarker(size, 8)
+	marker := ssz.NewOffsetMarker(size, attesterSlashingFixedSize)
 
 	// Offset (0) 'Attestation1'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -1910,9 +1946,11 @@ func (a *AttesterSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return
 }
 
+const attesterSlashingFixedSize = 0 + indexedAttestationFixedSize + indexedAttestationFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the AttesterSlashing object
 func (a *AttesterSlashing) SizeSSZ() (size int) {
-	size = 8
+	size = attesterSlashingFixedSize
 
 	// Field (0) 'Attestation1'
 	if a.Attestation1 == nil {
@@ -1965,7 +2003,7 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlock object to a target array
 func (b *BeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(84)
+	offset := int(beaconBlockFixedSize)
 
 	// Field (0) 'Slot'
 	dst = ssz.MarshalValue(dst, b.Slot)
@@ -2006,13 +2044,13 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlock object and returns the remaining bufferº
 func (b *BeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 84 {
+	if size < beaconBlockFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o4 uint64
-	marker := ssz.NewOffsetMarker(size, 84)
+	marker := ssz.NewOffsetMarker(size, beaconBlockFixedSize)
 
 	// Field (0) 'Slot'
 	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
@@ -2039,9 +2077,11 @@ func (b *BeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+const beaconBlockFixedSize = 0 + 8 + 8 + 32 + 32 + beaconBlockBodyPhase0FixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlock object
 func (b *BeaconBlock) SizeSSZ() (size int) {
-	size = 84
+	size = beaconBlockFixedSize
 
 	// Field (4) 'Body'
 	if b.Body == nil {
@@ -2103,7 +2143,7 @@ func (s *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the SignedBeaconBlock object to a target array
 func (s *SignedBeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(100)
+	offset := int(signedBeaconBlockFixedSize)
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
@@ -2131,13 +2171,13 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBeaconBlock object and returns the remaining bufferº
 func (s *SignedBeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 100 {
+	if size < signedBeaconBlockFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 100)
+	marker := ssz.NewOffsetMarker(size, signedBeaconBlockFixedSize)
 
 	// Offset (0) 'Block'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -2155,9 +2195,11 @@ func (s *SignedBeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
+const signedBeaconBlockFixedSize = 0 + beaconBlockFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlock object
 func (s *SignedBeaconBlock) SizeSSZ() (size int) {
-	size = 100
+	size = signedBeaconBlockFixedSize
 
 	// Field (0) 'Block'
 	if s.Block == nil {
@@ -2247,7 +2289,7 @@ func (t *Transfer) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Transfer object and returns the remaining bufferº
 func (t *Transfer) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 184 {
+	if size < transferFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -2275,9 +2317,11 @@ func (t *Transfer) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const transferFixedSize = 0 + 8 + 8 + 8 + 8 + 8 + 48 + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the Transfer object
 func (t *Transfer) SizeSSZ() (size int) {
-	size = 184
+	size = transferFixedSize
 	return
 }
 
@@ -2336,7 +2380,7 @@ func (b *BeaconState) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconState object to a target array
 func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(2687377)
+	offset := int(beaconStateFixedSize)
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -2407,14 +2451,14 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * 72
+	offset += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * 121
+	offset += len(b.Validators) * validatorFixedSize
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -2574,13 +2618,13 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconState object and returns the remaining bufferº
 func (b *BeaconState) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 2687377 {
+	if size < beaconStateFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16 uint64
-	marker := ssz.NewOffsetMarker(size, 2687377)
+	marker := ssz.NewOffsetMarker(size, beaconStateFixedSize)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
@@ -2720,18 +2764,20 @@ func (b *BeaconState) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+const beaconStateFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 0 /*list*/ + 0 /*list*/ + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
 func (b *BeaconState) SizeSSZ() (size int) {
-	size = 2687377
+	size = beaconStateFixedSize
 
 	// Field (7) 'HistoricalRoots'
 	size += len(b.HistoricalRoots) * 32
 
 	// Field (9) 'Eth1DataVotes'
-	size += len(b.Eth1DataVotes) * 72
+	size += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (11) 'Validators'
-	size += len(b.Validators) * 121
+	size += len(b.Validators) * validatorFixedSize
 
 	// Field (12) 'Balances'
 	size += len(b.Balances) * 8
@@ -3009,7 +3055,7 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyPhase0 object to a target array
 func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(220)
+	offset := int(beaconBlockBodyPhase0FixedSize)
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -3031,7 +3077,7 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * 416
+	offset += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3049,7 +3095,7 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * 1240
+	offset += len(b.Deposits) * depositFixedSize
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3134,13 +3180,13 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyPhase0 object and returns the remaining bufferº
 func (b *BeaconBlockBodyPhase0) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 220 {
+	if size < beaconBlockBodyPhase0FixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o3, o4, o5, o6, o7 uint64
-	marker := ssz.NewOffsetMarker(size, 220)
+	marker := ssz.NewOffsetMarker(size, beaconBlockBodyPhase0FixedSize)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
@@ -3206,12 +3252,14 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
+const beaconBlockBodyPhase0FixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyPhase0 object
 func (b *BeaconBlockBodyPhase0) SizeSSZ() (size int) {
-	size = 220
+	size = beaconBlockBodyPhase0FixedSize
 
 	// Field (3) 'ProposerSlashings'
-	size += len(b.ProposerSlashings) * 416
+	size += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Field (4) 'AttesterSlashings'
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -3226,10 +3274,10 @@ func (b *BeaconBlockBodyPhase0) SizeSSZ() (size int) {
 	}
 
 	// Field (6) 'Deposits'
-	size += len(b.Deposits) * 1240
+	size += len(b.Deposits) * depositFixedSize
 
 	// Field (7) 'VoluntaryExits'
-	size += len(b.VoluntaryExits) * 112
+	size += len(b.VoluntaryExits) * signedVoluntaryExitFixedSize
 
 	return
 }
@@ -3358,7 +3406,7 @@ func (b *BeaconBlockBodyAltair) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyAltair object to a target array
 func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(380)
+	offset := int(beaconBlockBodyAltairFixedSize)
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -3380,7 +3428,7 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * 416
+	offset += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3398,7 +3446,7 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * 1240
+	offset += len(b.Deposits) * depositFixedSize
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3491,13 +3539,13 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyAltair object and returns the remaining bufferº
 func (b *BeaconBlockBodyAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 380 {
+	if size < beaconBlockBodyAltairFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o3, o4, o5, o6, o7 uint64
-	marker := ssz.NewOffsetMarker(size, 380)
+	marker := ssz.NewOffsetMarker(size, beaconBlockBodyAltairFixedSize)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
@@ -3568,12 +3616,14 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
+const beaconBlockBodyAltairFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + syncAggregateFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyAltair object
 func (b *BeaconBlockBodyAltair) SizeSSZ() (size int) {
-	size = 380
+	size = beaconBlockBodyAltairFixedSize
 
 	// Field (3) 'ProposerSlashings'
-	size += len(b.ProposerSlashings) * 416
+	size += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Field (4) 'AttesterSlashings'
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -3588,10 +3638,10 @@ func (b *BeaconBlockBodyAltair) SizeSSZ() (size int) {
 	}
 
 	// Field (6) 'Deposits'
-	size += len(b.Deposits) * 1240
+	size += len(b.Deposits) * depositFixedSize
 
 	// Field (7) 'VoluntaryExits'
-	size += len(b.VoluntaryExits) * 112
+	size += len(b.VoluntaryExits) * signedVoluntaryExitFixedSize
 
 	return
 }
@@ -3728,7 +3778,7 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyBellatrix object to a target array
 func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(384)
+	offset := int(beaconBlockBodyBellatrixFixedSize)
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -3750,7 +3800,7 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * 416
+	offset += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3768,11 +3818,11 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * 1240
+	offset += len(b.Deposits) * depositFixedSize
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.VoluntaryExits) * 112
+	offset += len(b.VoluntaryExits) * signedVoluntaryExitFixedSize
 
 	// Field (8) 'SyncAggregate'
 	if b.SyncAggregate == nil {
@@ -3870,13 +3920,13 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyBellatrix object and returns the remaining bufferº
 func (b *BeaconBlockBodyBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 384 {
+	if size < beaconBlockBodyBellatrixFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o3, o4, o5, o6, o7, o9 uint64
-	marker := ssz.NewOffsetMarker(size, 384)
+	marker := ssz.NewOffsetMarker(size, beaconBlockBodyBellatrixFixedSize)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
@@ -3957,12 +4007,14 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, er
 	return
 }
 
+const beaconBlockBodyBellatrixFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + syncAggregateFixedSize + executionPayloadFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyBellatrix object
 func (b *BeaconBlockBodyBellatrix) SizeSSZ() (size int) {
-	size = 384
+	size = beaconBlockBodyBellatrixFixedSize
 
 	// Field (3) 'ProposerSlashings'
-	size += len(b.ProposerSlashings) * 416
+	size += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Field (4) 'AttesterSlashings'
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -3977,10 +4029,10 @@ func (b *BeaconBlockBodyBellatrix) SizeSSZ() (size int) {
 	}
 
 	// Field (6) 'Deposits'
-	size += len(b.Deposits) * 1240
+	size += len(b.Deposits) * depositFixedSize
 
 	// Field (7) 'VoluntaryExits'
-	size += len(b.VoluntaryExits) * 112
+	size += len(b.VoluntaryExits) * signedVoluntaryExitFixedSize
 
 	// Field (9) 'ExecutionPayload'
 	if b.ExecutionPayload == nil {
@@ -4128,7 +4180,7 @@ func (b *BeaconStateAltair) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconStateAltair object to a target array
 func (b *BeaconStateAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(2736629)
+	offset := int(beaconStateAltairFixedSize)
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -4199,14 +4251,14 @@ func (b *BeaconStateAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * 72
+	offset += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * 121
+	offset += len(b.Validators) * validatorFixedSize
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -4370,13 +4422,13 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconStateAltair object and returns the remaining bufferº
 func (b *BeaconStateAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 2736629 {
+	if size < beaconStateAltairFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16, o21 uint64
-	marker := ssz.NewOffsetMarker(size, 2736629)
+	marker := ssz.NewOffsetMarker(size, beaconStateAltairFixedSize)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
@@ -4539,18 +4591,20 @@ func (b *BeaconStateAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
+const beaconStateAltairFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 0 /*list*/ + syncCommitteeFixedSize + syncCommitteeFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateAltair object
 func (b *BeaconStateAltair) SizeSSZ() (size int) {
-	size = 2736629
+	size = beaconStateAltairFixedSize
 
 	// Field (7) 'HistoricalRoots'
 	size += len(b.HistoricalRoots) * 32
 
 	// Field (9) 'Eth1DataVotes'
-	size += len(b.Eth1DataVotes) * 72
+	size += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (11) 'Validators'
-	size += len(b.Validators) * 121
+	size += len(b.Validators) * validatorFixedSize
 
 	// Field (12) 'Balances'
 	size += len(b.Balances) * 8
@@ -4848,7 +4902,7 @@ func (b *BeaconStateBellatrix) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconStateBellatrix object to a target array
 func (b *BeaconStateBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(2736633)
+	offset := int(beaconStateBellatrixFixedSize)
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -4919,14 +4973,14 @@ func (b *BeaconStateBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * 72
+	offset += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * 121
+	offset += len(b.Validators) * validatorFixedSize
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -5099,13 +5153,13 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconStateBellatrix object and returns the remaining bufferº
 func (b *BeaconStateBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 2736633 {
+	if size < beaconStateBellatrixFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16, o21, o24 uint64
-	marker := ssz.NewOffsetMarker(size, 2736633)
+	marker := ssz.NewOffsetMarker(size, beaconStateBellatrixFixedSize)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
@@ -5278,18 +5332,20 @@ func (b *BeaconStateBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err er
 	return
 }
 
+const beaconStateBellatrixFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 0 /*list*/ + syncCommitteeFixedSize + syncCommitteeFixedSize + executionPayloadHeaderFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateBellatrix object
 func (b *BeaconStateBellatrix) SizeSSZ() (size int) {
-	size = 2736633
+	size = beaconStateBellatrixFixedSize
 
 	// Field (7) 'HistoricalRoots'
 	size += len(b.HistoricalRoots) * 32
 
 	// Field (9) 'Eth1DataVotes'
-	size += len(b.Eth1DataVotes) * 72
+	size += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (11) 'Validators'
-	size += len(b.Validators) * 121
+	size += len(b.Validators) * validatorFixedSize
 
 	// Field (12) 'Balances'
 	size += len(b.Balances) * 8
@@ -5625,7 +5681,7 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBeaconBlockHeader object and returns the remaining bufferº
 func (s *SignedBeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 208 {
+	if size < signedBeaconBlockHeaderFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -5640,9 +5696,11 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err
 	return buf, nil
 }
 
+const signedBeaconBlockHeaderFixedSize = 0 + beaconBlockHeaderFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockHeader object
 func (s *SignedBeaconBlockHeader) SizeSSZ() (size int) {
-	size = 208
+	size = signedBeaconBlockHeaderFixedSize
 	return
 }
 
@@ -5726,7 +5784,7 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockHeader object and returns the remaining bufferº
 func (b *BeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 112 {
+	if size < beaconBlockHeaderFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -5748,9 +5806,11 @@ func (b *BeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return buf, nil
 }
 
+const beaconBlockHeaderFixedSize = 0 + 8 + 8 + 32 + 32 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader object
 func (b *BeaconBlockHeader) SizeSSZ() (size int) {
-	size = 112
+	size = beaconBlockHeaderFixedSize
 	return
 }
 
@@ -5807,7 +5867,7 @@ func (e *ErrorResponse) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ErrorResponse object to a target array
 func (e *ErrorResponse) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int(errorResponseFixedSize)
 
 	// Offset (0) 'Message'
 	dst = ssz.WriteOffset(dst, offset)
@@ -5830,13 +5890,13 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ErrorResponse object and returns the remaining bufferº
 func (e *ErrorResponse) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 4 {
+	if size < errorResponseFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(size, errorResponseFixedSize)
 
 	// Offset (0) 'Message'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -5851,9 +5911,11 @@ func (e *ErrorResponse) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+const errorResponseFixedSize = 0 + 256
+
 // SizeSSZ returns the ssz encoded size in bytes for the ErrorResponse object
 func (e *ErrorResponse) SizeSSZ() (size int) {
-	size = 4
+	size = errorResponseFixedSize
 
 	// Field (0) 'Message'
 	size += len(e.Message)
@@ -5911,16 +5973,18 @@ func (d *Dummy) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Dummy object and returns the remaining bufferº
 func (d *Dummy) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 0 {
+	if size < dummyFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	return buf, nil
 }
 
+const dummyFixedSize = 0
+
 // SizeSSZ returns the ssz encoded size in bytes for the Dummy object
 func (d *Dummy) SizeSSZ() (size int) {
-	size = 0
+	size = dummyFixedSize
 	return
 }
 
@@ -5978,7 +6042,7 @@ func (s *SyncCommittee) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SyncCommittee object and returns the remaining bufferº
 func (s *SyncCommittee) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 24624 {
+	if size < syncCommitteeFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -5994,9 +6058,11 @@ func (s *SyncCommittee) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const syncCommitteeFixedSize = 0 + 512*48 + 48
+
 // SizeSSZ returns the ssz encoded size in bytes for the SyncCommittee object
 func (s *SyncCommittee) SizeSSZ() (size int) {
-	size = 24624
+	size = syncCommitteeFixedSize
 	return
 }
 
@@ -6068,7 +6134,7 @@ func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SyncAggregate object and returns the remaining bufferº
 func (s *SyncAggregate) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 160 {
+	if size < syncAggregateFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -6081,9 +6147,11 @@ func (s *SyncAggregate) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const syncAggregateFixedSize = 0 + 64 + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the SyncAggregate object
 func (s *SyncAggregate) SizeSSZ() (size int) {
-	size = 160
+	size = syncAggregateFixedSize
 	return
 }
 
@@ -6123,7 +6191,7 @@ func (e *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayload object to a target array
 func (e *ExecutionPayload) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(508)
+	offset := int(executionPayloadFixedSize)
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -6206,13 +6274,13 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayload object and returns the remaining bufferº
 func (e *ExecutionPayload) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 508 {
+	if size < executionPayloadFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o10, o13 uint64
-	marker := ssz.NewOffsetMarker(size, 508)
+	marker := ssz.NewOffsetMarker(size, executionPayloadFixedSize)
 
 	// Field (0) 'ParentHash'
 	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
@@ -6278,9 +6346,11 @@ func (e *ExecutionPayload) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return
 }
 
+const executionPayloadFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayload object
 func (e *ExecutionPayload) SizeSSZ() (size int) {
-	size = 508
+	size = executionPayloadFixedSize
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)
@@ -6391,7 +6461,7 @@ func (e *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeader object to a target array
 func (e *ExecutionPayloadHeader) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(536)
+	offset := int(executionPayloadHeaderFixedSize)
 
 	// Field (0) 'ParentHash'
 	if size := len(e.ParentHash); size != 32 {
@@ -6489,13 +6559,13 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadHeader object and returns the remaining bufferº
 func (e *ExecutionPayloadHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 536 {
+	if size < executionPayloadHeaderFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o10 uint64
-	marker := ssz.NewOffsetMarker(size, 536)
+	marker := ssz.NewOffsetMarker(size, executionPayloadHeaderFixedSize)
 
 	// Field (0) 'ParentHash'
 	e.ParentHash, buf = ssz.UnmarshalBytes(e.ParentHash, buf, 32)
@@ -6549,9 +6619,11 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err 
 	return
 }
 
+const executionPayloadHeaderFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeader object
 func (e *ExecutionPayloadHeader) SizeSSZ() (size int) {
-	size = 536
+	size = executionPayloadHeaderFixedSize
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)
@@ -6672,7 +6744,7 @@ func (e *ExecutionPayloadTransactions) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadTransactions object to a target array
 func (e *ExecutionPayloadTransactions) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int(executionPayloadTransactionsFixedSize)
 
 	// Offset (0) 'Transactions'
 	dst = ssz.WriteOffset(dst, offset)
@@ -6708,13 +6780,13 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadTransactions object and returns the remaining bufferº
 func (e *ExecutionPayloadTransactions) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 4 {
+	if size < executionPayloadTransactionsFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(size, executionPayloadTransactionsFixedSize)
 
 	// Offset (0) 'Transactions'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -6734,9 +6806,11 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZTail(buf []byte) (rest []byte
 	return
 }
 
+const executionPayloadTransactionsFixedSize = 0 + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadTransactions object
 func (e *ExecutionPayloadTransactions) SizeSSZ() (size int) {
-	size = 4
+	size = executionPayloadTransactionsFixedSize
 
 	// Field (0) 'Transactions'
 	for ii := 0; ii < len(e.Transactions); ii++ {
@@ -6796,7 +6870,7 @@ func (e *ExecutionPayloadCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadCapella object to a target array
 func (e *ExecutionPayloadCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(512)
+	offset := int(executionPayloadCapellaFixedSize)
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -6897,13 +6971,13 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadCapella object and returns the remaining bufferº
 func (e *ExecutionPayloadCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 512 {
+	if size < executionPayloadCapellaFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o10, o13, o14 uint64
-	marker := ssz.NewOffsetMarker(size, 512)
+	marker := ssz.NewOffsetMarker(size, executionPayloadCapellaFixedSize)
 
 	// Field (0) 'ParentHash'
 	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
@@ -6979,9 +7053,11 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err
 	return
 }
 
+const executionPayloadCapellaFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 0 /*list*/ + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadCapella object
 func (e *ExecutionPayloadCapella) SizeSSZ() (size int) {
-	size = 512
+	size = executionPayloadCapellaFixedSize
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)
@@ -6993,7 +7069,7 @@ func (e *ExecutionPayloadCapella) SizeSSZ() (size int) {
 	}
 
 	// Field (14) 'Withdrawals'
-	size += len(e.Withdrawals) * 44
+	size += len(e.Withdrawals) * withdrawalFixedSize
 
 	return
 }
@@ -7111,7 +7187,7 @@ func (e *ExecutionPayloadHeaderCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeaderCapella object to a target array
 func (e *ExecutionPayloadHeaderCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(568)
+	offset := int(executionPayloadHeaderCapellaFixedSize)
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -7176,13 +7252,13 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadHeaderCapella object and returns the remaining bufferº
 func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 568 {
+	if size < executionPayloadHeaderCapellaFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o10 uint64
-	marker := ssz.NewOffsetMarker(size, 568)
+	marker := ssz.NewOffsetMarker(size, executionPayloadHeaderCapellaFixedSize)
 
 	// Field (0) 'ParentHash'
 	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
@@ -7239,9 +7315,11 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZTail(buf []byte) (rest []byt
 	return
 }
 
+const executionPayloadHeaderCapellaFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 32 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderCapella object
 func (e *ExecutionPayloadHeaderCapella) SizeSSZ() (size int) {
-	size = 568
+	size = executionPayloadHeaderCapellaFixedSize
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)
@@ -7350,7 +7428,7 @@ func (b *BLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BLSToExecutionChange object and returns the remaining bufferº
 func (b *BLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 76 {
+	if size < bLSToExecutionChangeFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -7366,9 +7444,11 @@ func (b *BLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err er
 	return buf, nil
 }
 
+const bLSToExecutionChangeFixedSize = 0 + 8 + 48 + 20
+
 // SizeSSZ returns the ssz encoded size in bytes for the BLSToExecutionChange object
 func (b *BLSToExecutionChange) SizeSSZ() (size int) {
-	size = 76
+	size = bLSToExecutionChangeFixedSize
 	return
 }
 
@@ -7425,7 +7505,7 @@ func (h *HistoricalSummary) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the HistoricalSummary object and returns the remaining bufferº
 func (h *HistoricalSummary) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 64 {
+	if size < historicalSummaryFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -7438,9 +7518,11 @@ func (h *HistoricalSummary) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return buf, nil
 }
 
+const historicalSummaryFixedSize = 0 + 32 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the HistoricalSummary object
 func (h *HistoricalSummary) SizeSSZ() (size int) {
-	size = 64
+	size = historicalSummaryFixedSize
 	return
 }
 
@@ -7499,7 +7581,7 @@ func (s *SignedBLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBLSToExecutionChange object and returns the remaining bufferº
 func (s *SignedBLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 172 {
+	if size < signedBLSToExecutionChangeFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -7514,9 +7596,11 @@ func (s *SignedBLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, 
 	return buf, nil
 }
 
+const signedBLSToExecutionChangeFixedSize = 0 + bLSToExecutionChangeFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBLSToExecutionChange object
 func (s *SignedBLSToExecutionChange) SizeSSZ() (size int) {
-	size = 172
+	size = signedBLSToExecutionChangeFixedSize
 	return
 }
 
@@ -7581,7 +7665,7 @@ func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Withdrawal object and returns the remaining bufferº
 func (w *Withdrawal) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 44 {
+	if size < withdrawalFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -7600,9 +7684,11 @@ func (w *Withdrawal) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const withdrawalFixedSize = 0 + 8 + 8 + 20 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the Withdrawal object
 func (w *Withdrawal) SizeSSZ() (size int) {
-	size = 44
+	size = withdrawalFixedSize
 	return
 }
 
@@ -7644,7 +7730,7 @@ func (b *BeaconStateCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconStateCapella object to a target array
 func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(2736653)
+	offset := int(beaconStateCapellaFixedSize)
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -7695,14 +7781,14 @@ func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * 72
+	offset += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * 121
+	offset += len(b.Validators) * validatorFixedSize
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -7887,13 +7973,13 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconStateCapella object and returns the remaining bufferº
 func (b *BeaconStateCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 2736653 {
+	if size < beaconStateCapellaFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o7, o9, o11, o12, o15, o16, o21, o24, o27 uint64
-	marker := ssz.NewOffsetMarker(size, 2736653)
+	marker := ssz.NewOffsetMarker(size, beaconStateCapellaFixedSize)
 
 	// Field (0) 'GenesisTime'
 	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
@@ -8082,18 +8168,20 @@ func (b *BeaconStateCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
+const beaconStateCapellaFixedSize = 0 + 8 + 32 + 8 + forkFixedSize + beaconBlockHeaderFixedSize + 8192*32 + 8192*32 + 0 /*list*/ + eth1DataFixedSize + 0 /*list*/ + 8 + 0 /*list*/ + 0 /*list*/ + 65536*32 + 8192*8 + 1099511627776 + 1099511627776 + 1 + checkpointFixedSize + checkpointFixedSize + checkpointFixedSize + 0 /*list*/ + syncCommitteeFixedSize + syncCommitteeFixedSize + executionPayloadHeaderCapellaFixedSize + 8 + 8 + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateCapella object
 func (b *BeaconStateCapella) SizeSSZ() (size int) {
-	size = 2736653
+	size = beaconStateCapellaFixedSize
 
 	// Field (7) 'HistoricalRoots'
 	size += len(b.HistoricalRoots) * 32
 
 	// Field (9) 'Eth1DataVotes'
-	size += len(b.Eth1DataVotes) * 72
+	size += len(b.Eth1DataVotes) * eth1DataFixedSize
 
 	// Field (11) 'Validators'
-	size += len(b.Validators) * 121
+	size += len(b.Validators) * validatorFixedSize
 
 	// Field (12) 'Balances'
 	size += len(b.Balances) * 8
@@ -8114,7 +8202,7 @@ func (b *BeaconStateCapella) SizeSSZ() (size int) {
 	size += b.LatestExecutionPayloadHeader.SizeSSZ()
 
 	// Field (27) 'HistoricalSummaries'
-	size += len(b.HistoricalSummaries) * 64
+	size += len(b.HistoricalSummaries) * historicalSummaryFixedSize
 
 	return
 }
@@ -8395,7 +8483,7 @@ func (s *SignedBeaconBlockCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the SignedBeaconBlockCapella object to a target array
 func (s *SignedBeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(100)
+	offset := int(signedBeaconBlockCapellaFixedSize)
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
@@ -8423,13 +8511,13 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBeaconBlockCapella object and returns the remaining bufferº
 func (s *SignedBeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 100 {
+	if size < signedBeaconBlockCapellaFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 100)
+	marker := ssz.NewOffsetMarker(size, signedBeaconBlockCapellaFixedSize)
 
 	// Offset (0) 'Block'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -8447,9 +8535,11 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, er
 	return
 }
 
+const signedBeaconBlockCapellaFixedSize = 0 + beaconBlockCapellaFixedSize + 96
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockCapella object
 func (s *SignedBeaconBlockCapella) SizeSSZ() (size int) {
-	size = 100
+	size = signedBeaconBlockCapellaFixedSize
 
 	// Field (0) 'Block'
 	if s.Block == nil {
@@ -8498,7 +8588,7 @@ func (b *BeaconBlockCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockCapella object to a target array
 func (b *BeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(84)
+	offset := int(beaconBlockCapellaFixedSize)
 
 	// Field (0) 'Slot'
 	dst = ssz.MarshalValue(dst, b.Slot)
@@ -8531,13 +8621,13 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockCapella object and returns the remaining bufferº
 func (b *BeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 84 {
+	if size < beaconBlockCapellaFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o4 uint64
-	marker := ssz.NewOffsetMarker(size, 84)
+	marker := ssz.NewOffsetMarker(size, beaconBlockCapellaFixedSize)
 
 	// Field (0) 'Slot'
 	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
@@ -8564,9 +8654,11 @@ func (b *BeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
+const beaconBlockCapellaFixedSize = 0 + 8 + 8 + 32 + 32 + beaconBlockBodyCapellaFixedSize
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockCapella object
 func (b *BeaconBlockCapella) SizeSSZ() (size int) {
-	size = 84
+	size = beaconBlockCapellaFixedSize
 
 	// Field (4) 'Body'
 	if b.Body == nil {
@@ -8620,7 +8712,7 @@ func (b *BeaconBlockBodyCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyCapella object to a target array
 func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(388)
+	offset := int(beaconBlockBodyCapellaFixedSize)
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -8642,7 +8734,7 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * 416
+	offset += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
@@ -8660,11 +8752,11 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * 1240
+	offset += len(b.Deposits) * depositFixedSize
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.VoluntaryExits) * 112
+	offset += len(b.VoluntaryExits) * signedVoluntaryExitFixedSize
 
 	// Field (8) 'SyncAggregate'
 	if b.SyncAggregate == nil {
@@ -8780,13 +8872,13 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyCapella object and returns the remaining bufferº
 func (b *BeaconBlockBodyCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 388 {
+	if size < beaconBlockBodyCapellaFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o3, o4, o5, o6, o7, o9, o10 uint64
-	marker := ssz.NewOffsetMarker(size, 388)
+	marker := ssz.NewOffsetMarker(size, beaconBlockBodyCapellaFixedSize)
 
 	// Field (0) 'RandaoReveal'
 	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
@@ -8877,12 +8969,14 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err 
 	return
 }
 
+const beaconBlockBodyCapellaFixedSize = 0 + 96 + eth1DataFixedSize + 32 + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + 0 /*list*/ + syncAggregateFixedSize + executionPayloadCapellaFixedSize + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyCapella object
 func (b *BeaconBlockBodyCapella) SizeSSZ() (size int) {
-	size = 388
+	size = beaconBlockBodyCapellaFixedSize
 
 	// Field (3) 'ProposerSlashings'
-	size += len(b.ProposerSlashings) * 416
+	size += len(b.ProposerSlashings) * proposerSlashingFixedSize
 
 	// Field (4) 'AttesterSlashings'
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -8897,10 +8991,10 @@ func (b *BeaconBlockBodyCapella) SizeSSZ() (size int) {
 	}
 
 	// Field (6) 'Deposits'
-	size += len(b.Deposits) * 1240
+	size += len(b.Deposits) * depositFixedSize
 
 	// Field (7) 'VoluntaryExits'
-	size += len(b.VoluntaryExits) * 112
+	size += len(b.VoluntaryExits) * signedVoluntaryExitFixedSize
 
 	// Field (9) 'ExecutionPayload'
 	if b.ExecutionPayload == nil {
@@ -8909,7 +9003,7 @@ func (b *BeaconBlockBodyCapella) SizeSSZ() (size int) {
 	size += b.ExecutionPayload.SizeSSZ()
 
 	// Field (10) 'BlsToExecutionChanges'
-	size += len(b.BlsToExecutionChanges) * 172
+	size += len(b.BlsToExecutionChanges) * signedBLSToExecutionChangeFixedSize
 
 	return
 }
@@ -9067,7 +9161,7 @@ func (e *ExecutionPayloadDeneb) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadDeneb object to a target array
 func (e *ExecutionPayloadDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(528)
+	offset := int(executionPayloadDenebFixedSize)
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -9174,13 +9268,13 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadDeneb object and returns the remaining bufferº
 func (e *ExecutionPayloadDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 528 {
+	if size < executionPayloadDenebFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o10, o13, o14 uint64
-	marker := ssz.NewOffsetMarker(size, 528)
+	marker := ssz.NewOffsetMarker(size, executionPayloadDenebFixedSize)
 
 	// Field (0) 'ParentHash'
 	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
@@ -9262,9 +9356,11 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
+const executionPayloadDenebFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 0 /*list*/ + 0 /*list*/ + 8 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadDeneb object
 func (e *ExecutionPayloadDeneb) SizeSSZ() (size int) {
-	size = 528
+	size = executionPayloadDenebFixedSize
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)
@@ -9276,7 +9372,7 @@ func (e *ExecutionPayloadDeneb) SizeSSZ() (size int) {
 	}
 
 	// Field (14) 'Withdrawals'
-	size += len(e.Withdrawals) * 44
+	size += len(e.Withdrawals) * withdrawalFixedSize
 
 	return
 }
@@ -9400,7 +9496,7 @@ func (e *ExecutionPayloadHeaderDeneb) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeaderDeneb object to a target array
 func (e *ExecutionPayloadHeaderDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(584)
+	offset := int(executionPayloadHeaderDenebFixedSize)
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -9471,13 +9567,13 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadHeaderDeneb object and returns the remaining bufferº
 func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 584 {
+	if size < executionPayloadHeaderDenebFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o10 uint64
-	marker := ssz.NewOffsetMarker(size, 584)
+	marker := ssz.NewOffsetMarker(size, executionPayloadHeaderDenebFixedSize)
 
 	// Field (0) 'ParentHash'
 	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
@@ -9540,9 +9636,11 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZTail(buf []byte) (rest []byte,
 	return
 }
 
+const executionPayloadHeaderDenebFixedSize = 0 + 32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 32 + 32 + 8 + 8
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderDeneb object
 func (e *ExecutionPayloadHeaderDeneb) SizeSSZ() (size int) {
-	size = 584
+	size = executionPayloadHeaderDenebFixedSize
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)

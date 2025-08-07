@@ -62,8 +62,9 @@ func (v *Value) hashRoots(isList bool) string {
 		}
 	} else {
 		// []uint64
-		appendFn = "Append" + uintVToName2(*innerObj.typ.(*Uint))
-		elemSize = uint64(innerObj.fixedSize())
+		elem := *innerObj.typ.(*Uint)
+		appendFn = "Append" + uintVToName2(elem)
+		elemSize = elem.Size
 	}
 
 	var merkleize string
@@ -139,7 +140,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			// alias to uint*
 			name = fmt.Sprintf("%s(%s)", uintVToLowerCaseName2(obj), name)
 		}
-		bitLen := v.fixedSize() * 8
+		bitLen := obj.Size * 8
 		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
 
 	case *BitList:

@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -13,62 +12,68 @@ import (
 // Note that if any of the internal fields of the struct is nil, we will not fail, only not add up
 // that field to the size. It is up to other methods like marshal to fail on that scenario.
 func (e *env) size(name string, v *Value) string {
-	tmpl := `// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
+	tmpl := `const {{.fixedName}} = {{.fixed}} 
+
+	// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
 	func (:: *{{.name}}) SizeSSZ() (size int) {
-		size = {{.fixed}}{{if .dynamic}}
+		size = {{.fixedName}}{{if .dynamic}}
 
 		{{.dynamic}}
 		{{end}}
 		return
 	}`
 
+	fmt.Println("XX")
+	fmt.Println(name, v.name)
+
 	str := execTmpl(tmpl, map[string]interface{}{
-		"name":    name,
-		"fixed":   v.fixedSize(),
-		"dynamic": v.sizeContainer("size", true),
+		"name":      name,
+		"fixedName": v.fixedSizeName(),
+		"fixed":     v.fixedSizeForContainer(),
+		"dynamic":   v.sizeContainer("size", true),
 	})
 	return appendObjSignature(str, v)
 }
 
-func (v *Value) fixedSize() uint64 {
+func (v *Value) fixedSizeForContainer() string {
+	if !v.isContainer() {
+		panic(fmt.Sprintf("fixedSizeForContainer called on non-container type %s", reflect.TypeOf(v.typ)))
+	}
+
+	sizes := []string{"0"}
+	for _, f := range v.getObjs() {
+		switch obj := f.typ.(type) {
+		case *Vector:
+			if obj.Elem.isFixed() {
+				sizes = append(sizes, fmt.Sprintf("%s * %s", obj.Size.MarshalTemplate(), obj.Elem.fixedSize()))
+			} else {
+				sizes = append(sizes, fmt.Sprintf("%s * %d", obj.Size.MarshalTemplate(), bytesPerLengthOffset))
+			}
+		case *List:
+			// lists are variable size, so we don't add them to the fixed size
+			sizes = append(sizes, "0 /*list*/")
+		default:
+			sizes = append(sizes, f.fixedSize())
+		}
+	}
+
+	return strings.Join(sizes, " + ")
+}
+
+func (v *Value) fixedSize() string {
 	switch obj := v.typ.(type) {
 	case *Bool:
-		return 1
+		return "1"
 	case *Uint:
-		return obj.Size
+		return fmt.Sprintf("%d", obj.Size)
 	case *Int:
-		return obj.Size
+		return fmt.Sprintf("%d", obj.Size)
 	case *Bytes:
-		return obj.Size
+		return fmt.Sprintf("%d", obj.Size)
 	case *BitList:
-		return obj.Size
+		return fmt.Sprintf("%d", obj.Size)
 	case *Container:
-		var fixed uint64
-		for _, f := range v.getObjs() {
-			if f.isFixed() {
-				fixed += f.fixedSize()
-			} else {
-				// we don't want variable size objects to recursively calculate their inner sizes
-				fixed += bytesPerLengthOffset
-			}
-		}
-		return fixed
-	case *Vector:
-		if obj.Elem.isFixed() {
-			return obj.Size.Num() * obj.Elem.fixedSize()
-		} else {
-			return obj.Size.Num() * bytesPerLengthOffset
-		}
-
-	case *Reference:
-		if !v.isFixed() {
-			return bytesPerLengthOffset
-		}
-		return obj.Size
-
-	case *Time:
-		return 8
-
+		return v.fixedSizeName()
 	default:
 		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.typ)))
 	}
@@ -111,10 +116,7 @@ func (v *Value) size(name string) string {
 		if _, ok := v.typ.(*Container); ok {
 			return v.sizeContainer(name, false)
 		}
-		if v.fixedSize() == 1 {
-			return name + "++"
-		}
-		return name + " += " + strconv.Itoa(int(v.fixedSize()))
+		return name + " += " + v.fixedSize()
 	}
 
 	switch v.typ.(type) {
@@ -131,7 +133,7 @@ func (v *Value) size(name string) string {
 		inner := getElem(v.typ)
 
 		if inner.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, inner.fixedSize())
+			return fmt.Sprintf("%s += len(::.%s) * %s", name, v.name, inner.fixedSize())
 		}
 		inner.name = v.name + "[ii]"
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {

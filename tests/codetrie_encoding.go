@@ -40,7 +40,7 @@ func (m *Metadata) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Metadata object and returns the remaining bufferº
 func (m *Metadata) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 35 {
+	if size < metadataFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -56,9 +56,11 @@ func (m *Metadata) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const metadataFixedSize = 0 + 1 + 32 + 2
+
 // SizeSSZ returns the ssz encoded size in bytes for the Metadata object
 func (m *Metadata) SizeSSZ() (size int) {
-	size = 35
+	size = metadataFixedSize
 	return
 }
 
@@ -123,7 +125,7 @@ func (c *Chunk) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Chunk object and returns the remaining bufferº
 func (c *Chunk) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 33 {
+	if size < chunkFixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -136,9 +138,11 @@ func (c *Chunk) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+const chunkFixedSize = 0 + 1 + 32
+
 // SizeSSZ returns the ssz encoded size in bytes for the Chunk object
 func (c *Chunk) SizeSSZ() (size int) {
-	size = 33
+	size = chunkFixedSize
 	return
 }
 
@@ -178,7 +182,7 @@ func (c *CodeTrieSmall) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the CodeTrieSmall object to a target array
 func (c *CodeTrieSmall) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(39)
+	offset := int(codeTrieSmallFixedSize)
 
 	// Field (0) 'Metadata'
 	if c.Metadata == nil {
@@ -213,13 +217,13 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the CodeTrieSmall object and returns the remaining bufferº
 func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 39 {
+	if size < codeTrieSmallFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o1 uint64
-	marker := ssz.NewOffsetMarker(size, 39)
+	marker := ssz.NewOffsetMarker(size, codeTrieSmallFixedSize)
 
 	// Field (0) 'Metadata'
 	if buf, err = ssz.UnmarshalFieldTail(&c.Metadata, buf); err != nil {
@@ -239,12 +243,14 @@ func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+const codeTrieSmallFixedSize = 0 + metadataFixedSize + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieSmall object
 func (c *CodeTrieSmall) SizeSSZ() (size int) {
-	size = 39
+	size = codeTrieSmallFixedSize
 
 	// Field (1) 'Chunks'
-	size += len(c.Chunks) * 33
+	size += len(c.Chunks) * chunkFixedSize
 
 	return
 }
@@ -299,7 +305,7 @@ func (c *CodeTrieBig) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the CodeTrieBig object to a target array
 func (c *CodeTrieBig) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(39)
+	offset := int(codeTrieBigFixedSize)
 
 	// Field (0) 'Metadata'
 	if c.Metadata == nil {
@@ -334,13 +340,13 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the CodeTrieBig object and returns the remaining bufferº
 func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size < 39 {
+	if size < codeTrieBigFixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o1 uint64
-	marker := ssz.NewOffsetMarker(size, 39)
+	marker := ssz.NewOffsetMarker(size, codeTrieBigFixedSize)
 
 	// Field (0) 'Metadata'
 	if buf, err = ssz.UnmarshalFieldTail(&c.Metadata, buf); err != nil {
@@ -360,12 +366,14 @@ func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+const codeTrieBigFixedSize = 0 + metadataFixedSize + 0 /*list*/
+
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieBig object
 func (c *CodeTrieBig) SizeSSZ() (size int) {
-	size = 39
+	size = codeTrieBigFixedSize
 
 	// Field (1) 'Chunks'
-	size += len(c.Chunks) * 33
+	size += len(c.Chunks) * chunkFixedSize
 
 	return
 }

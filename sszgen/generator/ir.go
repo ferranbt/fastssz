@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // vector -> fixed size
@@ -63,7 +64,8 @@ type List struct {
 func (l *List) isValue() {}
 
 type Container struct {
-	Elems []*Value
+	ObjName string
+	Elems   []*Value
 }
 
 func (c *Container) isValue() {}
@@ -102,6 +104,21 @@ func (v *Value) isContainer() bool {
 		return true
 	}
 	return false
+}
+
+func lowerFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToLower(s[:1]) + s[1:]
+}
+
+func (v *Value) fixedSizeName() string {
+	if obj, ok := v.typ.(*Container); ok {
+		return lowerFirst(obj.ObjName) + "FixedSize"
+	} else {
+		panic(fmt.Errorf("fixedSizeName called on non-container type %s", reflect.TypeOf(v.typ)))
+	}
 }
 
 func (v *Value) Type() string {
