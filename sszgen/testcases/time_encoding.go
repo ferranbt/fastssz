@@ -20,7 +20,7 @@ func (t *TimeType) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.MarshalTime(dst, t.Timestamp)
 
 	// Field (1) 'Int'
-	dst = ssz.MarshalValue[uint64](dst, t.Int)
+	dst = ssz.MarshalValue(dst, t.Int)
 
 	return
 }
@@ -82,10 +82,10 @@ func (t *TimeRawType) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Timestamp'
-	dst = ssz.MarshalValue[uint64](dst, t.Timestamp)
+	dst = ssz.MarshalValue(dst, t.Timestamp)
 
 	// Field (1) 'Int'
-	dst = ssz.MarshalValue[uint64](dst, t.Int)
+	dst = ssz.MarshalValue(dst, t.Int)
 
 	return
 }

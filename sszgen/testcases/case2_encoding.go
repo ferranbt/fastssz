@@ -17,7 +17,7 @@ func (c *Case2A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'A'
-	dst = ssz.MarshalValue[uint64](dst, c.A)
+	dst = ssz.MarshalValue(dst, c.A)
 
 	return
 }
@@ -73,10 +73,10 @@ func (c *Case2B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'A'
-	dst = ssz.MarshalValue[uint64](dst, c.A)
+	dst = ssz.MarshalValue(dst, c.A)
 
 	// Field (1) 'B'
-	dst = ssz.MarshalValue[uint64](dst, c.B)
+	dst = ssz.MarshalValue(dst, c.B)
 
 	return
 }

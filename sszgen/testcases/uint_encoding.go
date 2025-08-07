@@ -17,16 +17,16 @@ func (u *Uints) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Uint8'
-	dst = ssz.MarshalValue[uint8](dst, uint8(u.Uint8))
+	dst = ssz.MarshalValue(dst, uint8(u.Uint8))
 
 	// Field (1) 'Uint16'
-	dst = ssz.MarshalValue[uint16](dst, uint16(u.Uint16))
+	dst = ssz.MarshalValue(dst, uint16(u.Uint16))
 
 	// Field (2) 'Uint32'
-	dst = ssz.MarshalValue[uint32](dst, uint32(u.Uint32))
+	dst = ssz.MarshalValue(dst, uint32(u.Uint32))
 
 	// Field (3) 'Uint64'
-	dst = ssz.MarshalValue[uint64](dst, uint64(u.Uint64))
+	dst = ssz.MarshalValue(dst, uint64(u.Uint64))
 
 	return
 }

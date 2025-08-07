@@ -32,7 +32,7 @@ func (c *Case4) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (2) 'C'
-	dst = ssz.MarshalValue[uint64](dst, uint64(c.C))
+	dst = ssz.MarshalValue(dst, uint64(c.C))
 
 	// Field (3) 'D'
 	if size := len(c.D); size != 96 {

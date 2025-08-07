@@ -18,16 +18,16 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset := int(31)
 
 	// Field (0) 'A'
-	dst = ssz.MarshalValue[uint8](dst, i.A)
+	dst = ssz.MarshalValue(dst, i.A)
 
 	// Field (1) 'B'
-	dst = ssz.MarshalValue[uint16](dst, i.B)
+	dst = ssz.MarshalValue(dst, i.B)
 
 	// Field (2) 'C'
-	dst = ssz.MarshalValue[uint32](dst, i.C)
+	dst = ssz.MarshalValue(dst, i.C)
 
 	// Field (3) 'D'
-	dst = ssz.MarshalValue[uint64](dst, i.D)
+	dst = ssz.MarshalValue(dst, i.D)
 
 	// Offset (4) 'A1'
 	dst = ssz.WriteOffset(dst, offset)
@@ -50,7 +50,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A1); ii++ {
-		dst = ssz.MarshalValue[uint8](dst, i.A1[ii])
+		dst = ssz.MarshalValue(dst, i.A1[ii])
 	}
 
 	// Field (5) 'A2'
@@ -59,7 +59,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A2); ii++ {
-		dst = ssz.MarshalValue[uint16](dst, i.A2[ii])
+		dst = ssz.MarshalValue(dst, i.A2[ii])
 	}
 
 	// Field (6) 'A3'
@@ -68,7 +68,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A3); ii++ {
-		dst = ssz.MarshalValue[uint32](dst, i.A3[ii])
+		dst = ssz.MarshalValue(dst, i.A3[ii])
 	}
 
 	// Field (7) 'A4'
@@ -77,7 +77,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(i.A4); ii++ {
-		dst = ssz.MarshalValue[uint64](dst, i.A4[ii])
+		dst = ssz.MarshalValue(dst, i.A4[ii])
 	}
 
 	return

@@ -22,7 +22,7 @@ func (v *Vec) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < 6; ii++ {
-		dst = ssz.MarshalValue[uint64](dst, v.Values[ii])
+		dst = ssz.MarshalValue(dst, v.Values[ii])
 	}
 
 	return
@@ -101,7 +101,7 @@ func (v *Vec2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 	for ii := 0; ii < len(v.Values2); ii++ {
-		dst = ssz.MarshalValue[uint32](dst, v.Values2[ii])
+		dst = ssz.MarshalValue(dst, v.Values2[ii])
 	}
 
 	return
