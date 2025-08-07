@@ -356,13 +356,17 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	ssz.UnmarshalFixedBytes(a.Signature[:], buf[132:228])
 
 	// Field (0) 'AggregationBits'
-	if err = ssz.ValidateBitlist(tail[o0:], 2048); err != nil {
+
+	if a.AggregationBits, err = ssz.UnmarshalBitList(a.AggregationBits, tail[o0:], 2048); err != nil {
 		return err
 	}
-	if cap(a.AggregationBits) == 0 {
-		a.AggregationBits = make([]byte, 0, len(tail[o0:]))
-	}
-	a.AggregationBits = append(a.AggregationBits, tail[o0:]...)
+	//if err = ssz.ValidateBitlist(tail[o0:], 2048); err != nil {
+	//	return err
+	//}
+	//if cap(a.AggregationBits) == 0 {
+	//	a.AggregationBits = make([]byte, 0, len(tail[o0:]))
+	//}
+	//a.AggregationBits = append(a.AggregationBits, tail[o0:]...)
 
 	return err
 }
@@ -898,13 +902,17 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	p.ProposerIndex = ssz.UnmarshallUint64(buf[140:148])
 
 	// Field (0) 'AggregationBits'
-	if err = ssz.ValidateBitlist(tail[o0:], 2048); err != nil {
+
+	if p.AggregationBits, err = ssz.UnmarshalBitList(p.AggregationBits, tail[o0:], 2048); err != nil {
 		return err
 	}
-	if cap(p.AggregationBits) == 0 {
-		p.AggregationBits = make([]byte, 0, len(tail[o0:]))
-	}
-	p.AggregationBits = append(p.AggregationBits, tail[o0:]...)
+	//if err = ssz.ValidateBitlist(tail[o0:], 2048); err != nil {
+	//	return err
+	//}
+	//if cap(p.AggregationBits) == 0 {
+	//	p.AggregationBits = make([]byte, 0, len(tail[o0:]))
+	//}
+	//p.AggregationBits = append(p.AggregationBits, tail[o0:]...)
 
 	return err
 }

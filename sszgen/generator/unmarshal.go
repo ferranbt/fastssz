@@ -53,13 +53,9 @@ func (v *Value) unmarshal(dst string) string {
 		})
 
 	case *BitList:
-		tmpl := `if err = ssz.ValidateBitlist({{.dst}}, {{.size}}); err != nil {
+		tmpl := `if ::.{{.name}}, err = ssz.UnmarshalBitList(::.{{.name}}, {{.dst}}, {{.size}}); err != nil {
 			return err
-		}
-		if cap(::.{{.name}}) == 0 {
-			::.{{.name}} = make([]byte, 0, len({{.dst}}))
-		}
-		::.{{.name}} = append(::.{{.name}}, {{.dst}}...)`
+		}`
 		return execTmpl(tmpl, map[string]interface{}{
 			"name": v.name,
 			"dst":  dst,
