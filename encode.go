@@ -41,8 +41,7 @@ func ErrListTooBigFn(name string, found, max int) error {
 // ---- Unmarshal functions ----
 
 func UnmarshalBitList(dst []byte, src []byte, bitLimit uint64) ([]byte, error) {
-	// Field (0) 'AggregationBits'
-	if err := ValidateBitlist(src, 2048); err != nil {
+	if err := ValidateBitlist(src, bitLimit); err != nil {
 		return nil, err
 	}
 	if cap(dst) == 0 {
