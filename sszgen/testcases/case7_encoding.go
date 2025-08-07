@@ -38,10 +38,14 @@ func (c *Case7) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case7 object
 func (c *Case7) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case7 object and returns the remaining bufferº
+func (c *Case7) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -49,19 +53,19 @@ func (c *Case7) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'BlobKzgs'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'BlobKzgs'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&c.BlobKzgs, tail[o0:], 48, 16, func(ii int, buf []byte) (err error) {
-		c.BlobKzgs[ii], _ = ssz.UnmarshalBytes(c.BlobKzgs[ii], buf)
+		c.BlobKzgs[ii], buf = ssz.UnmarshalBytes(c.BlobKzgs[ii], buf, 48)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case7 object

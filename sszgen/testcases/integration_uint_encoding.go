@@ -85,10 +85,14 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the IntegrationUint object
 func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(i, buf)
+}
+
+// UnmarshalSSZTail unmarshals the IntegrationUint object and returns the remaining bufferº
+func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 31 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -96,70 +100,70 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 31)
 
 	// Field (0) 'A'
-	i.A = ssz.UnmarshallValue[uint8](buf[0:1])
+	i.A, buf = ssz.UnmarshallValue[uint8](buf)
 
 	// Field (1) 'B'
-	i.B = ssz.UnmarshallValue[uint16](buf[1:3])
+	i.B, buf = ssz.UnmarshallValue[uint16](buf)
 
 	// Field (2) 'C'
-	i.C = ssz.UnmarshallValue[uint32](buf[3:7])
+	i.C, buf = ssz.UnmarshallValue[uint32](buf)
 
 	// Field (3) 'D'
-	i.D = ssz.UnmarshallValue[uint64](buf[7:15])
+	i.D, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (4) 'A1'
-	if o4, err = marker.ReadOffset(buf[15:19]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (5) 'A2'
-	if o5, err = marker.ReadOffset(buf[19:23]); err != nil {
-		return err
+	if o5, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (6) 'A3'
-	if o6, err = marker.ReadOffset(buf[23:27]); err != nil {
-		return err
+	if o6, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (7) 'A4'
-	if o7, err = marker.ReadOffset(buf[27:31]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (4) 'A1'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A1, tail[o4:o5], 1, 400, func(ii int, buf []byte) (err error) {
-		i.A1[ii] = ssz.UnmarshallValue[uint8](buf)
+		i.A1[ii], buf = ssz.UnmarshallValue[uint8](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (5) 'A2'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A2, tail[o5:o6], 2, 400, func(ii int, buf []byte) (err error) {
-		i.A2[ii] = ssz.UnmarshallValue[uint16](buf)
+		i.A2[ii], buf = ssz.UnmarshallValue[uint16](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (6) 'A3'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A3, tail[o6:o7], 4, 400, func(ii int, buf []byte) (err error) {
-		i.A3[ii] = ssz.UnmarshallValue[uint32](buf)
+		i.A3[ii], buf = ssz.UnmarshallValue[uint32](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (7) 'A4'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A4, tail[o7:], 8, 400, func(ii int, buf []byte) (err error) {
-		i.A4[ii] = ssz.UnmarshallValue[uint64](buf)
+		i.A4[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the IntegrationUint object

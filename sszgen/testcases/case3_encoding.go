@@ -22,13 +22,17 @@ func (c *Case3B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case3B object
 func (c *Case3B) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case3B object and returns the remaining bufferº
+func (c *Case3B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 0 {
-		return ssz.ErrSize
+	if size < 0 {
+		return nil, ssz.ErrSize
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case3B object
@@ -95,33 +99,37 @@ func (c *Case3A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case3A object
 func (c *Case3A) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case3A object and returns the remaining bufferº
+func (c *Case3A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 0 {
-		return ssz.ErrSize
+	if size < 0 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
-	if err := c.A.UnmarshalSSZ(buf[0:0]); err != nil {
-		return err
+	if buf, err = c.A.UnmarshalSSZTail(buf); err != nil {
+		return
 	}
 
 	// Field (1) 'B'
-	if err := ssz.UnmarshalField(&c.B, buf[0:0]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&c.B, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'C'
-	if err := c.C.UnmarshalSSZ(buf[0:0]); err != nil {
-		return err
+	if buf, err = c.C.UnmarshalSSZTail(buf); err != nil {
+		return
 	}
 
 	// Field (3) 'D'
-	if err := ssz.UnmarshalField(&c.D, buf[0:0]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&c.D, buf); err != nil {
+		return
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case3A object

@@ -24,6 +24,7 @@ var (
 	ErrEmptyBitlist          = fmt.Errorf("bitlist is empty")
 	ErrInvalidVariableOffset = fmt.Errorf("invalid ssz encoding. first variable element offset indexes into fixed value data")
 	ErrOffsetNotIncreasing   = fmt.Errorf("offsets are not increasing")
+	ErrTailNotEmpty          = fmt.Errorf("buffer was not totally consumed")
 )
 
 func ErrBytesLengthFn(name string, found, expected int) error {
@@ -51,13 +52,13 @@ func UnmarshalBitList(dst []byte, src []byte, bitLimit uint64) ([]byte, error) {
 	return dst, nil
 }
 
-func UnmarshalFixedBytes(buf []byte, src []byte) {
-	copy(buf, src)
+func UnmarshalFixedBytes(buf []byte, src []byte) []byte {
+	targetSize := len(buf)
+	copy(buf, src[:targetSize])
+	return src[targetSize:]
 }
 
-// UnmarshalBytes unmarshals a byte slice from the src input
-// If the src is nil, it will create a new byte slice with the content of buf.
-func UnmarshalBytes(src []byte, buf []byte, maxSize ...int) ([]byte, error) {
+func UnmarshalDynamicBytes(src []byte, buf []byte, maxSize ...int) ([]byte, error) {
 	if len(maxSize) > 0 && len(buf) > maxSize[0] {
 		return nil, ErrBytesLength
 	}
@@ -68,38 +69,51 @@ func UnmarshalBytes(src []byte, buf []byte, maxSize ...int) ([]byte, error) {
 	return src, nil
 }
 
+// UnmarshalBytes unmarshals a byte slice from the src input
+// If the src is nil, it will create a new byte slice with the content of buf.
+func UnmarshalBytes(src []byte, buf []byte, size uint64) ([]byte, []byte) {
+	if cap(src) == 0 {
+		src = make([]byte, 0, size)
+	}
+	src = append(src, buf[:size]...)
+	return src, buf[size:]
+}
+
 type UnmarshallableType interface {
 	~uint8 | ~uint16 | ~uint32 | ~uint64 | ~bool
 }
 
-func UnmarshallValue[T UnmarshallableType](src []byte) T {
+func UnmarshallValue[T UnmarshallableType](src []byte) (T, []byte) {
 	var result any
+	tail := src
 
 	switch any(*new(T)).(type) {
 	case uint8:
 		result = src[0]
+		tail = src[1:]
 	case uint16:
 		result = binary.LittleEndian.Uint16(src[:2])
+		tail = src[2:]
 	case uint32:
 		result = binary.LittleEndian.Uint32(src[:4])
+		tail = src[4:]
 	case uint64:
 		result = binary.LittleEndian.Uint64(src[:8])
+		tail = src[8:]
 	case bool:
 		result = src[0] != 0
+		tail = src[1:]
 	default:
 		panic("unsupported type")
 	}
 
-	return result.(T)
-}
-
-func unmarshallUint64(src []byte) uint64 {
-	return binary.LittleEndian.Uint64(src)
+	return result.(T), tail
 }
 
 // UnmarshalTime unmarshals a time.Time from the src input
-func UnmarshalTime(src []byte) time.Time {
-	return time.Unix(int64(unmarshallUint64(src)), 0).UTC()
+func UnmarshalTime(src []byte) (time.Time, []byte) {
+	val, buf := UnmarshallValue[uint64](src)
+	return time.Unix(int64(val), 0).UTC(), buf
 }
 
 // ---- Marshal functions ----
@@ -148,16 +162,17 @@ func WriteOffset(dst []byte, i int) []byte {
 }
 
 // ReadOffset reads an offset from buf
-func ReadOffset(buf []byte) uint64 {
-	return uint64(binary.LittleEndian.Uint32(buf))
+func ReadOffset(buf []byte) (uint64, []byte) {
+	offset, buf := UnmarshallValue[uint32](buf)
+	return uint64(offset), buf
 }
 
 func safeReadOffset(buf []byte) (uint64, []byte, error) {
 	if len(buf) < 4 {
 		return 0, nil, fmt.Errorf("buffer too short for offset reading")
 	}
-	offset := ReadOffset(buf)
-	return offset, buf[4:], nil
+	offset, buf := ReadOffset(buf)
+	return offset, buf, nil
 }
 
 // ---- extend functions ----
@@ -245,7 +260,7 @@ func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) 
 	dst := src
 
 	var offset, endOffset uint64
-	offset, dst = ReadOffset(src), dst[4:]
+	offset, dst = ReadOffset(src)
 
 	for {
 		if length != 1 {
@@ -309,22 +324,22 @@ func NewOffsetMarker(totalSize, fixedSize uint64) *OffsetMarker {
 	}
 }
 
-func (o *OffsetMarker) ReadOffset(buf []byte) (uint64, error) {
-	offset := ReadOffset(buf)
+func (o *OffsetMarker) ReadOffset(buf []byte) (uint64, []byte, error) {
+	offset, buf := ReadOffset(buf)
 
 	if offset > o.TotalSize {
-		return 0, ErrOffset
+		return 0, nil, ErrOffset
 	}
 	if o.LastOffset == nil {
 		if offset != o.FixedSize {
-			return 0, ErrInvalidVariableOffset
+			return 0, nil, ErrInvalidVariableOffset
 		}
 	} else {
 		if offset < *o.LastOffset {
-			return 0, ErrOffsetNotIncreasing
+			return 0, nil, ErrOffsetNotIncreasing
 		}
 	}
 
 	o.LastOffset = &offset
-	return offset, nil
+	return offset, buf, nil
 }

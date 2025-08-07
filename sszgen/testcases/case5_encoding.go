@@ -60,31 +60,35 @@ func (c *Case5A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case5A object
 func (c *Case5A) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case5A object and returns the remaining bufferº
+func (c *Case5A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 12 {
-		return ssz.ErrSize
+	if size < 12 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
 	c.A = make([][]byte, 2)
 	for ii := 0; ii < 2; ii++ {
-		c.A[ii], _ = ssz.UnmarshalBytes(c.A[ii], buf[0:4][ii*2:(ii+1)*2])
+		c.A[ii], buf = ssz.UnmarshalBytes(c.A[ii], buf, 2)
 	}
 
 	// Field (1) 'B'
 	c.B = make([]Case5Bytes, 2)
 	for ii := 0; ii < 2; ii++ {
-		c.B[ii], _ = ssz.UnmarshalBytes(c.B[ii], buf[4:8][ii*2:(ii+1)*2])
+		c.B[ii], buf = ssz.UnmarshalBytes(c.B[ii], buf, 2)
 	}
 
 	// Field (2) 'C'
 	c.C = make([][]byte, 2)
 	for ii := 0; ii < 2; ii++ {
-		c.C[ii], _ = ssz.UnmarshalBytes(c.C[ii], buf[8:12][ii*2:(ii+1)*2])
+		c.C[ii], buf = ssz.UnmarshalBytes(c.C[ii], buf, 2)
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case5A object

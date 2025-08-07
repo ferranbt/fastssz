@@ -49,37 +49,45 @@ func (c *Case4) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case4 object
 func (c *Case4) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case4 object and returns the remaining bufferº
+func (c *Case4) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 392 {
-		return ssz.ErrSize
+	if size < 200 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
-	if err := c.A.UnmarshalSSZ(buf[0:96]); err != nil {
-		return err
+	if buf, err = c.A.UnmarshalSSZTail(buf); err != nil {
+		return
 	}
 
 	// Field (1) 'B'
-	if err := ssz.UnmarshalField(&c.B, buf[96:192]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&c.B, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'C'
-	c.C = alias.Case4Slot(ssz.UnmarshallValue[uint64](buf[192:200]))
+	{
+		var val uint64
+		val, buf = ssz.UnmarshallValue[uint64](buf)
+		c.C = alias.Case4Slot(val)
+	}
 
 	// Field (3) 'D'
-	c.D, _ = ssz.UnmarshalBytes(c.D, buf[200:296])
+	c.D, buf = ssz.UnmarshalBytes(c.D, buf, 96)
 
 	// Field (4) 'E'
-	ssz.UnmarshalFixedBytes(c.E[:], buf[296:392])
+	buf = ssz.UnmarshalFixedBytes(c.E[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case4 object
 func (c *Case4) SizeSSZ() (size int) {
-	size = 392
+	size = 200
 	return
 }
 

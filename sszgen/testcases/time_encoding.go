@@ -27,19 +27,23 @@ func (t *TimeType) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the TimeType object
 func (t *TimeType) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(t, buf)
+}
+
+// UnmarshalSSZTail unmarshals the TimeType object and returns the remaining bufferº
+func (t *TimeType) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 16 {
-		return ssz.ErrSize
+	if size < 16 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Timestamp'
-	t.Timestamp = ssz.UnmarshalTime(buf[0:8])
+	t.Timestamp, buf = ssz.UnmarshalTime(buf)
 
 	// Field (1) 'Int'
-	t.Int = ssz.UnmarshallValue[uint64](buf[8:16])
+	t.Int, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the TimeType object
@@ -92,19 +96,23 @@ func (t *TimeRawType) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the TimeRawType object
 func (t *TimeRawType) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(t, buf)
+}
+
+// UnmarshalSSZTail unmarshals the TimeRawType object and returns the remaining bufferº
+func (t *TimeRawType) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 16 {
-		return ssz.ErrSize
+	if size < 16 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Timestamp'
-	t.Timestamp = ssz.UnmarshallValue[uint64](buf[0:8])
+	t.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'Int'
-	t.Int = ssz.UnmarshallValue[uint64](buf[8:16])
+	t.Int, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the TimeRawType object

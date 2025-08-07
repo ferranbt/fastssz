@@ -43,10 +43,14 @@ func (i *Issue165) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Issue165 object
 func (i *Issue165) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(i, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Issue165 object and returns the remaining bufferº
+func (i *Issue165) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 8 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -54,26 +58,26 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 8)
 
 	// Offset (0) 'A'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (1) 'B'
-	if o1, err = marker.ReadOffset(buf[4:8]); err != nil {
-		return err
+	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'A'
-	if i.A, err = ssz.UnmarshalBytes(i.A, tail[o0:o1], 0); err != nil {
-		return err
+	if i.A, err = ssz.UnmarshalDynamicBytes(i.A, tail[o0:o1], 0); err != nil {
+		return
 	}
 
 	// Field (1) 'B'
-	if i.B, err = ssz.UnmarshalBytes(i.B, tail[o1:], 0); err != nil {
-		return err
+	if i.B, err = ssz.UnmarshalDynamicBytes(i.B, tail[o1:], 0); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Issue165 object

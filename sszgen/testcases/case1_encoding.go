@@ -32,10 +32,14 @@ func (c *Case1A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case1A object
 func (c *Case1A) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case1A object and returns the remaining bufferº
+func (c *Case1A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -43,16 +47,16 @@ func (c *Case1A) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Foo'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Foo'
-	if c.Foo, err = ssz.UnmarshalBytes(c.Foo, tail[o0:], 2048); err != nil {
-		return err
+	if c.Foo, err = ssz.UnmarshalDynamicBytes(c.Foo, tail[o0:], 2048); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case1A object
@@ -120,10 +124,14 @@ func (c *Case1B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case1B object
 func (c *Case1B) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case1B object and returns the remaining bufferº
+func (c *Case1B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -131,16 +139,16 @@ func (c *Case1B) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Bar'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Bar'
-	if c.Bar, err = ssz.UnmarshalBytes(c.Bar, tail[o0:], 32); err != nil {
-		return err
+	if c.Bar, err = ssz.UnmarshalDynamicBytes(c.Bar, tail[o0:], 32); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case1B object

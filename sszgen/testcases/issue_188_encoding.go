@@ -35,19 +35,23 @@ func (i *Issue188) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Issue188 object
 func (i *Issue188) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(i, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Issue188 object and returns the remaining bufferº
+func (i *Issue188) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 64 {
-		return ssz.ErrSize
+	if size < 64 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Name'
-	i.Name, _ = ssz.UnmarshalBytes(i.Name, buf[0:32])
+	i.Name, buf = ssz.UnmarshalBytes(i.Name, buf, 32)
 
 	// Field (1) 'Address'
-	i.Address, _ = ssz.UnmarshalBytes(i.Address, buf[32:64])
+	i.Address, buf = ssz.UnmarshalBytes(i.Address, buf, 32)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Issue188 object

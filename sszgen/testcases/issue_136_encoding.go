@@ -26,18 +26,22 @@ func (i *Issue136) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Issue136 object
 func (i *Issue136) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(i, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Issue136 object and returns the remaining bufferº
+func (i *Issue136) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 0 {
-		return ssz.ErrSize
+	if size < 0 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'C'
-	if err := i.C.UnmarshalSSZ(buf[0:0]); err != nil {
-		return err
+	if buf, err = i.C.UnmarshalSSZTail(buf); err != nil {
+		return
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Issue136 object

@@ -149,7 +149,7 @@ func TestReadOffset_ValidFirstOffset(t *testing.T) {
 	om := NewOffsetMarker(1000, 100)
 	buf := WriteOffset(nil, 100)
 
-	result, err := om.ReadOffset(buf)
+	result, _, err := om.ReadOffset(buf)
 
 	require.NoError(t, err)
 	require.Equal(t, uint64(100), result)
@@ -160,7 +160,7 @@ func TestReadOffset_FirstOffsetDoesNotMatchFixedSize(t *testing.T) {
 	om := NewOffsetMarker(1000, 100)
 	buf := WriteOffset(nil, 150)
 
-	_, err := om.ReadOffset(buf)
+	_, _, err := om.ReadOffset(buf)
 	require.Error(t, err)
 	require.Equal(t, ErrInvalidVariableOffset, err)
 }
@@ -169,7 +169,7 @@ func TestReadOffset_OffsetExceedsTotalSize(t *testing.T) {
 	om := NewOffsetMarker(1000, 100)
 	buf := WriteOffset(nil, 1500)
 
-	_, err := om.ReadOffset(buf)
+	_, _, err := om.ReadOffset(buf)
 
 	require.Error(t, err)
 	require.Equal(t, err, ErrOffset)
@@ -180,26 +180,26 @@ func TestReadOffset_SequentialOffsets(t *testing.T) {
 
 	// First offset
 	buf1 := WriteOffset(nil, 100)
-	result1, err := om.ReadOffset(buf1)
+	result1, _, err := om.ReadOffset(buf1)
 	require.NoError(t, err)
 	require.Equal(t, uint64(100), result1)
 
 	// Second offset (increasing - valid)
 	buf2 := WriteOffset(nil, 200)
-	result2, err := om.ReadOffset(buf2)
+	result2, _, err := om.ReadOffset(buf2)
 	require.NoError(t, err)
 	require.Equal(t, uint64(200), result2)
 	require.Equal(t, uint64(200), *om.LastOffset)
 
 	// Fourth offset (increasing again - valid)
 	buf3 := WriteOffset(nil, 300)
-	result3, err := om.ReadOffset(buf3)
+	result3, _, err := om.ReadOffset(buf3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(300), result3)
 
 	// Fifth offset (decreasing - invalid)
 	buf4 := WriteOffset(nil, 250)
-	_, err = om.ReadOffset(buf4)
+	_, _, err = om.ReadOffset(buf4)
 	require.Error(t, err)
 	require.Equal(t, err, ErrOffsetNotIncreasing)
 }
@@ -209,12 +209,12 @@ func TestReadOffset_SecondOffsetExceedsTotalSize(t *testing.T) {
 
 	// First valid offset
 	buf1 := WriteOffset(nil, 100)
-	_, err := om.ReadOffset(buf1)
+	_, _, err := om.ReadOffset(buf1)
 	require.NoError(t, err)
 
 	// Second offset exceeds total size
 	buf2 := WriteOffset(nil, 1500)
-	_, err = om.ReadOffset(buf2)
+	_, _, err = om.ReadOffset(buf2)
 
 	require.Error(t, err)
 	require.Equal(t, err, ErrOffset)
@@ -226,7 +226,7 @@ func TestReadOffset_MultipleValidOffsets(t *testing.T) {
 	offsets := []int{100, 200, 300, 400, 500}
 	for _, offset := range offsets {
 		buf := WriteOffset(nil, offset)
-		result, err := om.ReadOffset(buf)
+		result, _, err := om.ReadOffset(buf)
 
 		require.NoError(t, err)
 		require.Equal(t, uint64(offset), result)
@@ -250,7 +250,7 @@ func BenchmarkUint64GenericConversion(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_ = UnmarshallValue[uint64](testData)
+		_, _ = UnmarshallValue[uint64](testData)
 	}
 }
 

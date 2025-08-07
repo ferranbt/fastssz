@@ -34,22 +34,26 @@ func (m *Metadata) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Metadata object
 func (m *Metadata) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(m, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Metadata object and returns the remaining bufferº
+func (m *Metadata) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 35 {
-		return ssz.ErrSize
+	if size < 35 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Version'
-	m.Version = ssz.UnmarshallValue[uint8](buf[0:1])
+	m.Version, buf = ssz.UnmarshallValue[uint8](buf)
 
 	// Field (1) 'CodeHash'
-	m.CodeHash, _ = ssz.UnmarshalBytes(m.CodeHash, buf[1:33])
+	m.CodeHash, buf = ssz.UnmarshalBytes(m.CodeHash, buf, 32)
 
 	// Field (2) 'CodeLength'
-	m.CodeLength = ssz.UnmarshallValue[uint16](buf[33:35])
+	m.CodeLength, buf = ssz.UnmarshallValue[uint16](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Metadata object
@@ -113,19 +117,23 @@ func (c *Chunk) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Chunk object
 func (c *Chunk) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Chunk object and returns the remaining bufferº
+func (c *Chunk) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 33 {
-		return ssz.ErrSize
+	if size < 33 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'FIO'
-	c.FIO = ssz.UnmarshallValue[uint8](buf[0:1])
+	c.FIO, buf = ssz.UnmarshallValue[uint8](buf)
 
 	// Field (1) 'Code'
-	c.Code, _ = ssz.UnmarshalBytes(c.Code, buf[1:33])
+	c.Code, buf = ssz.UnmarshalBytes(c.Code, buf, 32)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Chunk object
@@ -199,10 +207,14 @@ func (c *CodeTrieSmall) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the CodeTrieSmall object
 func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the CodeTrieSmall object and returns the remaining bufferº
+func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 39 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -210,21 +222,21 @@ func (c *CodeTrieSmall) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 39)
 
 	// Field (0) 'Metadata'
-	if err := ssz.UnmarshalField(&c.Metadata, buf[0:35]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&c.Metadata, buf); err != nil {
+		return
 	}
 
 	// Offset (1) 'Chunks'
-	if o1, err = marker.ReadOffset(buf[35:39]); err != nil {
-		return err
+	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Chunks'
 	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 33, 4); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieSmall object
@@ -316,10 +328,14 @@ func (c *CodeTrieBig) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the CodeTrieBig object
 func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the CodeTrieBig object and returns the remaining bufferº
+func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 39 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -327,21 +343,21 @@ func (c *CodeTrieBig) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 39)
 
 	// Field (0) 'Metadata'
-	if err := ssz.UnmarshalField(&c.Metadata, buf[0:35]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&c.Metadata, buf); err != nil {
+		return
 	}
 
 	// Offset (1) 'Chunks'
-	if o1, err = marker.ReadOffset(buf[35:39]); err != nil {
-		return err
+	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Chunks'
 	if err = ssz.UnmarshalSliceSSZ(&c.Chunks, tail[o1:], 33, 1024); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieBig object

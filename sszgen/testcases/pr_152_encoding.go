@@ -34,10 +34,14 @@ func (p *PR1512) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the PR1512 object
 func (p *PR1512) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(p, buf)
+}
+
+// UnmarshalSSZTail unmarshals the PR1512 object and returns the remaining bufferº
+func (p *PR1512) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -45,19 +49,19 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'D'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'D'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&p.D, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
-		ssz.UnmarshalFixedBytes(p.D[ii][:], buf)
+		buf = ssz.UnmarshalFixedBytes(p.D[ii][:], buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the PR1512 object

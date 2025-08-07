@@ -36,10 +36,14 @@ func (a *AggregateAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the AggregateAndProof object
 func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(a, buf)
+}
+
+// UnmarshalSSZTail unmarshals the AggregateAndProof object and returns the remaining bufferº
+func (a *AggregateAndProof) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 108 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -47,22 +51,22 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 108)
 
 	// Field (0) 'Index'
-	a.Index = ssz.UnmarshallValue[uint64](buf[0:8])
+	a.Index, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (1) 'Aggregate'
-	if o1, err = marker.ReadOffset(buf[8:12]); err != nil {
-		return err
+	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (2) 'SelectionProof'
-	ssz.UnmarshalFixedBytes(a.SelectionProof[:], buf[12:108])
+	buf = ssz.UnmarshalFixedBytes(a.SelectionProof[:], buf)
 
 	// Field (1) 'Aggregate'
-	if err := ssz.UnmarshalField(&a.Aggregate, tail[o1:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&a.Aggregate, tail[o1:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the AggregateAndProof object
@@ -131,19 +135,23 @@ func (c *Checkpoint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Checkpoint object
 func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Checkpoint object and returns the remaining bufferº
+func (c *Checkpoint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 40 {
-		return ssz.ErrSize
+	if size < 40 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Epoch'
-	c.Epoch = ssz.UnmarshallValue[uint64](buf[0:8])
+	c.Epoch, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'Root'
-	c.Root, _ = ssz.UnmarshalBytes(c.Root, buf[8:40])
+	c.Root, buf = ssz.UnmarshalBytes(c.Root, buf, 32)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Checkpoint object
@@ -219,32 +227,40 @@ func (a *AttestationData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the AttestationData object
 func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(a, buf)
+}
+
+// UnmarshalSSZTail unmarshals the AttestationData object and returns the remaining bufferº
+func (a *AttestationData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 128 {
-		return ssz.ErrSize
+	if size < 128 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Slot'
-	a.Slot = Slot(ssz.UnmarshallValue[uint64](buf[0:8]))
+	{
+		var val uint64
+		val, buf = ssz.UnmarshallValue[uint64](buf)
+		a.Slot = Slot(val)
+	}
 
 	// Field (1) 'Index'
-	a.Index = ssz.UnmarshallValue[uint64](buf[8:16])
+	a.Index, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'BeaconBlockHash'
-	ssz.UnmarshalFixedBytes(a.BeaconBlockHash[:], buf[16:48])
+	buf = ssz.UnmarshalFixedBytes(a.BeaconBlockHash[:], buf)
 
 	// Field (3) 'Source'
-	if err := ssz.UnmarshalField(&a.Source, buf[48:88]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&a.Source, buf); err != nil {
+		return
 	}
 
 	// Field (4) 'Target'
-	if err := ssz.UnmarshalField(&a.Target, buf[88:128]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&a.Target, buf); err != nil {
+		return
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the AttestationData object
@@ -332,10 +348,14 @@ func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Attestation object
 func (a *Attestation) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(a, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Attestation object and returns the remaining bufferº
+func (a *Attestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 228 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -343,24 +363,24 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 228)
 
 	// Offset (0) 'AggregationBits'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Data'
-	if err := ssz.UnmarshalField(&a.Data, buf[4:132]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&a.Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'Signature'
-	ssz.UnmarshalFixedBytes(a.Signature[:], buf[132:228])
+	buf = ssz.UnmarshalFixedBytes(a.Signature[:], buf)
 
 	// Field (0) 'AggregationBits'
 	if a.AggregationBits, err = ssz.UnmarshalBitList(a.AggregationBits, tail[o0:], 2048); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Attestation object
@@ -439,25 +459,29 @@ func (d *DepositData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the DepositData object
 func (d *DepositData) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(d, buf)
+}
+
+// UnmarshalSSZTail unmarshals the DepositData object and returns the remaining bufferº
+func (d *DepositData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 184 {
-		return ssz.ErrSize
+	if size < 184 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Pubkey'
-	ssz.UnmarshalFixedBytes(d.Pubkey[:], buf[0:48])
+	buf = ssz.UnmarshalFixedBytes(d.Pubkey[:], buf)
 
 	// Field (1) 'WithdrawalCredentials'
-	ssz.UnmarshalFixedBytes(d.WithdrawalCredentials[:], buf[48:80])
+	buf = ssz.UnmarshalFixedBytes(d.WithdrawalCredentials[:], buf)
 
 	// Field (2) 'Amount'
-	d.Amount = ssz.UnmarshallValue[uint64](buf[80:88])
+	d.Amount, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Signature'
-	d.Signature, _ = ssz.UnmarshalBytes(d.Signature, buf[88:184])
+	d.Signature, buf = ssz.UnmarshalBytes(d.Signature, buf, 96)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the DepositData object
@@ -535,24 +559,28 @@ func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Deposit object
 func (d *Deposit) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(d, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Deposit object and returns the remaining bufferº
+func (d *Deposit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 1240 {
-		return ssz.ErrSize
+	if size < 1240 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Proof'
 	d.Proof = make([][]byte, 33)
 	for ii := 0; ii < 33; ii++ {
-		d.Proof[ii], _ = ssz.UnmarshalBytes(d.Proof[ii], buf[0:1056][ii*32:(ii+1)*32])
+		d.Proof[ii], buf = ssz.UnmarshalBytes(d.Proof[ii], buf, 32)
 	}
 
 	// Field (1) 'Data'
-	if err := ssz.UnmarshalField(&d.Data, buf[1056:1240]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&d.Data, buf); err != nil {
+		return
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Deposit object
@@ -635,22 +663,26 @@ func (d *DepositMessage) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the DepositMessage object
 func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(d, buf)
+}
+
+// UnmarshalSSZTail unmarshals the DepositMessage object and returns the remaining bufferº
+func (d *DepositMessage) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 88 {
-		return ssz.ErrSize
+	if size < 88 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Pubkey'
-	d.Pubkey, _ = ssz.UnmarshalBytes(d.Pubkey, buf[0:48])
+	d.Pubkey, buf = ssz.UnmarshalBytes(d.Pubkey, buf, 48)
 
 	// Field (1) 'WithdrawalCredentials'
-	d.WithdrawalCredentials, _ = ssz.UnmarshalBytes(d.WithdrawalCredentials, buf[48:80])
+	d.WithdrawalCredentials, buf = ssz.UnmarshalBytes(d.WithdrawalCredentials, buf, 32)
 
 	// Field (2) 'Amount'
-	d.Amount = ssz.UnmarshallValue[uint64](buf[80:88])
+	d.Amount, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the DepositMessage object
@@ -736,10 +768,14 @@ func (i *IndexedAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the IndexedAttestation object
 func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(i, buf)
+}
+
+// UnmarshalSSZTail unmarshals the IndexedAttestation object and returns the remaining bufferº
+func (i *IndexedAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 228 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -747,27 +783,27 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 228)
 
 	// Offset (0) 'AttestationIndices'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Data'
-	if err := ssz.UnmarshalField(&i.Data, buf[4:132]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&i.Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'Signature'
-	i.Signature, _ = ssz.UnmarshalBytes(i.Signature, buf[132:228])
+	i.Signature, buf = ssz.UnmarshalBytes(i.Signature, buf, 96)
 
 	// Field (0) 'AttestationIndices'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&i.AttestationIndices, tail[o0:], 8, 2048, func(ii int, buf []byte) (err error) {
-		i.AttestationIndices[ii] = ssz.UnmarshallValue[uint64](buf)
+		i.AttestationIndices[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the IndexedAttestation object
@@ -867,10 +903,14 @@ func (p *PendingAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the PendingAttestation object
 func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(p, buf)
+}
+
+// UnmarshalSSZTail unmarshals the PendingAttestation object and returns the remaining bufferº
+func (p *PendingAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 148 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -878,27 +918,27 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 148)
 
 	// Offset (0) 'AggregationBits'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Data'
-	if err := ssz.UnmarshalField(&p.Data, buf[4:132]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&p.Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'InclusionDelay'
-	p.InclusionDelay = ssz.UnmarshallValue[uint64](buf[132:140])
+	p.InclusionDelay, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'ProposerIndex'
-	p.ProposerIndex = ssz.UnmarshallValue[uint64](buf[140:148])
+	p.ProposerIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (0) 'AggregationBits'
 	if p.AggregationBits, err = ssz.UnmarshalBitList(p.AggregationBits, tail[o0:], 2048); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the PendingAttestation object
@@ -981,22 +1021,26 @@ func (f *Fork) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Fork object
 func (f *Fork) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(f, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Fork object and returns the remaining bufferº
+func (f *Fork) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 16 {
-		return ssz.ErrSize
+	if size < 16 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'PreviousVersion'
-	f.PreviousVersion, _ = ssz.UnmarshalBytes(f.PreviousVersion, buf[0:4])
+	f.PreviousVersion, buf = ssz.UnmarshalBytes(f.PreviousVersion, buf, 4)
 
 	// Field (1) 'CurrentVersion'
-	f.CurrentVersion, _ = ssz.UnmarshalBytes(f.CurrentVersion, buf[4:8])
+	f.CurrentVersion, buf = ssz.UnmarshalBytes(f.CurrentVersion, buf, 4)
 
 	// Field (2) 'Epoch'
-	f.Epoch = ssz.UnmarshallValue[uint64](buf[8:16])
+	f.Epoch, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Fork object
@@ -1086,37 +1130,41 @@ func (v *Validator) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Validator object
 func (v *Validator) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(v, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Validator object and returns the remaining bufferº
+func (v *Validator) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 121 {
-		return ssz.ErrSize
+	if size < 121 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Pubkey'
-	v.Pubkey, _ = ssz.UnmarshalBytes(v.Pubkey, buf[0:48])
+	v.Pubkey, buf = ssz.UnmarshalBytes(v.Pubkey, buf, 48)
 
 	// Field (1) 'WithdrawalCredentials'
-	v.WithdrawalCredentials, _ = ssz.UnmarshalBytes(v.WithdrawalCredentials, buf[48:80])
+	v.WithdrawalCredentials, buf = ssz.UnmarshalBytes(v.WithdrawalCredentials, buf, 32)
 
 	// Field (2) 'EffectiveBalance'
-	v.EffectiveBalance = ssz.UnmarshallValue[uint64](buf[80:88])
+	v.EffectiveBalance, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Slashed'
-	v.Slashed = ssz.UnmarshallValue[bool](buf[88:89])
+	v.Slashed, buf = ssz.UnmarshallValue[bool](buf)
 
 	// Field (4) 'ActivationEligibilityEpoch'
-	v.ActivationEligibilityEpoch = ssz.UnmarshallValue[uint64](buf[89:97])
+	v.ActivationEligibilityEpoch, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (5) 'ActivationEpoch'
-	v.ActivationEpoch = ssz.UnmarshallValue[uint64](buf[97:105])
+	v.ActivationEpoch, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (6) 'ExitEpoch'
-	v.ExitEpoch = ssz.UnmarshallValue[uint64](buf[105:113])
+	v.ExitEpoch, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'WithdrawableEpoch'
-	v.WithdrawableEpoch = ssz.UnmarshallValue[uint64](buf[113:121])
+	v.WithdrawableEpoch, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Validator object
@@ -1195,19 +1243,23 @@ func (v *VoluntaryExit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the VoluntaryExit object
 func (v *VoluntaryExit) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(v, buf)
+}
+
+// UnmarshalSSZTail unmarshals the VoluntaryExit object and returns the remaining bufferº
+func (v *VoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 16 {
-		return ssz.ErrSize
+	if size < 16 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Epoch'
-	v.Epoch = ssz.UnmarshallValue[uint64](buf[0:8])
+	v.Epoch, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'ValidatorIndex'
-	v.ValidatorIndex = ssz.UnmarshallValue[uint64](buf[8:16])
+	v.ValidatorIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the VoluntaryExit object
@@ -1265,21 +1317,25 @@ func (s *SignedVoluntaryExit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the SignedVoluntaryExit object
 func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SignedVoluntaryExit object and returns the remaining bufferº
+func (s *SignedVoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 112 {
-		return ssz.ErrSize
+	if size < 112 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Exit'
-	if err := ssz.UnmarshalField(&s.Exit, buf[0:16]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&s.Exit, buf); err != nil {
+		return
 	}
 
 	// Field (1) 'Signature'
-	ssz.UnmarshalFixedBytes(s.Signature[:], buf[16:112])
+	buf = ssz.UnmarshalFixedBytes(s.Signature[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedVoluntaryExit object
@@ -1344,22 +1400,26 @@ func (e *Eth1Block) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Eth1Block object
 func (e *Eth1Block) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Eth1Block object and returns the remaining bufferº
+func (e *Eth1Block) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 48 {
-		return ssz.ErrSize
+	if size < 48 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[0:8])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'DepositRoot'
-	e.DepositRoot, _ = ssz.UnmarshalBytes(e.DepositRoot, buf[8:40])
+	e.DepositRoot, buf = ssz.UnmarshalBytes(e.DepositRoot, buf, 32)
 
 	// Field (2) 'DepositCount'
-	e.DepositCount = ssz.UnmarshallValue[uint64](buf[40:48])
+	e.DepositCount, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Eth1Block object
@@ -1430,22 +1490,26 @@ func (e *Eth1Data) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Eth1Data object
 func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Eth1Data object and returns the remaining bufferº
+func (e *Eth1Data) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 72 {
-		return ssz.ErrSize
+	if size < 72 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'DepositRoot'
-	e.DepositRoot, _ = ssz.UnmarshalBytes(e.DepositRoot, buf[0:32])
+	e.DepositRoot, buf = ssz.UnmarshalBytes(e.DepositRoot, buf, 32)
 
 	// Field (1) 'DepositCount'
-	e.DepositCount = ssz.UnmarshallValue[uint64](buf[32:40])
+	e.DepositCount, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'BlockHash'
-	e.BlockHash, _ = ssz.UnmarshalBytes(e.BlockHash, buf[40:72])
+	e.BlockHash, buf = ssz.UnmarshalBytes(e.BlockHash, buf, 32)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Eth1Data object
@@ -1517,19 +1581,23 @@ func (s *SigningRoot) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the SigningRoot object
 func (s *SigningRoot) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SigningRoot object and returns the remaining bufferº
+func (s *SigningRoot) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 40 {
-		return ssz.ErrSize
+	if size < 40 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'ObjectRoot'
-	s.ObjectRoot, _ = ssz.UnmarshalBytes(s.ObjectRoot, buf[0:32])
+	s.ObjectRoot, buf = ssz.UnmarshalBytes(s.ObjectRoot, buf, 32)
 
 	// Field (1) 'Domain'
-	s.Domain, _ = ssz.UnmarshalBytes(s.Domain, buf[32:40])
+	s.Domain, buf = ssz.UnmarshalBytes(s.Domain, buf, 8)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SigningRoot object
@@ -1602,25 +1670,29 @@ func (h *HistoricalBatch) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the HistoricalBatch object
 func (h *HistoricalBatch) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(h, buf)
+}
+
+// UnmarshalSSZTail unmarshals the HistoricalBatch object and returns the remaining bufferº
+func (h *HistoricalBatch) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 524288 {
-		return ssz.ErrSize
+	if size < 524288 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'BlockRoots'
 	h.BlockRoots = make([][32]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		ssz.UnmarshalFixedBytes(h.BlockRoots[ii][:], buf[0:262144][ii*32:(ii+1)*32])
+		buf = ssz.UnmarshalFixedBytes(h.BlockRoots[ii][:], buf)
 	}
 
 	// Field (1) 'StateRoots'
 	h.StateRoots = make([][32]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		ssz.UnmarshalFixedBytes(h.StateRoots[ii][:], buf[262144:524288][ii*32:(ii+1)*32])
+		buf = ssz.UnmarshalFixedBytes(h.StateRoots[ii][:], buf)
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the HistoricalBatch object
@@ -1703,23 +1775,27 @@ func (p *ProposerSlashing) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the ProposerSlashing object
 func (p *ProposerSlashing) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(p, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ProposerSlashing object and returns the remaining bufferº
+func (p *ProposerSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 416 {
-		return ssz.ErrSize
+	if size < 416 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Header1'
-	if err := ssz.UnmarshalField(&p.Header1, buf[0:208]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&p.Header1, buf); err != nil {
+		return
 	}
 
 	// Field (1) 'Header2'
-	if err := ssz.UnmarshalField(&p.Header2, buf[208:416]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&p.Header2, buf); err != nil {
+		return
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ProposerSlashing object
@@ -1797,10 +1873,14 @@ func (a *AttesterSlashing) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the AttesterSlashing object
 func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(a, buf)
+}
+
+// UnmarshalSSZTail unmarshals the AttesterSlashing object and returns the remaining bufferº
+func (a *AttesterSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 8 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -1808,26 +1888,26 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 8)
 
 	// Offset (0) 'Attestation1'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (1) 'Attestation2'
-	if o1, err = marker.ReadOffset(buf[4:8]); err != nil {
-		return err
+	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Attestation1'
-	if err := ssz.UnmarshalField(&a.Attestation1, tail[o0:o1]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&a.Attestation1, tail[o0:o1]); err != nil {
+		return
 	}
 
 	// Field (1) 'Attestation2'
-	if err := ssz.UnmarshalField(&a.Attestation2, tail[o1:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&a.Attestation2, tail[o1:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the AttesterSlashing object
@@ -1920,10 +2000,14 @@ func (b *BeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlock object
 func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlock object and returns the remaining bufferº
+func (b *BeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 84 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -1931,28 +2015,28 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 84)
 
 	// Field (0) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'ProposerIndex'
-	b.ProposerIndex = ssz.UnmarshallValue[uint64](buf[8:16])
+	b.ProposerIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'ParentRoot'
-	b.ParentRoot, _ = ssz.UnmarshalBytes(b.ParentRoot, buf[16:48])
+	b.ParentRoot, buf = ssz.UnmarshalBytes(b.ParentRoot, buf, 32)
 
 	// Field (3) 'StateRoot'
-	b.StateRoot, _ = ssz.UnmarshalBytes(b.StateRoot, buf[48:80])
+	b.StateRoot, buf = ssz.UnmarshalBytes(b.StateRoot, buf, 32)
 
 	// Offset (4) 'Body'
-	if o4, err = marker.ReadOffset(buf[80:84]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (4) 'Body'
-	if err := ssz.UnmarshalField(&b.Body, tail[o4:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&b.Body, tail[o4:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlock object
@@ -2041,10 +2125,14 @@ func (s *SignedBeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the SignedBeaconBlock object
 func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SignedBeaconBlock object and returns the remaining bufferº
+func (s *SignedBeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 100 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -2052,19 +2140,19 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 100)
 
 	// Offset (0) 'Block'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Signature'
-	s.Signature, _ = ssz.UnmarshalBytes(s.Signature, buf[4:100])
+	s.Signature, buf = ssz.UnmarshalBytes(s.Signature, buf, 96)
 
 	// Field (0) 'Block'
-	if err := ssz.UnmarshalField(&s.Block, tail[o0:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&s.Block, tail[o0:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlock object
@@ -2153,34 +2241,38 @@ func (t *Transfer) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Transfer object
 func (t *Transfer) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(t, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Transfer object and returns the remaining bufferº
+func (t *Transfer) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 184 {
-		return ssz.ErrSize
+	if size < 184 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Sender'
-	t.Sender = ssz.UnmarshallValue[uint64](buf[0:8])
+	t.Sender, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'Recipient'
-	t.Recipient = ssz.UnmarshallValue[uint64](buf[8:16])
+	t.Recipient, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'Amount'
-	t.Amount = ssz.UnmarshallValue[uint64](buf[16:24])
+	t.Amount, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Fee'
-	t.Fee = ssz.UnmarshallValue[uint64](buf[24:32])
+	t.Fee, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (4) 'Slot'
-	t.Slot = ssz.UnmarshallValue[uint64](buf[32:40])
+	t.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (5) 'Pubkey'
-	t.Pubkey, _ = ssz.UnmarshalBytes(t.Pubkey, buf[40:88])
+	t.Pubkey, buf = ssz.UnmarshalBytes(t.Pubkey, buf, 48)
 
 	// Field (6) 'Signature'
-	t.Signature, _ = ssz.UnmarshalBytes(t.Signature, buf[88:184])
+	t.Signature, buf = ssz.UnmarshalBytes(t.Signature, buf, 96)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Transfer object
@@ -2476,10 +2568,14 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconState object
 func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconState object and returns the remaining bufferº
+func (b *BeaconState) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 2687377 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -2487,141 +2583,141 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 2687377)
 
 	// Field (0) 'GenesisTime'
-	b.GenesisTime = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'GenesisValidatorsRoot'
-	b.GenesisValidatorsRoot, _ = ssz.UnmarshalBytes(b.GenesisValidatorsRoot, buf[8:40])
+	b.GenesisValidatorsRoot, buf = ssz.UnmarshalBytes(b.GenesisValidatorsRoot, buf, 32)
 
 	// Field (2) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[40:48])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Fork'
-	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Fork, buf); err != nil {
+		return
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.LatestBlockHeader, buf); err != nil {
+		return
 	}
 
 	// Field (5) 'BlockRoots'
 	b.BlockRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.BlockRoots[ii], _ = ssz.UnmarshalBytes(b.BlockRoots[ii], buf[176:262320][ii*32:(ii+1)*32])
+		b.BlockRoots[ii], buf = ssz.UnmarshalBytes(b.BlockRoots[ii], buf, 32)
 	}
 
 	// Field (6) 'StateRoots'
 	b.StateRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.StateRoots[ii], _ = ssz.UnmarshalBytes(b.StateRoots[ii], buf[262320:524464][ii*32:(ii+1)*32])
+		b.StateRoots[ii], buf = ssz.UnmarshalBytes(b.StateRoots[ii], buf, 32)
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
-		return err
+	if o9, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
-	b.Eth1DepositIndex = ssz.UnmarshallValue[uint64](buf[524544:524552])
+	b.Eth1DepositIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (11) 'Validators'
-	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
-		return err
+	if o11, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (12) 'Balances'
-	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
-		return err
+	if o12, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (13) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 65536)
 	for ii := 0; ii < 65536; ii++ {
-		b.RandaoMixes[ii], _ = ssz.UnmarshalBytes(b.RandaoMixes[ii], buf[524560:2621712][ii*32:(ii+1)*32])
+		b.RandaoMixes[ii], buf = ssz.UnmarshalBytes(b.RandaoMixes[ii], buf, 32)
 	}
 
 	// Field (14) 'Slashings'
 	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.Slashings[ii] = ssz.UnmarshallValue[uint64](buf[2621712:2687248][ii*8 : (ii+1)*8])
+		b.Slashings[ii], buf = ssz.UnmarshallValue[uint64](buf)
 	}
 
 	// Offset (15) 'PreviousEpochAttestations'
-	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
-		return err
+	if o15, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (16) 'CurrentEpochAttestations'
-	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
-		return err
+	if o16, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (17) 'JustificationBits'
-	b.JustificationBits, _ = ssz.UnmarshalBytes(b.JustificationBits, buf[2687256:2687257])
+	b.JustificationBits, buf = ssz.UnmarshalBytes(b.JustificationBits, buf, 1)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.PreviousJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.FinalizedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (7) 'HistoricalRoots'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, tail[o7:o9], 32, 16777216, func(ii int, buf []byte) (err error) {
-		b.HistoricalRoots[ii], _ = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+		b.HistoricalRoots[ii], buf = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf, 32)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	if err = ssz.UnmarshalSliceSSZ(&b.Eth1DataVotes, tail[o9:o11], 72, 2048); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (11) 'Validators'
 	if err = ssz.UnmarshalSliceSSZ(&b.Validators, tail[o11:o12], 121, 1099511627776); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (12) 'Balances'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, tail[o12:o15], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.Balances[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.Balances[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (15) 'PreviousEpochAttestations'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.PreviousEpochAttestations, tail[o15:o16], 4096); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (16) 'CurrentEpochAttestations'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.CurrentEpochAttestations, tail[o16:], 4096); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
@@ -3032,10 +3128,14 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockBodyPhase0 object
 func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlockBodyPhase0 object and returns the remaining bufferº
+func (b *BeaconBlockBodyPhase0) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 220 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -3043,67 +3143,67 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 220)
 
 	// Field (0) 'RandaoReveal'
-	b.RandaoReveal, _ = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
+	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
 
 	// Field (1) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'Graffiti'
-	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
+	buf = ssz.UnmarshalFixedBytes(b.Graffiti[:], buf)
 
 	// Offset (3) 'ProposerSlashings'
-	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
-		return err
+	if o3, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
-		return err
+	if o5, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
-		return err
+	if o6, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (3) 'ProposerSlashings'
 	if err = ssz.UnmarshalSliceSSZ(&b.ProposerSlashings, tail[o3:o4], 416, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (4) 'AttesterSlashings'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.AttesterSlashings, tail[o4:o5], 2); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (5) 'Attestations'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.Attestations, tail[o5:o6], 128); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (6) 'Deposits'
 	if err = ssz.UnmarshalSliceSSZ(&b.Deposits, tail[o6:o7], 1240, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (7) 'VoluntaryExits'
 	if err = ssz.UnmarshalSliceSSZ(&b.VoluntaryExits, tail[o7:], 112, 16); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyPhase0 object
@@ -3385,10 +3485,14 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockBodyAltair object
 func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlockBodyAltair object and returns the remaining bufferº
+func (b *BeaconBlockBodyAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 380 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -3396,72 +3500,72 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 380)
 
 	// Field (0) 'RandaoReveal'
-	b.RandaoReveal, _ = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
+	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
 
 	// Field (1) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'Graffiti'
-	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
+	buf = ssz.UnmarshalFixedBytes(b.Graffiti[:], buf)
 
 	// Offset (3) 'ProposerSlashings'
-	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
-		return err
+	if o3, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
-		return err
+	if o5, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
-		return err
+	if o6, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'SyncAggregate'
-	if err := ssz.UnmarshalField(&b.SyncAggregate, buf[220:380]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.SyncAggregate, buf); err != nil {
+		return
 	}
 
 	// Field (3) 'ProposerSlashings'
 	if err = ssz.UnmarshalSliceSSZ(&b.ProposerSlashings, tail[o3:o4], 416, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (4) 'AttesterSlashings'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.AttesterSlashings, tail[o4:o5], 2); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (5) 'Attestations'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.Attestations, tail[o5:o6], 128); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (6) 'Deposits'
 	if err = ssz.UnmarshalSliceSSZ(&b.Deposits, tail[o6:o7], 1240, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (7) 'VoluntaryExits'
 	if err = ssz.UnmarshalSliceSSZ(&b.VoluntaryExits, tail[o7:], 112, 16); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyAltair object
@@ -3760,10 +3864,14 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockBodyBellatrix object
 func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlockBodyBellatrix object and returns the remaining bufferº
+func (b *BeaconBlockBodyBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 384 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -3771,82 +3879,82 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 384)
 
 	// Field (0) 'RandaoReveal'
-	b.RandaoReveal, _ = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
+	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
 
 	// Field (1) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'Graffiti'
-	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
+	buf = ssz.UnmarshalFixedBytes(b.Graffiti[:], buf)
 
 	// Offset (3) 'ProposerSlashings'
-	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
-		return err
+	if o3, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
-		return err
+	if o5, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
-		return err
+	if o6, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'SyncAggregate'
-	if err := ssz.UnmarshalField(&b.SyncAggregate, buf[220:380]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.SyncAggregate, buf); err != nil {
+		return
 	}
 
 	// Offset (9) 'ExecutionPayload'
-	if o9, err = marker.ReadOffset(buf[380:384]); err != nil {
-		return err
+	if o9, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (3) 'ProposerSlashings'
 	if err = ssz.UnmarshalSliceSSZ(&b.ProposerSlashings, tail[o3:o4], 416, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (4) 'AttesterSlashings'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.AttesterSlashings, tail[o4:o5], 2); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (5) 'Attestations'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.Attestations, tail[o5:o6], 128); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (6) 'Deposits'
 	if err = ssz.UnmarshalSliceSSZ(&b.Deposits, tail[o6:o7], 1240, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (7) 'VoluntaryExits'
 	if err = ssz.UnmarshalSliceSSZ(&b.VoluntaryExits, tail[o7:o9], 112, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (9) 'ExecutionPayload'
-	if err := ssz.UnmarshalField(&b.ExecutionPayload, tail[o9:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&b.ExecutionPayload, tail[o9:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyBellatrix object
@@ -4256,10 +4364,14 @@ func (b *BeaconStateAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconStateAltair object
 func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconStateAltair object and returns the remaining bufferº
+func (b *BeaconStateAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 2736629 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -4267,164 +4379,164 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 2736629)
 
 	// Field (0) 'GenesisTime'
-	b.GenesisTime = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'GenesisValidatorsRoot'
-	b.GenesisValidatorsRoot, _ = ssz.UnmarshalBytes(b.GenesisValidatorsRoot, buf[8:40])
+	b.GenesisValidatorsRoot, buf = ssz.UnmarshalBytes(b.GenesisValidatorsRoot, buf, 32)
 
 	// Field (2) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[40:48])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Fork'
-	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Fork, buf); err != nil {
+		return
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.LatestBlockHeader, buf); err != nil {
+		return
 	}
 
 	// Field (5) 'BlockRoots'
 	b.BlockRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.BlockRoots[ii], _ = ssz.UnmarshalBytes(b.BlockRoots[ii], buf[176:262320][ii*32:(ii+1)*32])
+		b.BlockRoots[ii], buf = ssz.UnmarshalBytes(b.BlockRoots[ii], buf, 32)
 	}
 
 	// Field (6) 'StateRoots'
 	b.StateRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.StateRoots[ii], _ = ssz.UnmarshalBytes(b.StateRoots[ii], buf[262320:524464][ii*32:(ii+1)*32])
+		b.StateRoots[ii], buf = ssz.UnmarshalBytes(b.StateRoots[ii], buf, 32)
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
-		return err
+	if o9, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
-	b.Eth1DepositIndex = ssz.UnmarshallValue[uint64](buf[524544:524552])
+	b.Eth1DepositIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (11) 'Validators'
-	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
-		return err
+	if o11, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (12) 'Balances'
-	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
-		return err
+	if o12, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (13) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 65536)
 	for ii := 0; ii < 65536; ii++ {
-		b.RandaoMixes[ii], _ = ssz.UnmarshalBytes(b.RandaoMixes[ii], buf[524560:2621712][ii*32:(ii+1)*32])
+		b.RandaoMixes[ii], buf = ssz.UnmarshalBytes(b.RandaoMixes[ii], buf, 32)
 	}
 
 	// Field (14) 'Slashings'
 	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.Slashings[ii] = ssz.UnmarshallValue[uint64](buf[2621712:2687248][ii*8 : (ii+1)*8])
+		b.Slashings[ii], buf = ssz.UnmarshallValue[uint64](buf)
 	}
 
 	// Offset (15) 'PreviousEpochParticipation'
-	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
-		return err
+	if o15, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (16) 'CurrentEpochParticipation'
-	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
-		return err
+	if o16, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (17) 'JustificationBits'
-	b.JustificationBits, _ = ssz.UnmarshalBytes(b.JustificationBits, buf[2687256:2687257])
+	b.JustificationBits, buf = ssz.UnmarshalBytes(b.JustificationBits, buf, 1)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.PreviousJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.FinalizedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Offset (21) 'InactivityScores'
-	if o21, err = marker.ReadOffset(buf[2687377:2687381]); err != nil {
-		return err
+	if o21, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
-	if err := ssz.UnmarshalField(&b.CurrentSyncCommittee, buf[2687381:2712005]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentSyncCommittee, buf); err != nil {
+		return
 	}
 
 	// Field (23) 'NextSyncCommittee'
-	if err := ssz.UnmarshalField(&b.NextSyncCommittee, buf[2712005:2736629]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.NextSyncCommittee, buf); err != nil {
+		return
 	}
 
 	// Field (7) 'HistoricalRoots'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, tail[o7:o9], 32, 16777216, func(ii int, buf []byte) (err error) {
-		b.HistoricalRoots[ii], _ = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+		b.HistoricalRoots[ii], buf = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf, 32)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	if err = ssz.UnmarshalSliceSSZ(&b.Eth1DataVotes, tail[o9:o11], 72, 2048); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (11) 'Validators'
 	if err = ssz.UnmarshalSliceSSZ(&b.Validators, tail[o11:o12], 121, 1099511627776); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (12) 'Balances'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, tail[o12:o15], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.Balances[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.Balances[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (15) 'PreviousEpochParticipation'
-	if b.PreviousEpochParticipation, err = ssz.UnmarshalBytes(b.PreviousEpochParticipation, tail[o15:o16], 1099511627776); err != nil {
-		return err
+	if b.PreviousEpochParticipation, err = ssz.UnmarshalDynamicBytes(b.PreviousEpochParticipation, tail[o15:o16], 1099511627776); err != nil {
+		return
 	}
 
 	// Field (16) 'CurrentEpochParticipation'
-	if b.CurrentEpochParticipation, err = ssz.UnmarshalBytes(b.CurrentEpochParticipation, tail[o16:o21], 1099511627776); err != nil {
-		return err
+	if b.CurrentEpochParticipation, err = ssz.UnmarshalDynamicBytes(b.CurrentEpochParticipation, tail[o16:o21], 1099511627776); err != nil {
+		return
 	}
 
 	// Field (21) 'InactivityScores'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.InactivityScores, tail[o21:], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.InactivityScores[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.InactivityScores[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateAltair object
@@ -4981,10 +5093,14 @@ func (b *BeaconStateBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 // UnmarshalSSZ ssz unmarshals the BeaconStateBellatrix object
 func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconStateBellatrix object and returns the remaining bufferº
+func (b *BeaconStateBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 2736633 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -4992,174 +5108,174 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 2736633)
 
 	// Field (0) 'GenesisTime'
-	b.GenesisTime = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'GenesisValidatorsRoot'
-	b.GenesisValidatorsRoot, _ = ssz.UnmarshalBytes(b.GenesisValidatorsRoot, buf[8:40])
+	b.GenesisValidatorsRoot, buf = ssz.UnmarshalBytes(b.GenesisValidatorsRoot, buf, 32)
 
 	// Field (2) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[40:48])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Fork'
-	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Fork, buf); err != nil {
+		return
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.LatestBlockHeader, buf); err != nil {
+		return
 	}
 
 	// Field (5) 'BlockRoots'
 	b.BlockRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.BlockRoots[ii], _ = ssz.UnmarshalBytes(b.BlockRoots[ii], buf[176:262320][ii*32:(ii+1)*32])
+		b.BlockRoots[ii], buf = ssz.UnmarshalBytes(b.BlockRoots[ii], buf, 32)
 	}
 
 	// Field (6) 'StateRoots'
 	b.StateRoots = make([][]byte, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.StateRoots[ii], _ = ssz.UnmarshalBytes(b.StateRoots[ii], buf[262320:524464][ii*32:(ii+1)*32])
+		b.StateRoots[ii], buf = ssz.UnmarshalBytes(b.StateRoots[ii], buf, 32)
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
-		return err
+	if o9, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
-	b.Eth1DepositIndex = ssz.UnmarshallValue[uint64](buf[524544:524552])
+	b.Eth1DepositIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (11) 'Validators'
-	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
-		return err
+	if o11, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (12) 'Balances'
-	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
-		return err
+	if o12, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (13) 'RandaoMixes'
 	b.RandaoMixes = make([][]byte, 65536)
 	for ii := 0; ii < 65536; ii++ {
-		b.RandaoMixes[ii], _ = ssz.UnmarshalBytes(b.RandaoMixes[ii], buf[524560:2621712][ii*32:(ii+1)*32])
+		b.RandaoMixes[ii], buf = ssz.UnmarshalBytes(b.RandaoMixes[ii], buf, 32)
 	}
 
 	// Field (14) 'Slashings'
 	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.Slashings[ii] = ssz.UnmarshallValue[uint64](buf[2621712:2687248][ii*8 : (ii+1)*8])
+		b.Slashings[ii], buf = ssz.UnmarshallValue[uint64](buf)
 	}
 
 	// Offset (15) 'PreviousEpochParticipation'
-	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
-		return err
+	if o15, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (16) 'CurrentEpochParticipation'
-	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
-		return err
+	if o16, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (17) 'JustificationBits'
-	b.JustificationBits, _ = ssz.UnmarshalBytes(b.JustificationBits, buf[2687256:2687257])
+	b.JustificationBits, buf = ssz.UnmarshalBytes(b.JustificationBits, buf, 1)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.PreviousJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.FinalizedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Offset (21) 'InactivityScores'
-	if o21, err = marker.ReadOffset(buf[2687377:2687381]); err != nil {
-		return err
+	if o21, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
-	if err := ssz.UnmarshalField(&b.CurrentSyncCommittee, buf[2687381:2712005]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentSyncCommittee, buf); err != nil {
+		return
 	}
 
 	// Field (23) 'NextSyncCommittee'
-	if err := ssz.UnmarshalField(&b.NextSyncCommittee, buf[2712005:2736629]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.NextSyncCommittee, buf); err != nil {
+		return
 	}
 
 	// Offset (24) 'LatestExecutionPayloadHeader'
-	if o24, err = marker.ReadOffset(buf[2736629:2736633]); err != nil {
-		return err
+	if o24, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (7) 'HistoricalRoots'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, tail[o7:o9], 32, 16777216, func(ii int, buf []byte) (err error) {
-		b.HistoricalRoots[ii], _ = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+		b.HistoricalRoots[ii], buf = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf, 32)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	if err = ssz.UnmarshalSliceSSZ(&b.Eth1DataVotes, tail[o9:o11], 72, 2048); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (11) 'Validators'
 	if err = ssz.UnmarshalSliceSSZ(&b.Validators, tail[o11:o12], 121, 1099511627776); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (12) 'Balances'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, tail[o12:o15], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.Balances[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.Balances[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (15) 'PreviousEpochParticipation'
-	if b.PreviousEpochParticipation, err = ssz.UnmarshalBytes(b.PreviousEpochParticipation, tail[o15:o16], 1099511627776); err != nil {
-		return err
+	if b.PreviousEpochParticipation, err = ssz.UnmarshalDynamicBytes(b.PreviousEpochParticipation, tail[o15:o16], 1099511627776); err != nil {
+		return
 	}
 
 	// Field (16) 'CurrentEpochParticipation'
-	if b.CurrentEpochParticipation, err = ssz.UnmarshalBytes(b.CurrentEpochParticipation, tail[o16:o21], 1099511627776); err != nil {
-		return err
+	if b.CurrentEpochParticipation, err = ssz.UnmarshalDynamicBytes(b.CurrentEpochParticipation, tail[o16:o21], 1099511627776); err != nil {
+		return
 	}
 
 	// Field (21) 'InactivityScores'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.InactivityScores, tail[o21:o24], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.InactivityScores[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.InactivityScores[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (24) 'LatestExecutionPayloadHeader'
-	if err := ssz.UnmarshalField(&b.LatestExecutionPayloadHeader, tail[o24:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&b.LatestExecutionPayloadHeader, tail[o24:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateBellatrix object
@@ -5503,21 +5619,25 @@ func (s *SignedBeaconBlockHeader) MarshalSSZTo(buf []byte) (dst []byte, err erro
 
 // UnmarshalSSZ ssz unmarshals the SignedBeaconBlockHeader object
 func (s *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SignedBeaconBlockHeader object and returns the remaining bufferº
+func (s *SignedBeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 208 {
-		return ssz.ErrSize
+	if size < 208 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Header'
-	if err := ssz.UnmarshalField(&s.Header, buf[0:112]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&s.Header, buf); err != nil {
+		return
 	}
 
 	// Field (1) 'Signature'
-	s.Signature, _ = ssz.UnmarshalBytes(s.Signature, buf[112:208])
+	s.Signature, buf = ssz.UnmarshalBytes(s.Signature, buf, 96)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockHeader object
@@ -5600,28 +5720,32 @@ func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockHeader object
 func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlockHeader object and returns the remaining bufferº
+func (b *BeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 112 {
-		return ssz.ErrSize
+	if size < 112 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'ProposerIndex'
-	b.ProposerIndex = ssz.UnmarshallValue[uint64](buf[8:16])
+	b.ProposerIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'ParentRoot'
-	b.ParentRoot, _ = ssz.UnmarshalBytes(b.ParentRoot, buf[16:48])
+	b.ParentRoot, buf = ssz.UnmarshalBytes(b.ParentRoot, buf, 32)
 
 	// Field (3) 'StateRoot'
-	b.StateRoot, _ = ssz.UnmarshalBytes(b.StateRoot, buf[48:80])
+	b.StateRoot, buf = ssz.UnmarshalBytes(b.StateRoot, buf, 32)
 
 	// Field (4) 'BodyRoot'
-	b.BodyRoot, _ = ssz.UnmarshalBytes(b.BodyRoot, buf[80:112])
+	b.BodyRoot, buf = ssz.UnmarshalBytes(b.BodyRoot, buf, 32)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader object
@@ -5700,10 +5824,14 @@ func (e *ErrorResponse) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the ErrorResponse object
 func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ErrorResponse object and returns the remaining bufferº
+func (e *ErrorResponse) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -5711,16 +5839,16 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Message'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Message'
-	if e.Message, err = ssz.UnmarshalBytes(e.Message, tail[o0:], 256); err != nil {
-		return err
+	if e.Message, err = ssz.UnmarshalDynamicBytes(e.Message, tail[o0:], 256); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ErrorResponse object
@@ -5777,13 +5905,17 @@ func (d *Dummy) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Dummy object
 func (d *Dummy) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(d, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Dummy object and returns the remaining bufferº
+func (d *Dummy) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 0 {
-		return ssz.ErrSize
+	if size < 0 {
+		return nil, ssz.ErrSize
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Dummy object
@@ -5840,22 +5972,26 @@ func (s *SyncCommittee) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the SyncCommittee object
 func (s *SyncCommittee) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SyncCommittee object and returns the remaining bufferº
+func (s *SyncCommittee) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 24624 {
-		return ssz.ErrSize
+	if size < 24624 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'PubKeys'
 	s.PubKeys = make([][]byte, 512)
 	for ii := 0; ii < 512; ii++ {
-		s.PubKeys[ii], _ = ssz.UnmarshalBytes(s.PubKeys[ii], buf[0:24576][ii*48:(ii+1)*48])
+		s.PubKeys[ii], buf = ssz.UnmarshalBytes(s.PubKeys[ii], buf, 48)
 	}
 
 	// Field (1) 'AggregatePubKey'
-	ssz.UnmarshalFixedBytes(s.AggregatePubKey[:], buf[24576:24624])
+	buf = ssz.UnmarshalFixedBytes(s.AggregatePubKey[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SyncCommittee object
@@ -5926,19 +6062,23 @@ func (s *SyncAggregate) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the SyncAggregate object
 func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SyncAggregate object and returns the remaining bufferº
+func (s *SyncAggregate) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 160 {
-		return ssz.ErrSize
+	if size < 160 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'SyncCommiteeBits'
-	s.SyncCommiteeBits, _ = ssz.UnmarshalBytes(s.SyncCommiteeBits, buf[0:64])
+	s.SyncCommiteeBits, buf = ssz.UnmarshalBytes(s.SyncCommiteeBits, buf, 64)
 
 	// Field (1) 'SyncCommiteeSignature'
-	ssz.UnmarshalFixedBytes(s.SyncCommiteeSignature[:], buf[64:160])
+	buf = ssz.UnmarshalFixedBytes(s.SyncCommiteeSignature[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SyncAggregate object
@@ -6060,10 +6200,14 @@ func (e *ExecutionPayload) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayload object
 func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayload object and returns the remaining bufferº
+func (e *ExecutionPayload) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 508 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -6071,67 +6215,67 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 508)
 
 	// Field (0) 'ParentHash'
-	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
 
 	// Field (1) 'FeeRecipient'
-	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
+	buf = ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf)
 
 	// Field (2) 'StateRoot'
-	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
+	buf = ssz.UnmarshalFixedBytes(e.StateRoot[:], buf)
 
 	// Field (3) 'ReceiptsRoot'
-	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
+	buf = ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf)
 
 	// Field (4) 'LogsBloom'
-	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
+	buf = ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf)
 
 	// Field (5) 'PrevRandao'
-	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
+	buf = ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf)
 
 	// Field (6) 'BlockNumber'
-	e.BlockNumber = ssz.UnmarshallValue[uint64](buf[404:412])
+	e.BlockNumber, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'GasLimit'
-	e.GasLimit = ssz.UnmarshallValue[uint64](buf[412:420])
+	e.GasLimit, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (8) 'GasUsed'
-	e.GasUsed = ssz.UnmarshallValue[uint64](buf[420:428])
+	e.GasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (9) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[428:436])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (10) 'ExtraData'
-	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
+	buf = ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf)
 
 	// Field (12) 'BlockHash'
-	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
+	buf = ssz.UnmarshalFixedBytes(e.BlockHash[:], buf)
 
 	// Offset (13) 'Transactions'
-	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
-		return err
+	if o13, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (10) 'ExtraData'
-	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:o13], 32); err != nil {
-		return err
+	if e.ExtraData, err = ssz.UnmarshalDynamicBytes(e.ExtraData, tail[o10:o13], 32); err != nil {
+		return
 	}
 
 	// Field (13) 'Transactions'
 	if err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, tail[o13:], 1048576, func(indx int, buf []byte) (err error) {
-		if e.Transactions[indx], err = ssz.UnmarshalBytes(e.Transactions[indx], buf, 1073741824); err != nil {
-			return err
+		if e.Transactions[indx], err = ssz.UnmarshalDynamicBytes(e.Transactions[indx], buf, 1073741824); err != nil {
+			return
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayload object
@@ -6339,10 +6483,14 @@ func (e *ExecutionPayloadHeader) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadHeader object
 func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayloadHeader object and returns the remaining bufferº
+func (e *ExecutionPayloadHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 536 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -6350,55 +6498,55 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 536)
 
 	// Field (0) 'ParentHash'
-	e.ParentHash, _ = ssz.UnmarshalBytes(e.ParentHash, buf[0:32])
+	e.ParentHash, buf = ssz.UnmarshalBytes(e.ParentHash, buf, 32)
 
 	// Field (1) 'FeeRecipient'
-	e.FeeRecipient, _ = ssz.UnmarshalBytes(e.FeeRecipient, buf[32:52])
+	e.FeeRecipient, buf = ssz.UnmarshalBytes(e.FeeRecipient, buf, 20)
 
 	// Field (2) 'StateRoot'
-	e.StateRoot, _ = ssz.UnmarshalBytes(e.StateRoot, buf[52:84])
+	e.StateRoot, buf = ssz.UnmarshalBytes(e.StateRoot, buf, 32)
 
 	// Field (3) 'ReceiptsRoot'
-	e.ReceiptsRoot, _ = ssz.UnmarshalBytes(e.ReceiptsRoot, buf[84:116])
+	e.ReceiptsRoot, buf = ssz.UnmarshalBytes(e.ReceiptsRoot, buf, 32)
 
 	// Field (4) 'LogsBloom'
-	e.LogsBloom, _ = ssz.UnmarshalBytes(e.LogsBloom, buf[116:372])
+	e.LogsBloom, buf = ssz.UnmarshalBytes(e.LogsBloom, buf, 256)
 
 	// Field (5) 'PrevRandao'
-	e.PrevRandao, _ = ssz.UnmarshalBytes(e.PrevRandao, buf[372:404])
+	e.PrevRandao, buf = ssz.UnmarshalBytes(e.PrevRandao, buf, 32)
 
 	// Field (6) 'BlockNumber'
-	e.BlockNumber = ssz.UnmarshallValue[uint64](buf[404:412])
+	e.BlockNumber, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'GasLimit'
-	e.GasLimit = ssz.UnmarshallValue[uint64](buf[412:420])
+	e.GasLimit, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (8) 'GasUsed'
-	e.GasUsed = ssz.UnmarshallValue[uint64](buf[420:428])
+	e.GasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (9) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[428:436])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (10) 'ExtraData'
-	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	e.BaseFeePerGas, _ = ssz.UnmarshalBytes(e.BaseFeePerGas, buf[440:472])
+	e.BaseFeePerGas, buf = ssz.UnmarshalBytes(e.BaseFeePerGas, buf, 32)
 
 	// Field (12) 'BlockHash'
-	e.BlockHash, _ = ssz.UnmarshalBytes(e.BlockHash, buf[472:504])
+	e.BlockHash, buf = ssz.UnmarshalBytes(e.BlockHash, buf, 32)
 
 	// Field (13) 'TransactionsRoot'
-	e.TransactionsRoot, _ = ssz.UnmarshalBytes(e.TransactionsRoot, buf[504:536])
+	e.TransactionsRoot, buf = ssz.UnmarshalBytes(e.TransactionsRoot, buf, 32)
 
 	// Field (10) 'ExtraData'
-	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:], 32); err != nil {
-		return err
+	if e.ExtraData, err = ssz.UnmarshalDynamicBytes(e.ExtraData, tail[o10:], 32); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeader object
@@ -6554,10 +6702,14 @@ func (e *ExecutionPayloadTransactions) MarshalSSZTo(buf []byte) (dst []byte, err
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadTransactions object
 func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayloadTransactions object and returns the remaining bufferº
+func (e *ExecutionPayloadTransactions) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -6565,21 +6717,21 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Transactions'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Transactions'
 	if err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, tail[o0:], 1048576, func(indx int, buf []byte) (err error) {
-		if e.Transactions[indx], err = ssz.UnmarshalBytes(e.Transactions[indx], buf, 1073741824); err != nil {
-			return err
+		if e.Transactions[indx], err = ssz.UnmarshalDynamicBytes(e.Transactions[indx], buf, 1073741824); err != nil {
+			return
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadTransactions object
@@ -6739,10 +6891,14 @@ func (e *ExecutionPayloadCapella) MarshalSSZTo(buf []byte) (dst []byte, err erro
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadCapella object
 func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayloadCapella object and returns the remaining bufferº
+func (e *ExecutionPayloadCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 512 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -6750,77 +6906,77 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 512)
 
 	// Field (0) 'ParentHash'
-	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
 
 	// Field (1) 'FeeRecipient'
-	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
+	buf = ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf)
 
 	// Field (2) 'StateRoot'
-	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
+	buf = ssz.UnmarshalFixedBytes(e.StateRoot[:], buf)
 
 	// Field (3) 'ReceiptsRoot'
-	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
+	buf = ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf)
 
 	// Field (4) 'LogsBloom'
-	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
+	buf = ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf)
 
 	// Field (5) 'PrevRandao'
-	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
+	buf = ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf)
 
 	// Field (6) 'BlockNumber'
-	e.BlockNumber = ssz.UnmarshallValue[uint64](buf[404:412])
+	e.BlockNumber, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'GasLimit'
-	e.GasLimit = ssz.UnmarshallValue[uint64](buf[412:420])
+	e.GasLimit, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (8) 'GasUsed'
-	e.GasUsed = ssz.UnmarshallValue[uint64](buf[420:428])
+	e.GasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (9) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[428:436])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (10) 'ExtraData'
-	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
+	buf = ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf)
 
 	// Field (12) 'BlockHash'
-	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
+	buf = ssz.UnmarshalFixedBytes(e.BlockHash[:], buf)
 
 	// Offset (13) 'Transactions'
-	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
-		return err
+	if o13, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (14) 'Withdrawals'
-	if o14, err = marker.ReadOffset(buf[508:512]); err != nil {
-		return err
+	if o14, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (10) 'ExtraData'
-	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:o13], 32); err != nil {
-		return err
+	if e.ExtraData, err = ssz.UnmarshalDynamicBytes(e.ExtraData, tail[o10:o13], 32); err != nil {
+		return
 	}
 
 	// Field (13) 'Transactions'
 	if err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, tail[o13:o14], 1048576, func(indx int, buf []byte) (err error) {
-		if e.Transactions[indx], err = ssz.UnmarshalBytes(e.Transactions[indx], buf, 1073741824); err != nil {
-			return err
+		if e.Transactions[indx], err = ssz.UnmarshalDynamicBytes(e.Transactions[indx], buf, 1073741824); err != nil {
+			return
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (14) 'Withdrawals'
 	if err = ssz.UnmarshalSliceSSZ(&e.Withdrawals, tail[o14:], 44, 16); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadCapella object
@@ -7014,10 +7170,14 @@ func (e *ExecutionPayloadHeaderCapella) MarshalSSZTo(buf []byte) (dst []byte, er
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadHeaderCapella object
 func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayloadHeaderCapella object and returns the remaining bufferº
+func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 568 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -7025,58 +7185,58 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 568)
 
 	// Field (0) 'ParentHash'
-	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
 
 	// Field (1) 'FeeRecipient'
-	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
+	buf = ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf)
 
 	// Field (2) 'StateRoot'
-	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
+	buf = ssz.UnmarshalFixedBytes(e.StateRoot[:], buf)
 
 	// Field (3) 'ReceiptsRoot'
-	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
+	buf = ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf)
 
 	// Field (4) 'LogsBloom'
-	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
+	buf = ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf)
 
 	// Field (5) 'PrevRandao'
-	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
+	buf = ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf)
 
 	// Field (6) 'BlockNumber'
-	e.BlockNumber = ssz.UnmarshallValue[uint64](buf[404:412])
+	e.BlockNumber, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'GasLimit'
-	e.GasLimit = ssz.UnmarshallValue[uint64](buf[412:420])
+	e.GasLimit, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (8) 'GasUsed'
-	e.GasUsed = ssz.UnmarshallValue[uint64](buf[420:428])
+	e.GasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (9) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[428:436])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (10) 'ExtraData'
-	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
+	buf = ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf)
 
 	// Field (12) 'BlockHash'
-	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
+	buf = ssz.UnmarshalFixedBytes(e.BlockHash[:], buf)
 
 	// Field (13) 'TransactionsRoot'
-	ssz.UnmarshalFixedBytes(e.TransactionsRoot[:], buf[504:536])
+	buf = ssz.UnmarshalFixedBytes(e.TransactionsRoot[:], buf)
 
 	// Field (14) 'WithdrawalRoot'
-	ssz.UnmarshalFixedBytes(e.WithdrawalRoot[:], buf[536:568])
+	buf = ssz.UnmarshalFixedBytes(e.WithdrawalRoot[:], buf)
 
 	// Field (10) 'ExtraData'
-	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:], 32); err != nil {
-		return err
+	if e.ExtraData, err = ssz.UnmarshalDynamicBytes(e.ExtraData, tail[o10:], 32); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderCapella object
@@ -7184,22 +7344,26 @@ func (b *BLSToExecutionChange) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 // UnmarshalSSZ ssz unmarshals the BLSToExecutionChange object
 func (b *BLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BLSToExecutionChange object and returns the remaining bufferº
+func (b *BLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 76 {
-		return ssz.ErrSize
+	if size < 76 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'ValidatorIndex'
-	b.ValidatorIndex = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.ValidatorIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'FromBLSPubKey'
-	ssz.UnmarshalFixedBytes(b.FromBLSPubKey[:], buf[8:56])
+	buf = ssz.UnmarshalFixedBytes(b.FromBLSPubKey[:], buf)
 
 	// Field (2) 'ToExecutionAddress'
-	ssz.UnmarshalFixedBytes(b.ToExecutionAddress[:], buf[56:76])
+	buf = ssz.UnmarshalFixedBytes(b.ToExecutionAddress[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BLSToExecutionChange object
@@ -7255,19 +7419,23 @@ func (h *HistoricalSummary) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the HistoricalSummary object
 func (h *HistoricalSummary) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(h, buf)
+}
+
+// UnmarshalSSZTail unmarshals the HistoricalSummary object and returns the remaining bufferº
+func (h *HistoricalSummary) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 64 {
-		return ssz.ErrSize
+	if size < 64 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'BlockSummaryRoot'
-	ssz.UnmarshalFixedBytes(h.BlockSummaryRoot[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(h.BlockSummaryRoot[:], buf)
 
 	// Field (1) 'StateSummaryRoot'
-	ssz.UnmarshalFixedBytes(h.StateSummaryRoot[:], buf[32:64])
+	buf = ssz.UnmarshalFixedBytes(h.StateSummaryRoot[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the HistoricalSummary object
@@ -7325,21 +7493,25 @@ func (s *SignedBLSToExecutionChange) MarshalSSZTo(buf []byte) (dst []byte, err e
 
 // UnmarshalSSZ ssz unmarshals the SignedBLSToExecutionChange object
 func (s *SignedBLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SignedBLSToExecutionChange object and returns the remaining bufferº
+func (s *SignedBLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 172 {
-		return ssz.ErrSize
+	if size < 172 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Message'
-	if err := ssz.UnmarshalField(&s.Message, buf[0:76]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&s.Message, buf); err != nil {
+		return
 	}
 
 	// Field (1) 'Signature'
-	ssz.UnmarshalFixedBytes(s.Signature[:], buf[76:172])
+	buf = ssz.UnmarshalFixedBytes(s.Signature[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBLSToExecutionChange object
@@ -7403,25 +7575,29 @@ func (w *Withdrawal) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Withdrawal object
 func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(w, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Withdrawal object and returns the remaining bufferº
+func (w *Withdrawal) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 44 {
-		return ssz.ErrSize
+	if size < 44 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Index'
-	w.Index = ssz.UnmarshallValue[uint64](buf[0:8])
+	w.Index, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'ValidatorIndex'
-	w.ValidatorIndex = ssz.UnmarshallValue[uint64](buf[8:16])
+	w.ValidatorIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'Address'
-	ssz.UnmarshalFixedBytes(w.Address[:], buf[16:36])
+	buf = ssz.UnmarshalFixedBytes(w.Address[:], buf)
 
 	// Field (3) 'Amount'
-	w.Amount = ssz.UnmarshallValue[uint64](buf[36:44])
+	w.Amount, buf = ssz.UnmarshallValue[uint64](buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Withdrawal object
@@ -7705,10 +7881,14 @@ func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconStateCapella object
 func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconStateCapella object and returns the remaining bufferº
+func (b *BeaconStateCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 2736653 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -7716,190 +7896,190 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 2736653)
 
 	// Field (0) 'GenesisTime'
-	b.GenesisTime = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.GenesisTime, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'GenesisValidatorsRoot'
-	ssz.UnmarshalFixedBytes(b.GenesisValidatorsRoot[:], buf[8:40])
+	buf = ssz.UnmarshalFixedBytes(b.GenesisValidatorsRoot[:], buf)
 
 	// Field (2) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[40:48])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Fork'
-	if err := ssz.UnmarshalField(&b.Fork, buf[48:64]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Fork, buf); err != nil {
+		return
 	}
 
 	// Field (4) 'LatestBlockHeader'
-	if err := ssz.UnmarshalField(&b.LatestBlockHeader, buf[64:176]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.LatestBlockHeader, buf); err != nil {
+		return
 	}
 
 	// Field (5) 'BlockRoots'
 
 	for ii := 0; ii < 8192; ii++ {
-		ssz.UnmarshalFixedBytes(b.BlockRoots[ii][:], buf[176:262320][ii*32:(ii+1)*32])
+		buf = ssz.UnmarshalFixedBytes(b.BlockRoots[ii][:], buf)
 	}
 
 	// Field (6) 'StateRoots'
 
 	for ii := 0; ii < 8192; ii++ {
-		ssz.UnmarshalFixedBytes(b.StateRoots[ii][:], buf[262320:524464][ii*32:(ii+1)*32])
+		buf = ssz.UnmarshalFixedBytes(b.StateRoots[ii][:], buf)
 	}
 
 	// Offset (7) 'HistoricalRoots'
-	if o7, err = marker.ReadOffset(buf[524464:524468]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[524468:524540]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Offset (9) 'Eth1DataVotes'
-	if o9, err = marker.ReadOffset(buf[524540:524544]); err != nil {
-		return err
+	if o9, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (10) 'Eth1DepositIndex'
-	b.Eth1DepositIndex = ssz.UnmarshallValue[uint64](buf[524544:524552])
+	b.Eth1DepositIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (11) 'Validators'
-	if o11, err = marker.ReadOffset(buf[524552:524556]); err != nil {
-		return err
+	if o11, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (12) 'Balances'
-	if o12, err = marker.ReadOffset(buf[524556:524560]); err != nil {
-		return err
+	if o12, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (13) 'RandaoMixes'
 
 	for ii := 0; ii < 65536; ii++ {
-		ssz.UnmarshalFixedBytes(b.RandaoMixes[ii][:], buf[524560:2621712][ii*32:(ii+1)*32])
+		buf = ssz.UnmarshalFixedBytes(b.RandaoMixes[ii][:], buf)
 	}
 
 	// Field (14) 'Slashings'
 	b.Slashings = ssz.Extend(b.Slashings, 8192)
 	for ii := 0; ii < 8192; ii++ {
-		b.Slashings[ii] = ssz.UnmarshallValue[uint64](buf[2621712:2687248][ii*8 : (ii+1)*8])
+		b.Slashings[ii], buf = ssz.UnmarshallValue[uint64](buf)
 	}
 
 	// Offset (15) 'PreviousEpochParticipation'
-	if o15, err = marker.ReadOffset(buf[2687248:2687252]); err != nil {
-		return err
+	if o15, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (16) 'CurrentEpochParticipation'
-	if o16, err = marker.ReadOffset(buf[2687252:2687256]); err != nil {
-		return err
+	if o16, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (17) 'JustificationBits'
-	ssz.UnmarshalFixedBytes(b.JustificationBits[:], buf[2687256:2687257])
+	buf = ssz.UnmarshalFixedBytes(b.JustificationBits[:], buf)
 
 	// Field (18) 'PreviousJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.PreviousJustifiedCheckpoint, buf[2687257:2687297]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.PreviousJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (19) 'CurrentJustifiedCheckpoint'
-	if err := ssz.UnmarshalField(&b.CurrentJustifiedCheckpoint, buf[2687297:2687337]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentJustifiedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Field (20) 'FinalizedCheckpoint'
-	if err := ssz.UnmarshalField(&b.FinalizedCheckpoint, buf[2687337:2687377]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.FinalizedCheckpoint, buf); err != nil {
+		return
 	}
 
 	// Offset (21) 'InactivityScores'
-	if o21, err = marker.ReadOffset(buf[2687377:2687381]); err != nil {
-		return err
+	if o21, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (22) 'CurrentSyncCommittee'
-	if err := ssz.UnmarshalField(&b.CurrentSyncCommittee, buf[2687381:2712005]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.CurrentSyncCommittee, buf); err != nil {
+		return
 	}
 
 	// Field (23) 'NextSyncCommittee'
-	if err := ssz.UnmarshalField(&b.NextSyncCommittee, buf[2712005:2736629]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.NextSyncCommittee, buf); err != nil {
+		return
 	}
 
 	// Offset (24) 'LatestExecutionPayloadHeader'
-	if o24, err = marker.ReadOffset(buf[2736629:2736633]); err != nil {
-		return err
+	if o24, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (25) 'NextWithdrawalIndex'
-	b.NextWithdrawalIndex = ssz.UnmarshallValue[uint64](buf[2736633:2736641])
+	b.NextWithdrawalIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (26) 'NextWithdrawalValidatorIndex'
-	b.NextWithdrawalValidatorIndex = ssz.UnmarshallValue[uint64](buf[2736641:2736649])
+	b.NextWithdrawalValidatorIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (27) 'HistoricalSummaries'
-	if o27, err = marker.ReadOffset(buf[2736649:2736653]); err != nil {
-		return err
+	if o27, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (7) 'HistoricalRoots'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.HistoricalRoots, tail[o7:o9], 32, 16777216, func(ii int, buf []byte) (err error) {
-		b.HistoricalRoots[ii], _ = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf)
+		b.HistoricalRoots[ii], buf = ssz.UnmarshalBytes(b.HistoricalRoots[ii], buf, 32)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (9) 'Eth1DataVotes'
 	if err = ssz.UnmarshalSliceSSZ(&b.Eth1DataVotes, tail[o9:o11], 72, 2048); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (11) 'Validators'
 	if err = ssz.UnmarshalSliceSSZ(&b.Validators, tail[o11:o12], 121, 1099511627776); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (12) 'Balances'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.Balances, tail[o12:o15], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.Balances[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.Balances[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (15) 'PreviousEpochParticipation'
-	if b.PreviousEpochParticipation, err = ssz.UnmarshalBytes(b.PreviousEpochParticipation, tail[o15:o16], 1099511627776); err != nil {
-		return err
+	if b.PreviousEpochParticipation, err = ssz.UnmarshalDynamicBytes(b.PreviousEpochParticipation, tail[o15:o16], 1099511627776); err != nil {
+		return
 	}
 
 	// Field (16) 'CurrentEpochParticipation'
-	if b.CurrentEpochParticipation, err = ssz.UnmarshalBytes(b.CurrentEpochParticipation, tail[o16:o21], 1099511627776); err != nil {
-		return err
+	if b.CurrentEpochParticipation, err = ssz.UnmarshalDynamicBytes(b.CurrentEpochParticipation, tail[o16:o21], 1099511627776); err != nil {
+		return
 	}
 
 	// Field (21) 'InactivityScores'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&b.InactivityScores, tail[o21:o24], 8, 1099511627776, func(ii int, buf []byte) (err error) {
-		b.InactivityScores[ii] = ssz.UnmarshallValue[uint64](buf)
+		b.InactivityScores[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (24) 'LatestExecutionPayloadHeader'
-	if err := ssz.UnmarshalField(&b.LatestExecutionPayloadHeader, tail[o24:o27]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&b.LatestExecutionPayloadHeader, tail[o24:o27]); err != nil {
+		return
 	}
 
 	// Field (27) 'HistoricalSummaries'
 	if err = ssz.UnmarshalSliceSSZ(&b.HistoricalSummaries, tail[o27:], 64, 16777216); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateCapella object
@@ -8237,10 +8417,14 @@ func (s *SignedBeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 // UnmarshalSSZ ssz unmarshals the SignedBeaconBlockCapella object
 func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(s, buf)
+}
+
+// UnmarshalSSZTail unmarshals the SignedBeaconBlockCapella object and returns the remaining bufferº
+func (s *SignedBeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 100 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -8248,19 +8432,19 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 100)
 
 	// Offset (0) 'Block'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (1) 'Signature'
-	s.Signature, _ = ssz.UnmarshalBytes(s.Signature, buf[4:100])
+	s.Signature, buf = ssz.UnmarshalBytes(s.Signature, buf, 96)
 
 	// Field (0) 'Block'
-	if err := ssz.UnmarshalField(&s.Block, tail[o0:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&s.Block, tail[o0:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockCapella object
@@ -8341,10 +8525,14 @@ func (b *BeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockCapella object
 func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlockCapella object and returns the remaining bufferº
+func (b *BeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 84 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -8352,28 +8540,28 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 84)
 
 	// Field (0) 'Slot'
-	b.Slot = ssz.UnmarshallValue[uint64](buf[0:8])
+	b.Slot, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (1) 'ProposerIndex'
-	b.ProposerIndex = ssz.UnmarshallValue[uint64](buf[8:16])
+	b.ProposerIndex, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (2) 'ParentRoot'
-	ssz.UnmarshalFixedBytes(b.ParentRoot[:], buf[16:48])
+	buf = ssz.UnmarshalFixedBytes(b.ParentRoot[:], buf)
 
 	// Field (3) 'StateRoot'
-	ssz.UnmarshalFixedBytes(b.StateRoot[:], buf[48:80])
+	buf = ssz.UnmarshalFixedBytes(b.StateRoot[:], buf)
 
 	// Offset (4) 'Body'
-	if o4, err = marker.ReadOffset(buf[80:84]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (4) 'Body'
-	if err := ssz.UnmarshalField(&b.Body, tail[o4:]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&b.Body, tail[o4:]); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockCapella object
@@ -8586,10 +8774,14 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockBodyCapella object
 func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(b, buf)
+}
+
+// UnmarshalSSZTail unmarshals the BeaconBlockBodyCapella object and returns the remaining bufferº
+func (b *BeaconBlockBodyCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 388 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -8597,92 +8789,92 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 388)
 
 	// Field (0) 'RandaoReveal'
-	b.RandaoReveal, _ = ssz.UnmarshalBytes(b.RandaoReveal, buf[0:96])
+	b.RandaoReveal, buf = ssz.UnmarshalBytes(b.RandaoReveal, buf, 96)
 
 	// Field (1) 'Eth1Data'
-	if err := ssz.UnmarshalField(&b.Eth1Data, buf[96:168]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.Eth1Data, buf); err != nil {
+		return
 	}
 
 	// Field (2) 'Graffiti'
-	ssz.UnmarshalFixedBytes(b.Graffiti[:], buf[168:200])
+	buf = ssz.UnmarshalFixedBytes(b.Graffiti[:], buf)
 
 	// Offset (3) 'ProposerSlashings'
-	if o3, err = marker.ReadOffset(buf[200:204]); err != nil {
-		return err
+	if o3, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (4) 'AttesterSlashings'
-	if o4, err = marker.ReadOffset(buf[204:208]); err != nil {
-		return err
+	if o4, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (5) 'Attestations'
-	if o5, err = marker.ReadOffset(buf[208:212]); err != nil {
-		return err
+	if o5, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (6) 'Deposits'
-	if o6, err = marker.ReadOffset(buf[212:216]); err != nil {
-		return err
+	if o6, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (7) 'VoluntaryExits'
-	if o7, err = marker.ReadOffset(buf[216:220]); err != nil {
-		return err
+	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (8) 'SyncAggregate'
-	if err := ssz.UnmarshalField(&b.SyncAggregate, buf[220:380]); err != nil {
-		return err
+	if buf, err = ssz.UnmarshalFieldTail(&b.SyncAggregate, buf); err != nil {
+		return
 	}
 
 	// Offset (9) 'ExecutionPayload'
-	if o9, err = marker.ReadOffset(buf[380:384]); err != nil {
-		return err
+	if o9, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (10) 'BlsToExecutionChanges'
-	if o10, err = marker.ReadOffset(buf[384:388]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (3) 'ProposerSlashings'
 	if err = ssz.UnmarshalSliceSSZ(&b.ProposerSlashings, tail[o3:o4], 416, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (4) 'AttesterSlashings'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.AttesterSlashings, tail[o4:o5], 2); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (5) 'Attestations'
 	if err = ssz.UnmarshalDynamicSliceSSZ(&b.Attestations, tail[o5:o6], 128); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (6) 'Deposits'
 	if err = ssz.UnmarshalSliceSSZ(&b.Deposits, tail[o6:o7], 1240, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (7) 'VoluntaryExits'
 	if err = ssz.UnmarshalSliceSSZ(&b.VoluntaryExits, tail[o7:o9], 112, 16); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (9) 'ExecutionPayload'
-	if err := ssz.UnmarshalField(&b.ExecutionPayload, tail[o9:o10]); err != nil {
-		return err
+	if err = ssz.UnmarshalField(&b.ExecutionPayload, tail[o9:o10]); err != nil {
+		return
 	}
 
 	// Field (10) 'BlsToExecutionChanges'
 	if err = ssz.UnmarshalSliceSSZ(&b.BlsToExecutionChanges, tail[o10:], 172, 16); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyCapella object
@@ -8976,10 +9168,14 @@ func (e *ExecutionPayloadDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadDeneb object
 func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayloadDeneb object and returns the remaining bufferº
+func (e *ExecutionPayloadDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 528 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -8987,83 +9183,83 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 528)
 
 	// Field (0) 'ParentHash'
-	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
 
 	// Field (1) 'FeeRecipient'
-	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
+	buf = ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf)
 
 	// Field (2) 'StateRoot'
-	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
+	buf = ssz.UnmarshalFixedBytes(e.StateRoot[:], buf)
 
 	// Field (3) 'ReceiptsRoot'
-	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
+	buf = ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf)
 
 	// Field (4) 'LogsBloom'
-	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
+	buf = ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf)
 
 	// Field (5) 'PrevRandao'
-	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
+	buf = ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf)
 
 	// Field (6) 'BlockNumber'
-	e.BlockNumber = ssz.UnmarshallValue[uint64](buf[404:412])
+	e.BlockNumber, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'GasLimit'
-	e.GasLimit = ssz.UnmarshallValue[uint64](buf[412:420])
+	e.GasLimit, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (8) 'GasUsed'
-	e.GasUsed = ssz.UnmarshallValue[uint64](buf[420:428])
+	e.GasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (9) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[428:436])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (10) 'ExtraData'
-	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
+	buf = ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf)
 
 	// Field (12) 'BlockHash'
-	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
+	buf = ssz.UnmarshalFixedBytes(e.BlockHash[:], buf)
 
 	// Offset (13) 'Transactions'
-	if o13, err = marker.ReadOffset(buf[504:508]); err != nil {
-		return err
+	if o13, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Offset (14) 'Withdrawals'
-	if o14, err = marker.ReadOffset(buf[508:512]); err != nil {
-		return err
+	if o14, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (15) 'BlobGasUsed'
-	e.BlobGasUsed = ssz.UnmarshallValue[uint64](buf[512:520])
+	e.BlobGasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (16) 'ExcessBlobGas'
-	e.ExcessBlobGas = ssz.UnmarshallValue[uint64](buf[520:528])
+	e.ExcessBlobGas, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (10) 'ExtraData'
-	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:o13], 32); err != nil {
-		return err
+	if e.ExtraData, err = ssz.UnmarshalDynamicBytes(e.ExtraData, tail[o10:o13], 32); err != nil {
+		return
 	}
 
 	// Field (13) 'Transactions'
 	if err = ssz.UnmarshalDynamicSliceWithCallback(&e.Transactions, tail[o13:o14], 1048576, func(indx int, buf []byte) (err error) {
-		if e.Transactions[indx], err = ssz.UnmarshalBytes(e.Transactions[indx], buf, 1073741824); err != nil {
-			return err
+		if e.Transactions[indx], err = ssz.UnmarshalDynamicBytes(e.Transactions[indx], buf, 1073741824); err != nil {
+			return
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Field (14) 'Withdrawals'
 	if err = ssz.UnmarshalSliceSSZ(&e.Withdrawals, tail[o14:], 44, 16); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadDeneb object
@@ -9269,10 +9465,14 @@ func (e *ExecutionPayloadHeaderDeneb) MarshalSSZTo(buf []byte) (dst []byte, err 
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadHeaderDeneb object
 func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(e, buf)
+}
+
+// UnmarshalSSZTail unmarshals the ExecutionPayloadHeaderDeneb object and returns the remaining bufferº
+func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 584 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -9280,64 +9480,64 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 584)
 
 	// Field (0) 'ParentHash'
-	ssz.UnmarshalFixedBytes(e.ParentHash[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(e.ParentHash[:], buf)
 
 	// Field (1) 'FeeRecipient'
-	ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf[32:52])
+	buf = ssz.UnmarshalFixedBytes(e.FeeRecipient[:], buf)
 
 	// Field (2) 'StateRoot'
-	ssz.UnmarshalFixedBytes(e.StateRoot[:], buf[52:84])
+	buf = ssz.UnmarshalFixedBytes(e.StateRoot[:], buf)
 
 	// Field (3) 'ReceiptsRoot'
-	ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf[84:116])
+	buf = ssz.UnmarshalFixedBytes(e.ReceiptsRoot[:], buf)
 
 	// Field (4) 'LogsBloom'
-	ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf[116:372])
+	buf = ssz.UnmarshalFixedBytes(e.LogsBloom[:], buf)
 
 	// Field (5) 'PrevRandao'
-	ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf[372:404])
+	buf = ssz.UnmarshalFixedBytes(e.PrevRandao[:], buf)
 
 	// Field (6) 'BlockNumber'
-	e.BlockNumber = ssz.UnmarshallValue[uint64](buf[404:412])
+	e.BlockNumber, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (7) 'GasLimit'
-	e.GasLimit = ssz.UnmarshallValue[uint64](buf[412:420])
+	e.GasLimit, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (8) 'GasUsed'
-	e.GasUsed = ssz.UnmarshallValue[uint64](buf[420:428])
+	e.GasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (9) 'Timestamp'
-	e.Timestamp = ssz.UnmarshallValue[uint64](buf[428:436])
+	e.Timestamp, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Offset (10) 'ExtraData'
-	if o10, err = marker.ReadOffset(buf[436:440]); err != nil {
-		return err
+	if o10, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf[440:472])
+	buf = ssz.UnmarshalFixedBytes(e.BaseFeePerGas[:], buf)
 
 	// Field (12) 'BlockHash'
-	ssz.UnmarshalFixedBytes(e.BlockHash[:], buf[472:504])
+	buf = ssz.UnmarshalFixedBytes(e.BlockHash[:], buf)
 
 	// Field (13) 'TransactionsRoot'
-	ssz.UnmarshalFixedBytes(e.TransactionsRoot[:], buf[504:536])
+	buf = ssz.UnmarshalFixedBytes(e.TransactionsRoot[:], buf)
 
 	// Field (14) 'WithdrawalRoot'
-	ssz.UnmarshalFixedBytes(e.WithdrawalRoot[:], buf[536:568])
+	buf = ssz.UnmarshalFixedBytes(e.WithdrawalRoot[:], buf)
 
 	// Field (15) 'BlobGasUsed'
-	e.BlobGasUsed = ssz.UnmarshallValue[uint64](buf[568:576])
+	e.BlobGasUsed, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (16) 'ExcessBlobGas'
-	e.ExcessBlobGas = ssz.UnmarshallValue[uint64](buf[576:584])
+	e.ExcessBlobGas, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (10) 'ExtraData'
-	if e.ExtraData, err = ssz.UnmarshalBytes(e.ExtraData, tail[o10:], 32); err != nil {
-		return err
+	if e.ExtraData, err = ssz.UnmarshalDynamicBytes(e.ExtraData, tail[o10:], 32); err != nil {
+		return
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderDeneb object

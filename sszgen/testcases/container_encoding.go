@@ -30,19 +30,23 @@ func (v *Vec) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Vec object
 func (v *Vec) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(v, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Vec object and returns the remaining bufferº
+func (v *Vec) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 48 {
-		return ssz.ErrSize
+	if size < 48 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Values'
 	v.Values = ssz.Extend(v.Values, 6)
 	for ii := 0; ii < 6; ii++ {
-		v.Values[ii] = ssz.UnmarshallValue[uint64](buf[0:48][ii*8 : (ii+1)*8])
+		v.Values[ii], buf = ssz.UnmarshallValue[uint64](buf)
 	}
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Vec object
@@ -109,10 +113,14 @@ func (v *Vec2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Vec2 object
 func (v *Vec2) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(v, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Vec2 object and returns the remaining bufferº
+func (v *Vec2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
 	if size < 4 {
-		return ssz.ErrSize
+		return nil, ssz.ErrSize
 	}
 
 	tail := buf
@@ -120,19 +128,19 @@ func (v *Vec2) UnmarshalSSZ(buf []byte) error {
 	marker := ssz.NewOffsetMarker(size, 4)
 
 	// Offset (0) 'Values2'
-	if o0, err = marker.ReadOffset(buf[0:4]); err != nil {
-		return err
+	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+		return nil, err
 	}
 
 	// Field (0) 'Values2'
 	if err = ssz.UnmarshalSliceWithIndexCallback(&v.Values2, tail[o0:], 4, 100, func(ii int, buf []byte) (err error) {
-		v.Values2[ii] = ssz.UnmarshallValue[uint32](buf)
+		v.Values2[ii], buf = ssz.UnmarshallValue[uint32](buf)
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Vec2 object

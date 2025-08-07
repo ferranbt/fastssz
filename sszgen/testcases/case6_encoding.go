@@ -24,16 +24,20 @@ func (c *Case6) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 // UnmarshalSSZ ssz unmarshals the Case6 object
 func (c *Case6) UnmarshalSSZ(buf []byte) error {
-	var err error
+	return ssz.UnmarshalSSZ(c, buf)
+}
+
+// UnmarshalSSZTail unmarshals the Case6 object and returns the remaining bufferº
+func (c *Case6) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := uint64(len(buf))
-	if size != 32 {
-		return ssz.ErrSize
+	if size < 32 {
+		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
-	ssz.UnmarshalFixedBytes(c.A[:], buf[0:32])
+	buf = ssz.UnmarshalFixedBytes(c.A[:], buf)
 
-	return err
+	return buf, nil
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case6 object
