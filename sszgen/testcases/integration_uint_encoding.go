@@ -128,7 +128,7 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	}
 
 	// Offset (7) 'A4'
-	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+	if o7, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 

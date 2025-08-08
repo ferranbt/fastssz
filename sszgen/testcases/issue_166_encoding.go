@@ -64,7 +64,7 @@ func (i *Issue165) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Offset (1) 'B'
-	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+	if o1, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 

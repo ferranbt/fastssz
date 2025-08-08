@@ -54,7 +54,7 @@ func (c *Case7) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'BlobKzgs'
-	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+	if o0, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
