@@ -35,8 +35,9 @@ func (v *Vec) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Vec object and returns the remaining bufferº
 func (v *Vec) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 48 {
+	size := len(buf)
+	fixedSize := v.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -50,8 +51,8 @@ func (v *Vec) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Vec object
-func (v *Vec) SizeSSZ() (size int) {
-	size = 48
+func (v *Vec) SizeSSZ(includeDynamic bool) (size int) {
+	size = (6 * 8)
 	return
 }
 
@@ -94,7 +95,7 @@ func (v *Vec2) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Vec2 object to a target array
 func (v *Vec2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int((4))
 
 	// Offset (0) 'Values2'
 	dst = ssz.WriteOffset(dst, offset)
@@ -118,14 +119,15 @@ func (v *Vec2) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Vec2 object and returns the remaining bufferº
 func (v *Vec2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := v.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'Values2'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -144,11 +146,13 @@ func (v *Vec2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Vec2 object
-func (v *Vec2) SizeSSZ() (size int) {
-	size = 4
+func (v *Vec2) SizeSSZ(includeDynamic bool) (size int) {
+	size = (4)
 
-	// Field (0) 'Values2'
-	size += len(v.Values2) * 4
+	if includeDynamic {
+		// Field (0) 'Values2'
+		size += len(v.Values2) * 4
+	}
 
 	return
 }

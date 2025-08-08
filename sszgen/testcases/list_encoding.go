@@ -33,8 +33,9 @@ func (b *BytesWrapper) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the BytesWrapper object and returns the remaining bufferº
 func (b *BytesWrapper) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 48 {
+	size := len(buf)
+	fixedSize := b.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -45,8 +46,8 @@ func (b *BytesWrapper) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BytesWrapper object
-func (b *BytesWrapper) SizeSSZ() (size int) {
-	size = 48
+func (b *BytesWrapper) SizeSSZ(includeDynamic bool) (size int) {
+	size = (48)
 	return
 }
 
@@ -83,7 +84,7 @@ func (l *ListC) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ListC object to a target array
 func (l *ListC) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int((4))
 
 	// Offset (0) 'Elems'
 	dst = ssz.WriteOffset(dst, offset)
@@ -109,14 +110,15 @@ func (l *ListC) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the ListC object and returns the remaining bufferº
 func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := l.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'Elems'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -124,7 +126,7 @@ func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'Elems'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], (48), 32, func(ii int, buf []byte) (err error) {
 		if buf, err = l.Elems[ii].UnmarshalSSZTail(buf); err != nil {
 			return
 		}
@@ -137,11 +139,13 @@ func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ListC object
-func (l *ListC) SizeSSZ() (size int) {
-	size = 4
+func (l *ListC) SizeSSZ(includeDynamic bool) (size int) {
+	size = (4)
 
-	// Field (0) 'Elems'
-	size += len(l.Elems) * 48
+	if includeDynamic {
+		// Field (0) 'Elems'
+		size += len(l.Elems) * (48)
+	}
 
 	return
 }
@@ -188,7 +192,7 @@ func (l *ListP) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ListP object to a target array
 func (l *ListP) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int((4))
 
 	// Offset (0) 'Elems'
 	dst = ssz.WriteOffset(dst, offset)
@@ -214,14 +218,15 @@ func (l *ListP) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the ListP object and returns the remaining bufferº
 func (l *ListP) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := l.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'Elems'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -229,7 +234,7 @@ func (l *ListP) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'Elems'
-	if err = ssz.UnmarshalSliceSSZ(&l.Elems, tail[o0:], 48, 32); err != nil {
+	if err = ssz.UnmarshalSliceSSZ(&l.Elems, tail[o0:], 32); err != nil {
 		return nil, err
 	}
 
@@ -237,11 +242,13 @@ func (l *ListP) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the ListP object
-func (l *ListP) SizeSSZ() (size int) {
-	size = 4
+func (l *ListP) SizeSSZ(includeDynamic bool) (size int) {
+	size = (4)
 
-	// Field (0) 'Elems'
-	size += len(l.Elems) * 48
+	if includeDynamic {
+		// Field (0) 'Elems'
+		size += len(l.Elems) * (48)
+	}
 
 	return
 }

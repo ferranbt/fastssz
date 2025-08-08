@@ -15,7 +15,7 @@ func (i *IntegrationUint) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the IntegrationUint object to a target array
 func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(31)
+	offset := int((31))
 
 	// Field (0) 'A'
 	dst = ssz.MarshalValue(dst, i.A)
@@ -90,14 +90,15 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the IntegrationUint object and returns the remaining bufferº
 func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 31 {
+	size := len(buf)
+	fixedSize := i.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o4, o5, o6, o7 uint64
-	marker := ssz.NewOffsetMarker(size, 31)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Field (0) 'A'
 	i.A, buf = ssz.UnmarshallValue[uint8](buf)
@@ -167,20 +168,22 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the IntegrationUint object
-func (i *IntegrationUint) SizeSSZ() (size int) {
-	size = 31
+func (i *IntegrationUint) SizeSSZ(includeDynamic bool) (size int) {
+	size = (31)
 
-	// Field (4) 'A1'
-	size += len(i.A1) * 1
+	if includeDynamic {
+		// Field (4) 'A1'
+		size += len(i.A1) * 1
 
-	// Field (5) 'A2'
-	size += len(i.A2) * 2
+		// Field (5) 'A2'
+		size += len(i.A2) * 2
 
-	// Field (6) 'A3'
-	size += len(i.A3) * 4
+		// Field (6) 'A3'
+		size += len(i.A3) * 4
 
-	// Field (7) 'A4'
-	size += len(i.A4) * 8
+		// Field (7) 'A4'
+		size += len(i.A4) * 8
+	}
 
 	return
 }

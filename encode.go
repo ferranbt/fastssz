@@ -9,7 +9,7 @@ import (
 
 // MarshalSSZ marshals an object
 func MarshalSSZ(m Marshaler) ([]byte, error) {
-	buf := make([]byte, m.SizeSSZ())
+	buf := make([]byte, m.SizeSSZ(true))
 	return m.MarshalSSZTo(buf[:0])
 }
 

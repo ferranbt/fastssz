@@ -32,8 +32,9 @@ func (t *TimeType) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the TimeType object and returns the remaining bufferº
 func (t *TimeType) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 16 {
+	size := len(buf)
+	fixedSize := t.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -47,8 +48,8 @@ func (t *TimeType) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the TimeType object
-func (t *TimeType) SizeSSZ() (size int) {
-	size = 16
+func (t *TimeType) SizeSSZ(includeDynamic bool) (size int) {
+	size = (16)
 	return
 }
 
@@ -101,8 +102,9 @@ func (t *TimeRawType) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the TimeRawType object and returns the remaining bufferº
 func (t *TimeRawType) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 16 {
+	size := len(buf)
+	fixedSize := t.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -116,8 +118,8 @@ func (t *TimeRawType) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the TimeRawType object
-func (t *TimeRawType) SizeSSZ() (size int) {
-	size = 16
+func (t *TimeRawType) SizeSSZ(includeDynamic bool) (size int) {
+	size = (16)
 	return
 }
 

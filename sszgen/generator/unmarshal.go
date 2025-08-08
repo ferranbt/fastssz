@@ -147,7 +147,7 @@ func (v *Value) unmarshalList(dst string) string {
 	inner := getElem(v.typ)
 	if inner.isFixed() {
 		var tmpl string
-		var innerSize uint64
+		var innerSize string
 
 		if inner.isContainer() && !inner.noPtr {
 			tmpl = `if err = ssz.UnmarshalSliceSSZ(&::.{{.name}}, {{.dst}}, {{.max}}); err != nil {
@@ -157,10 +157,13 @@ func (v *Value) unmarshalList(dst string) string {
 			// it is a basic type, manually infer the size
 			switch obj := inner.typ.(type) {
 			case *Uint:
-				innerSize = obj.Size
+				innerSize = fmt.Sprintf("%d", obj.Size)
 			case *Bytes:
-				innerSize = obj.Size
+				innerSize = fmt.Sprintf("%d", obj.Size)
+			case *Container:
+				innerSize = inner.fixedSizeForContainer()
 			default:
+				// TODO: It is my impression that maybe calling inner.fixedSize() would work for all the cases
 				panic(fmt.Errorf("unmarshalList not implemented for type %s", inner.Type()))
 			}
 
@@ -270,20 +273,20 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// If the struct is dynamic we create a set of offset variables that will be readed later.
 
 	tmpl := `size := len(buf)
-	if size < {{.fixedSizeName}} {
+	fixedSize := ::.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 	{{if .offsets}}
 		tail := buf
 		var {{.offsets}} uint64
-		marker := ssz.NewOffsetMarker(uint64(size), uint64({{.fixedSizeName}}))
+		marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 	{{end}}
 	`
 
 	str += execTmpl(tmpl, map[string]interface{}{
-		"cmp":           cmp,
-		"fixedSizeName": v.fixedSizeName(),
-		"offsets":       strings.Join(offsets, ", "),
+		"cmp":     cmp,
+		"offsets": strings.Join(offsets, ", "),
 	})
 
 	//var o0 uint64

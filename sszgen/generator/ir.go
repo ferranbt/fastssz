@@ -113,14 +113,6 @@ func lowerFirst(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
 }
 
-func (v *Value) fixedSizeName() string {
-	if obj, ok := v.typ.(*Container); ok {
-		return lowerFirst(obj.ObjName) + "FixedSize"
-	} else {
-		panic(fmt.Errorf("fixedSizeName called on non-container type %s", reflect.TypeOf(v.typ)))
-	}
-}
-
 func (v *Value) Type() string {
 	switch v.typ.(type) {
 	case *Bool:

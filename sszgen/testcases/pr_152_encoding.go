@@ -15,7 +15,7 @@ func (p *PR1512) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PR1512 object to a target array
 func (p *PR1512) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int((4))
 
 	// Offset (0) 'D'
 	dst = ssz.WriteOffset(dst, offset)
@@ -39,14 +39,15 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the PR1512 object and returns the remaining bufferº
 func (p *PR1512) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := p.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'D'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -65,11 +66,13 @@ func (p *PR1512) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the PR1512 object
-func (p *PR1512) SizeSSZ() (size int) {
-	size = 4
+func (p *PR1512) SizeSSZ(includeDynamic bool) (size int) {
+	size = (4)
 
-	// Field (0) 'D'
-	size += len(p.D) * 48
+	if includeDynamic {
+		// Field (0) 'D'
+		size += len(p.D) * 48
+	}
 
 	return
 }

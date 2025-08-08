@@ -26,8 +26,9 @@ func (c *Case3B) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Case3B object and returns the remaining bufferº
 func (c *Case3B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 0 {
+	size := len(buf)
+	fixedSize := c.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -35,8 +36,8 @@ func (c *Case3B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case3B object
-func (c *Case3B) SizeSSZ() (size int) {
-	size = 0
+func (c *Case3B) SizeSSZ(includeDynamic bool) (size int) {
+	size = (0)
 	return
 }
 

@@ -15,7 +15,7 @@ func (o *Obj2) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Obj2 object to a target array
 func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := int((4))
 
 	// Offset (0) 'T1'
 	dst = ssz.WriteOffset(dst, offset)
@@ -50,14 +50,15 @@ func (o *Obj2) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Obj2 object and returns the remaining bufferº
 func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := o.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'T1'
 	if o0, buf, err = marker.ReadOffset(buf); err != nil {
@@ -78,13 +79,15 @@ func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Obj2 object
-func (o *Obj2) SizeSSZ() (size int) {
-	size = 4
+func (o *Obj2) SizeSSZ(includeDynamic bool) (size int) {
+	size = (4)
 
-	// Field (0) 'T1'
-	for ii := 0; ii < len(o.T1); ii++ {
-		size += 4
-		size += len(o.T1[ii])
+	if includeDynamic {
+		// Field (0) 'T1'
+		for ii := 0; ii < len(o.T1); ii++ {
+			size += 4
+			size += len(o.T1[ii])
+		}
 	}
 
 	return

@@ -149,8 +149,8 @@ type BeaconState struct {
 	Slot                        uint64                `json:"slot"`
 	Fork                        *Fork                 `json:"fork"`
 	LatestBlockHeader           *BeaconBlockHeader    `json:"latest_block_header"`
-	BlockRoots                  [][]byte              `json:"block_roots" ssz-size:"8192,32"` //8192/64
-	StateRoots                  [][]byte              `json:"state_roots" ssz-size:"8192,32"` // 8192/64
+	BlockRoots                  [][]byte              `json:"block_roots" ssz-size:"var(rootsSize),32"` //8192/64
+	StateRoots                  [][]byte              `json:"state_roots" ssz-size:"var(rootsSize),32"` // 8192/64
 	HistoricalRoots             [][]byte              `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data                    *Eth1Data             `json:"eth1_data"`
 	Eth1DataVotes               []*Eth1Data           `json:"eth1_data_votes" ssz-max:"2048"` // 2048/32

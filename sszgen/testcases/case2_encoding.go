@@ -29,8 +29,9 @@ func (c *Case2A) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Case2A object and returns the remaining bufferº
 func (c *Case2A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 8 {
+	size := len(buf)
+	fixedSize := c.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -41,8 +42,8 @@ func (c *Case2A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case2A object
-func (c *Case2A) SizeSSZ() (size int) {
-	size = 8
+func (c *Case2A) SizeSSZ(includeDynamic bool) (size int) {
+	size = (8)
 	return
 }
 
@@ -92,8 +93,9 @@ func (c *Case2B) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Case2B object and returns the remaining bufferº
 func (c *Case2B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 16 {
+	size := len(buf)
+	fixedSize := c.SizeSSZ(false)
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -107,8 +109,8 @@ func (c *Case2B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case2B object
-func (c *Case2B) SizeSSZ() (size int) {
-	size = 16
+func (c *Case2B) SizeSSZ(includeDynamic bool) (size int) {
+	size = (16)
 	return
 }
 
