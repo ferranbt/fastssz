@@ -7,6 +7,9 @@
 
 The FastSSZ project in this repository is a combination of two things: a high performant low level library to work with SSZ encodings (root of this project) and the ([sszgen](./sszgen)) code generator that generates the SSZ encodings for Go structs using the SSZ library. By combining both, this library achieves peak Go native performance and zero memory allocation. The repository uses as test the official Ethereum SSZ tests ([spectests](./spectests/)) for the Consensus Spec data structures.
 
+> **⚠️ Version 0.2.0 Notice**  
+> Version 0.2.0 is a major release with significant breaking changes and represents a substantial refactor of the codebase. Code generated with v1.x is not compatible with the v2.0 API and must be regenerated. This version has not gone through all the production environments as previous releases, so use with caution.
+
 If you are only looking for the Consensus data structures and types with the SSZ support, it is recommended to use [go-eth-consensus](https://github.com/umbracle/go-eth-consensus) instead, since it is already integrated with other parts of the Consensus stack, like the Beacon http API.
 
 Clone:
