@@ -341,7 +341,7 @@ type ExecutionPayloadCapella struct {
 	BaseFeePerGas Uint256       `ssz-size:"32" json:"base_fee_per_gas"`
 	BlockHash     [32]byte      `ssz-size:"32" json:"block_hash"`
 	Transactions  [][]byte      `ssz-max:"1048576,1073741824" ssz-size:"?,?" json:"transactions"`
-	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"16"`
+	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"var(withdrawals)"`
 }
 
 type ExecutionPayloadHeaderCapella struct {
