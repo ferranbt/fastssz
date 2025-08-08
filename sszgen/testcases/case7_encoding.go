@@ -15,18 +15,18 @@ func (c *Case7) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Case7 object to a target array
 func (c *Case7) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := c.fixedSize()
 
 	// Offset (0) 'BlobKzgs'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'BlobKzgs'
-	if size := len(c.BlobKzgs); size > 16 {
+	if size := uint64(len(c.BlobKzgs)); size > 16 {
 		err = ssz.ErrListTooBigFn("Case7.BlobKzgs", size, 16)
 		return
 	}
 	for ii := 0; ii < len(c.BlobKzgs); ii++ {
-		if size := len(c.BlobKzgs[ii]); size != 48 {
+		if size := uint64(len(c.BlobKzgs[ii])); size != 48 {
 			err = ssz.ErrBytesLengthFn("Case7.BlobKzgs[ii]", size, 48)
 			return
 		}
@@ -44,7 +44,7 @@ func (c *Case7) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Case7 object and returns the remaining bufferº
 func (c *Case7) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := c.SizeSSZ(false)
+	fixedSize := c.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -59,7 +59,7 @@ func (c *Case7) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'BlobKzgs'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&c.BlobKzgs, tail[o0:], 48, 16, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&c.BlobKzgs, tail[o0:], 48, 16, func(ii uint64, buf []byte) (err error) {
 		c.BlobKzgs[ii], buf = ssz.UnmarshalBytes(c.BlobKzgs[ii], buf, 48)
 		return nil
 	}); err != nil {
@@ -69,14 +69,17 @@ func (c *Case7) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Case7 object
-func (c *Case7) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the Case7 object
+func (c *Case7) fixedSize() int {
+	return int(4)
+}
 
-	if includeDynamic {
-		// Field (0) 'BlobKzgs'
-		size += len(c.BlobKzgs) * 48
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the Case7 object
+func (c *Case7) SizeSSZ() (size int) {
+	size = c.fixedSize()
+
+	// Field (0) 'BlobKzgs'
+	size += len(c.BlobKzgs) * 48
 
 	return
 }
@@ -92,7 +95,7 @@ func (c *Case7) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (0) 'BlobKzgs'
 	{
-		if size := len(c.BlobKzgs); size > 16 {
+		if size := uint64(len(c.BlobKzgs)); size > 16 {
 			err = ssz.ErrListTooBigFn("Case7.BlobKzgs", size, 16)
 			return
 		}

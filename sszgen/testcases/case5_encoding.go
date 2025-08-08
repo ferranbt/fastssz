@@ -17,12 +17,12 @@ func (c *Case5A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'A'
-	if size := len(c.A); size != 2 {
+	if size := uint64(len(c.A)); size != 2 {
 		err = ssz.ErrVectorLengthFn("Case5A.A", size, 2)
 		return
 	}
-	for ii := 0; ii < 2; ii++ {
-		if size := len(c.A[ii]); size != 2 {
+	for ii := uint64(0); ii < 2; ii++ {
+		if size := uint64(len(c.A[ii])); size != 2 {
 			err = ssz.ErrBytesLengthFn("Case5A.A[ii]", size, 2)
 			return
 		}
@@ -30,12 +30,12 @@ func (c *Case5A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (1) 'B'
-	if size := len(c.B); size != 2 {
+	if size := uint64(len(c.B)); size != 2 {
 		err = ssz.ErrVectorLengthFn("Case5A.B", size, 2)
 		return
 	}
-	for ii := 0; ii < 2; ii++ {
-		if size := len(c.B[ii]); size != 2 {
+	for ii := uint64(0); ii < 2; ii++ {
+		if size := uint64(len(c.B[ii])); size != 2 {
 			err = ssz.ErrBytesLengthFn("Case5A.B[ii]", size, 2)
 			return
 		}
@@ -43,12 +43,12 @@ func (c *Case5A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (2) 'C'
-	if size := len(c.C); size != 2 {
+	if size := uint64(len(c.C)); size != 2 {
 		err = ssz.ErrVectorLengthFn("Case5A.C", size, 2)
 		return
 	}
-	for ii := 0; ii < 2; ii++ {
-		if size := len(c.C[ii]); size != 2 {
+	for ii := uint64(0); ii < 2; ii++ {
+		if size := uint64(len(c.C[ii])); size != 2 {
 			err = ssz.ErrBytesLengthFn("Case5A.C[ii]", size, 2)
 			return
 		}
@@ -66,35 +66,40 @@ func (c *Case5A) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Case5A object and returns the remaining bufferº
 func (c *Case5A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := c.SizeSSZ(false)
+	fixedSize := c.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'A'
 	c.A = make([][]byte, 2)
-	for ii := 0; ii < 2; ii++ {
+	for ii := uint64(0); ii < 2; ii++ {
 		c.A[ii], buf = ssz.UnmarshalBytes(c.A[ii], buf, 2)
 	}
 
 	// Field (1) 'B'
 	c.B = make([]Case5Bytes, 2)
-	for ii := 0; ii < 2; ii++ {
+	for ii := uint64(0); ii < 2; ii++ {
 		c.B[ii], buf = ssz.UnmarshalBytes(c.B[ii], buf, 2)
 	}
 
 	// Field (2) 'C'
 	c.C = make([][]byte, 2)
-	for ii := 0; ii < 2; ii++ {
+	for ii := uint64(0); ii < 2; ii++ {
 		c.C[ii], buf = ssz.UnmarshalBytes(c.C[ii], buf, 2)
 	}
 
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Case5A object
+func (c *Case5A) fixedSize() int {
+	return int(12)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Case5A object
-func (c *Case5A) SizeSSZ(includeDynamic bool) (size int) {
-	size = ((2 * 2) + (2 * 2) + (2 * 2))
+func (c *Case5A) SizeSSZ() (size int) {
+	size = c.fixedSize()
 	return
 }
 
@@ -109,7 +114,7 @@ func (c *Case5A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (0) 'A'
 	{
-		if size := len(c.A); size != 2 {
+		if size := uint64(len(c.A)); size != 2 {
 			err = ssz.ErrVectorLengthFn("Case5A.A", size, 2)
 			return
 		}
@@ -126,7 +131,7 @@ func (c *Case5A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (1) 'B'
 	{
-		if size := len(c.B); size != 2 {
+		if size := uint64(len(c.B)); size != 2 {
 			err = ssz.ErrVectorLengthFn("Case5A.B", size, 2)
 			return
 		}
@@ -143,7 +148,7 @@ func (c *Case5A) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (2) 'C'
 	{
-		if size := len(c.C); size != 2 {
+		if size := uint64(len(c.C)); size != 2 {
 			err = ssz.ErrVectorLengthFn("Case5A.C", size, 2)
 			return
 		}

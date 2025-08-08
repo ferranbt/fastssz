@@ -15,13 +15,13 @@ func (p *PR1512) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PR1512 object to a target array
 func (p *PR1512) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := p.fixedSize()
 
 	// Offset (0) 'D'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'D'
-	if size := len(p.D); size > 32 {
+	if size := uint64(len(p.D)); size > 32 {
 		err = ssz.ErrListTooBigFn("PR1512.D", size, 32)
 		return
 	}
@@ -40,7 +40,7 @@ func (p *PR1512) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the PR1512 object and returns the remaining bufferº
 func (p *PR1512) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := p.SizeSSZ(false)
+	fixedSize := p.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -55,7 +55,7 @@ func (p *PR1512) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'D'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&p.D, tail[o0:], 48, 32, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&p.D, tail[o0:], 48, 32, func(ii uint64, buf []byte) (err error) {
 		buf = ssz.UnmarshalFixedBytes(p.D[ii][:], buf)
 		return nil
 	}); err != nil {
@@ -65,14 +65,17 @@ func (p *PR1512) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the PR1512 object
-func (p *PR1512) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the PR1512 object
+func (p *PR1512) fixedSize() int {
+	return int(4)
+}
 
-	if includeDynamic {
-		// Field (0) 'D'
-		size += len(p.D) * 48
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the PR1512 object
+func (p *PR1512) SizeSSZ() (size int) {
+	size = p.fixedSize()
+
+	// Field (0) 'D'
+	size += len(p.D) * 48
 
 	return
 }
@@ -88,7 +91,7 @@ func (p *PR1512) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (0) 'D'
 	{
-		if size := len(p.D); size > 32 {
+		if size := uint64(len(p.D)); size > 32 {
 			err = ssz.ErrListTooBigFn("PR1512.D", size, 32)
 			return
 		}

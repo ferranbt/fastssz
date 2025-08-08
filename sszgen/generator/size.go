@@ -14,7 +14,7 @@ import (
 func (e *env) size(name string, v *Value) string {
 	tmpl := `// fixedSize returns the fixed size of the {{.name}} object
 	func (:: *{{.name}}) fixedSize() int {
-		return {{.fixed}}
+		return int({{.fixed}})
 	}
 	
 	// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object

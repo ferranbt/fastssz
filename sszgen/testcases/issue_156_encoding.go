@@ -26,7 +26,7 @@ func (i *Issue156) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = append(dst, i.A3[:]...)
 
 	// Field (3) 'A4'
-	if size := len(i.A4); size != 32 {
+	if size := uint64(len(i.A4)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Issue156.A4", size, 32)
 		return
 	}
@@ -43,7 +43,7 @@ func (i *Issue156) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Issue156 object and returns the remaining bufferº
 func (i *Issue156) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := i.SizeSSZ(false)
+	fixedSize := i.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -63,9 +63,14 @@ func (i *Issue156) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Issue156 object
+func (i *Issue156) fixedSize() int {
+	return int(128)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Issue156 object
-func (i *Issue156) SizeSSZ(includeDynamic bool) (size int) {
-	size = (128)
+func (i *Issue156) SizeSSZ() (size int) {
+	size = i.fixedSize()
 	return
 }
 
@@ -88,7 +93,7 @@ func (i *Issue156) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutBytes(i.A3[:])
 
 	// Field (3) 'A4'
-	if size := len(i.A4); size != 32 {
+	if size := uint64(len(i.A4)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Issue156.A4", size, 32)
 		return
 	}

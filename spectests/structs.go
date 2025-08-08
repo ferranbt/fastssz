@@ -153,14 +153,14 @@ type BeaconState struct {
 	StateRoots                  [][]byte              `json:"state_roots" ssz-size:"var(rootsSize),32"` // 8192/64
 	HistoricalRoots             [][]byte              `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data                    *Eth1Data             `json:"eth1_data"`
-	Eth1DataVotes               []*Eth1Data           `json:"eth1_data_votes" ssz-max:"2048"` // 2048/32
+	Eth1DataVotes               []*Eth1Data           `json:"eth1_data_votes" ssz-max:"var(eth1DataVotes)"` // 2048/32
 	Eth1DepositIndex            uint64                `json:"eth1_deposit_index"`
 	Validators                  []*Validator          `json:"validators" ssz-max:"1099511627776"`
 	Balances                    []uint64              `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes                 [][]byte              `json:"randao_mixes" ssz-size:"65536,32"`           // 65536/64
-	Slashings                   []uint64              `json:"slashings" ssz-size:"8192"`                  // 8192/64
-	PreviousEpochAttestations   []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"4096"` // 4096/1024
-	CurrentEpochAttestations    []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"4096"`  // 4096/1024
+	RandaoMixes                 [][]byte              `json:"randao_mixes" ssz-size:"var(randaoMixes),32"`                  // 65536/64
+	Slashings                   []uint64              `json:"slashings" ssz-size:"var(slashings)"`                          // 8192/64
+	PreviousEpochAttestations   []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"var(epochAttestations)"` // 4096/1024
+	CurrentEpochAttestations    []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"var(epochAttestations)"`  // 4096/1024
 	JustificationBits           []byte                `json:"justification_bits" ssz-size:"1"`
 	PreviousJustifiedCheckpoint *Checkpoint           `json:"previous_justified_checkpoint"`
 	CurrentJustifiedCheckpoint  *Checkpoint           `json:"current_justified_checkpoint"`

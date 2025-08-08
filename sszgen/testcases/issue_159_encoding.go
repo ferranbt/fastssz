@@ -33,7 +33,7 @@ func (i *Issue159[B]) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Issue159[B] object and returns the remaining bufferº
 func (i *Issue159[B]) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := i.SizeSSZ(false)
+	fixedSize := i.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -47,9 +47,14 @@ func (i *Issue159[B]) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Issue159[B] object
+func (i *Issue159[B]) fixedSize() int {
+	return int(90)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Issue159[B] object
-func (i *Issue159[B]) SizeSSZ(includeDynamic bool) (size int) {
-	size = (90)
+func (i *Issue159[B]) SizeSSZ() (size int) {
+	size = i.fixedSize()
 	return
 }
 

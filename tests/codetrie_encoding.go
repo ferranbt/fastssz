@@ -20,7 +20,7 @@ func (m *Metadata) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.MarshalValue(dst, m.Version)
 
 	// Field (1) 'CodeHash'
-	if size := len(m.CodeHash); size != 32 {
+	if size := uint64(len(m.CodeHash)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Metadata.CodeHash", size, 32)
 		return
 	}
@@ -59,7 +59,7 @@ func (m *Metadata) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the Metadata object
 func (m *Metadata) fixedSize() int {
-	return 35
+	return int(35)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Metadata object
@@ -81,7 +81,7 @@ func (m *Metadata) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutUint8(m.Version)
 
 	// Field (1) 'CodeHash'
-	if size := len(m.CodeHash); size != 32 {
+	if size := uint64(len(m.CodeHash)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Metadata.CodeHash", size, 32)
 		return
 	}
@@ -112,7 +112,7 @@ func (c *Chunk) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.MarshalValue(dst, c.FIO)
 
 	// Field (1) 'Code'
-	if size := len(c.Code); size != 32 {
+	if size := uint64(len(c.Code)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Chunk.Code", size, 32)
 		return
 	}
@@ -145,7 +145,7 @@ func (c *Chunk) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the Chunk object
 func (c *Chunk) fixedSize() int {
-	return 33
+	return int(33)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Chunk object
@@ -167,7 +167,7 @@ func (c *Chunk) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutUint8(c.FIO)
 
 	// Field (1) 'Code'
-	if size := len(c.Code); size != 32 {
+	if size := uint64(len(c.Code)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Chunk.Code", size, 32)
 		return
 	}
@@ -204,7 +204,7 @@ func (c *CodeTrieSmall) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (1) 'Chunks'
-	if size := len(c.Chunks); size > 4 {
+	if size := uint64(len(c.Chunks)); size > 4 {
 		err = ssz.ErrListTooBigFn("CodeTrieSmall.Chunks", size, 4)
 		return
 	}
@@ -254,7 +254,7 @@ func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the CodeTrieSmall object
 func (c *CodeTrieSmall) fixedSize() int {
-	return 39
+	return int(39)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieSmall object
@@ -331,7 +331,7 @@ func (c *CodeTrieBig) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (1) 'Chunks'
-	if size := len(c.Chunks); size > 1024 {
+	if size := uint64(len(c.Chunks)); size > 1024 {
 		err = ssz.ErrListTooBigFn("CodeTrieBig.Chunks", size, 1024)
 		return
 	}
@@ -381,7 +381,7 @@ func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the CodeTrieBig object
 func (c *CodeTrieBig) fixedSize() int {
-	return 39
+	return int(39)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the CodeTrieBig object

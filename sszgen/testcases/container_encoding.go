@@ -17,11 +17,11 @@ func (v *Vec) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Values'
-	if size := len(v.Values); size != 6 {
+	if size := uint64(len(v.Values)); size != 6 {
 		err = ssz.ErrVectorLengthFn("Vec.Values", size, 6)
 		return
 	}
-	for ii := 0; ii < 6; ii++ {
+	for ii := uint64(0); ii < 6; ii++ {
 		dst = ssz.MarshalValue(dst, v.Values[ii])
 	}
 
@@ -36,23 +36,28 @@ func (v *Vec) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Vec object and returns the remaining bufferº
 func (v *Vec) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := v.SizeSSZ(false)
+	fixedSize := v.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	// Field (0) 'Values'
 	v.Values = ssz.Extend(v.Values, 6)
-	for ii := 0; ii < 6; ii++ {
+	for ii := uint64(0); ii < 6; ii++ {
 		v.Values[ii], buf = ssz.UnmarshallValue[uint64](buf)
 	}
 
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Vec object
+func (v *Vec) fixedSize() int {
+	return int(48)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Vec object
-func (v *Vec) SizeSSZ(includeDynamic bool) (size int) {
-	size = (6 * 8)
+func (v *Vec) SizeSSZ() (size int) {
+	size = v.fixedSize()
 	return
 }
 
@@ -67,7 +72,7 @@ func (v *Vec) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (0) 'Values'
 	{
-		if size := len(v.Values); size != 6 {
+		if size := uint64(len(v.Values)); size != 6 {
 			err = ssz.ErrVectorLengthFn("Vec.Values", size, 6)
 			return
 		}
@@ -95,13 +100,13 @@ func (v *Vec2) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Vec2 object to a target array
 func (v *Vec2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := v.fixedSize()
 
 	// Offset (0) 'Values2'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'Values2'
-	if size := len(v.Values2); size > 100 {
+	if size := uint64(len(v.Values2)); size > 100 {
 		err = ssz.ErrListTooBigFn("Vec2.Values2", size, 100)
 		return
 	}
@@ -120,7 +125,7 @@ func (v *Vec2) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Vec2 object and returns the remaining bufferº
 func (v *Vec2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := v.SizeSSZ(false)
+	fixedSize := v.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -135,7 +140,7 @@ func (v *Vec2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'Values2'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&v.Values2, tail[o0:], 4, 100, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&v.Values2, tail[o0:], 4, 100, func(ii uint64, buf []byte) (err error) {
 		v.Values2[ii], buf = ssz.UnmarshallValue[uint32](buf)
 		return nil
 	}); err != nil {
@@ -145,14 +150,17 @@ func (v *Vec2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Vec2 object
-func (v *Vec2) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the Vec2 object
+func (v *Vec2) fixedSize() int {
+	return int(4)
+}
 
-	if includeDynamic {
-		// Field (0) 'Values2'
-		size += len(v.Values2) * 4
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the Vec2 object
+func (v *Vec2) SizeSSZ() (size int) {
+	size = v.fixedSize()
+
+	// Field (0) 'Values2'
+	size += len(v.Values2) * 4
 
 	return
 }
@@ -168,7 +176,7 @@ func (v *Vec2) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (0) 'Values2'
 	{
-		if size := len(v.Values2); size > 100 {
+		if size := uint64(len(v.Values2)); size > 100 {
 			err = ssz.ErrListTooBigFn("Vec2.Values2", size, 100)
 			return
 		}

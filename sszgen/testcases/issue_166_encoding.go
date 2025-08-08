@@ -15,7 +15,7 @@ func (i *Issue165) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Issue165 object to a target array
 func (i *Issue165) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((0))
+	offset := i.fixedSize()
 
 	// Offset (0) 'A'
 	dst = ssz.WriteOffset(dst, offset)
@@ -25,14 +25,14 @@ func (i *Issue165) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'A'
-	if size := len(i.A); size > 0 {
+	if size := uint64(len(i.A)); size > 0 {
 		err = ssz.ErrBytesLengthFn("Issue165.A", size, 0)
 		return
 	}
 	dst = append(dst, i.A...)
 
 	// Field (1) 'B'
-	if size := len(i.B); size > 0 {
+	if size := uint64(len(i.B)); size > 0 {
 		err = ssz.ErrBytesLengthFn("Issue165.B", size, 0)
 		return
 	}
@@ -49,7 +49,7 @@ func (i *Issue165) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Issue165 object and returns the remaining bufferº
 func (i *Issue165) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := i.SizeSSZ(false)
+	fixedSize := i.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -81,17 +81,20 @@ func (i *Issue165) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+// fixedSize returns the fixed size of the Issue165 object
+func (i *Issue165) fixedSize() int {
+	return int(0)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Issue165 object
-func (i *Issue165) SizeSSZ(includeDynamic bool) (size int) {
-	size = (0)
+func (i *Issue165) SizeSSZ() (size int) {
+	size = i.fixedSize()
 
-	if includeDynamic {
-		// Field (0) 'A'
-		size += len(i.A)
+	// Field (0) 'A'
+	size += len(i.A)
 
-		// Field (1) 'B'
-		size += len(i.B)
-	}
+	// Field (1) 'B'
+	size += len(i.B)
 
 	return
 }

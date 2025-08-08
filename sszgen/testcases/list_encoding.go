@@ -17,7 +17,7 @@ func (b *BytesWrapper) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Bytes'
-	if size := len(b.Bytes); size != 48 {
+	if size := uint64(len(b.Bytes)); size != 48 {
 		err = ssz.ErrBytesLengthFn("BytesWrapper.Bytes", size, 48)
 		return
 	}
@@ -34,7 +34,7 @@ func (b *BytesWrapper) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BytesWrapper object and returns the remaining bufferº
 func (b *BytesWrapper) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -45,9 +45,14 @@ func (b *BytesWrapper) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the BytesWrapper object
+func (b *BytesWrapper) fixedSize() int {
+	return int(48)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BytesWrapper object
-func (b *BytesWrapper) SizeSSZ(includeDynamic bool) (size int) {
-	size = (48)
+func (b *BytesWrapper) SizeSSZ() (size int) {
+	size = b.fixedSize()
 	return
 }
 
@@ -61,7 +66,7 @@ func (b *BytesWrapper) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Bytes'
-	if size := len(b.Bytes); size != 48 {
+	if size := uint64(len(b.Bytes)); size != 48 {
 		err = ssz.ErrBytesLengthFn("BytesWrapper.Bytes", size, 48)
 		return
 	}
@@ -84,13 +89,13 @@ func (l *ListC) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ListC object to a target array
 func (l *ListC) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := l.fixedSize()
 
 	// Offset (0) 'Elems'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'Elems'
-	if size := len(l.Elems); size > 32 {
+	if size := uint64(len(l.Elems)); size > 32 {
 		err = ssz.ErrListTooBigFn("ListC.Elems", size, 32)
 		return
 	}
@@ -111,7 +116,7 @@ func (l *ListC) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ListC object and returns the remaining bufferº
 func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := l.SizeSSZ(false)
+	fixedSize := l.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -126,7 +131,7 @@ func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'Elems'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], (48), 32, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&l.Elems, tail[o0:], 48, 32, func(ii uint64, buf []byte) (err error) {
 		if buf, err = l.Elems[ii].UnmarshalSSZTail(buf); err != nil {
 			return
 		}
@@ -138,14 +143,17 @@ func (l *ListC) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ListC object
-func (l *ListC) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the ListC object
+func (l *ListC) fixedSize() int {
+	return int(4)
+}
 
-	if includeDynamic {
-		// Field (0) 'Elems'
-		size += len(l.Elems) * (48)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the ListC object
+func (l *ListC) SizeSSZ() (size int) {
+	size = l.fixedSize()
+
+	// Field (0) 'Elems'
+	size += len(l.Elems) * 48
 
 	return
 }
@@ -192,13 +200,13 @@ func (l *ListP) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ListP object to a target array
 func (l *ListP) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := l.fixedSize()
 
 	// Offset (0) 'Elems'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'Elems'
-	if size := len(l.Elems); size > 32 {
+	if size := uint64(len(l.Elems)); size > 32 {
 		err = ssz.ErrListTooBigFn("ListP.Elems", size, 32)
 		return
 	}
@@ -219,7 +227,7 @@ func (l *ListP) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ListP object and returns the remaining bufferº
 func (l *ListP) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := l.SizeSSZ(false)
+	fixedSize := l.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -241,14 +249,17 @@ func (l *ListP) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ListP object
-func (l *ListP) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the ListP object
+func (l *ListP) fixedSize() int {
+	return int(4)
+}
 
-	if includeDynamic {
-		// Field (0) 'Elems'
-		size += len(l.Elems) * (48)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the ListP object
+func (l *ListP) SizeSSZ() (size int) {
+	size = l.fixedSize()
+
+	// Field (0) 'Elems'
+	size += len(l.Elems) * 48
 
 	return
 }

@@ -114,7 +114,7 @@ func (v *Value) unmarshal(dst string) string {
 	case *Vector:
 		if obj.Elem.isFixed() {
 			tmpl := `{{.create}}
-			for ii := 0; ii < {{.size}}; ii++ {
+			for ii := uint64(0); ii < {{.size}}; ii++ {
 				{{.unmarshal}}
 			}`
 			return execTmpl(tmpl, map[string]interface{}{
@@ -167,7 +167,7 @@ func (v *Value) unmarshalList(dst string) string {
 				panic(fmt.Errorf("unmarshalList not implemented for type %s", inner.Type()))
 			}
 
-			tmpl = `if err = ssz.UnmarshalSliceWithIndexCallback(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}, func(ii int, buf []byte) (err error) {
+			tmpl = `if err = ssz.UnmarshalSliceWithIndexCallback(&::.{{.name}}, {{.dst}}, {{.size}}, {{.max}}, func(ii uint64, buf []byte) (err error) {
 			{{.unmarshal}}
 			return nil
 		}); err != nil {
@@ -193,7 +193,7 @@ func (v *Value) unmarshalList(dst string) string {
 			return nil, err
 		}`
 	} else {
-		tmpl = `if err = ssz.UnmarshalDynamicSliceWithCallback(&::.{{.name}}, {{.dst}}, {{.max}}, func(indx int, buf []byte) (err error) {
+		tmpl = `if err = ssz.UnmarshalDynamicSliceWithCallback(&::.{{.name}}, {{.dst}}, {{.max}}, func(indx uint64, buf []byte) (err error) {
 		{{.unmarshal}}
 		return nil
 	}); err != nil {

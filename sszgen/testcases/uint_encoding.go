@@ -39,7 +39,7 @@ func (u *Uints) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Uints object and returns the remaining bufferº
 func (u *Uints) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := u.SizeSSZ(false)
+	fixedSize := u.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -75,9 +75,14 @@ func (u *Uints) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Uints object
+func (u *Uints) fixedSize() int {
+	return int(15)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Uints object
-func (u *Uints) SizeSSZ(includeDynamic bool) (size int) {
-	size = (15)
+func (u *Uints) SizeSSZ() (size int) {
+	size = u.fixedSize()
 	return
 }
 

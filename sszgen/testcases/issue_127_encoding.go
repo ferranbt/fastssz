@@ -15,13 +15,13 @@ func (o *Obj2) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Obj2 object to a target array
 func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := o.fixedSize()
 
 	// Offset (0) 'T1'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'T1'
-	if size := len(o.T1); size > 1024 {
+	if size := uint64(len(o.T1)); size > 1024 {
 		err = ssz.ErrListTooBigFn("Obj2.T1", size, 1024)
 		return
 	}
@@ -33,7 +33,7 @@ func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		}
 	}
 	for ii := 0; ii < len(o.T1); ii++ {
-		if size := len(o.T1[ii]); size > 256 {
+		if size := uint64(len(o.T1[ii])); size > 256 {
 			err = ssz.ErrBytesLengthFn("Obj2.T1[ii]", size, 256)
 			return
 		}
@@ -51,7 +51,7 @@ func (o *Obj2) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Obj2 object and returns the remaining bufferº
 func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := o.SizeSSZ(false)
+	fixedSize := o.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -66,7 +66,7 @@ func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Field (0) 'T1'
-	if err = ssz.UnmarshalDynamicSliceWithCallback(&o.T1, tail[o0:], 1024, func(indx int, buf []byte) (err error) {
+	if err = ssz.UnmarshalDynamicSliceWithCallback(&o.T1, tail[o0:], 1024, func(indx uint64, buf []byte) (err error) {
 		if o.T1[indx], err = ssz.UnmarshalDynamicBytes(o.T1[indx], buf, 256); err != nil {
 			return
 		}
@@ -78,16 +78,19 @@ func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Obj2 object
-func (o *Obj2) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the Obj2 object
+func (o *Obj2) fixedSize() int {
+	return int(4)
+}
 
-	if includeDynamic {
-		// Field (0) 'T1'
-		for ii := 0; ii < len(o.T1); ii++ {
-			size += 4
-			size += len(o.T1[ii])
-		}
+// SizeSSZ returns the ssz encoded size in bytes for the Obj2 object
+func (o *Obj2) SizeSSZ() (size int) {
+	size = o.fixedSize()
+
+	// Field (0) 'T1'
+	for ii := 0; ii < len(o.T1); ii++ {
+		size += 4
+		size += len(o.T1[ii])
 	}
 
 	return

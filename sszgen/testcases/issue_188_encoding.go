@@ -17,14 +17,14 @@ func (i *Issue188) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
 	// Field (0) 'Name'
-	if size := len(i.Name); size != 32 {
+	if size := uint64(len(i.Name)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Issue188.Name", size, 32)
 		return
 	}
 	dst = append(dst, i.Name...)
 
 	// Field (1) 'Address'
-	if size := len(i.Address); size != 32 {
+	if size := uint64(len(i.Address)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Issue188.Address", size, 32)
 		return
 	}
@@ -41,7 +41,7 @@ func (i *Issue188) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Issue188 object and returns the remaining bufferº
 func (i *Issue188) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := i.SizeSSZ(false)
+	fixedSize := i.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -55,9 +55,14 @@ func (i *Issue188) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Issue188 object
+func (i *Issue188) fixedSize() int {
+	return int(64)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Issue188 object
-func (i *Issue188) SizeSSZ(includeDynamic bool) (size int) {
-	size = (64)
+func (i *Issue188) SizeSSZ() (size int) {
+	size = i.fixedSize()
 	return
 }
 
@@ -71,14 +76,14 @@ func (i *Issue188) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Name'
-	if size := len(i.Name); size != 32 {
+	if size := uint64(len(i.Name)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Issue188.Name", size, 32)
 		return
 	}
 	hh.PutBytes(i.Name)
 
 	// Field (1) 'Address'
-	if size := len(i.Address); size != 32 {
+	if size := uint64(len(i.Address)); size != 32 {
 		err = ssz.ErrBytesLengthFn("Issue188.Address", size, 32)
 		return
 	}

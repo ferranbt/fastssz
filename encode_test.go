@@ -121,7 +121,7 @@ func TestUnmarshalDynamic(t *testing.T) {
 		num, err := DecodeDynamicLength(buf, 10)
 		require.NoError(t, err)
 
-		err = UnmarshalDynamic(buf, num, func(i int, b []byte) error {
+		err = UnmarshalDynamic(buf, num, func(i uint64, b []byte) error {
 			if !bytes.Equal(b, []byte{0x1}) {
 				return fmt.Errorf("bad")
 			}
@@ -138,7 +138,7 @@ func TestUnmarshalDynamic(t *testing.T) {
 		num, err := DecodeDynamicLength(buf, 10)
 		require.NoError(t, err)
 
-		err = UnmarshalDynamic(buf, num, func(i int, b []byte) error {
+		err = UnmarshalDynamic(buf, num, func(i uint64, b []byte) error {
 			return nil
 		})
 		require.Equal(t, ErrSize, err)

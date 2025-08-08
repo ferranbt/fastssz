@@ -7,7 +7,7 @@ func validateBytesArray(name string, size uint64, fixed bool) string {
 		cmp = "!="
 	}
 
-	tmpl := `if size := len(::.{{.name}}); size {{.cmp}} {{.size}} {
+	tmpl := `if size := uint64(len(::.{{.name}})); size {{.cmp}} {{.size}} {
 			err = ssz.ErrBytesLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
@@ -39,7 +39,7 @@ func (v *Value) validate() string {
 		}
 
 		// We only have vectors for [][]byte roots
-		tmpl := `if size := len(::.{{.name}}); size != {{.size}} {
+		tmpl := `if size := uint64(len(::.{{.name}})); size != {{.size}} {
 			err = ssz.ErrVectorLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
@@ -49,7 +49,7 @@ func (v *Value) validate() string {
 			"size": obj.Size,
 		})
 	case *List:
-		tmpl := `if size := len(::.{{.name}}); size > {{.size}} {
+		tmpl := `if size := uint64(len(::.{{.name}})); size > {{.size}} {
 			err = ssz.ErrListTooBigFn("--.{{.name}}", size, {{.size}})
 			return
 		}
