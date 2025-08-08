@@ -29,7 +29,7 @@ func (e *env) marshal(name string, v *Value) string {
 	}
 	if !v.isFixed() {
 		// offset is the position where the offset starts
-		data["offset"] = "offset := int(" + v.fixedSizeForContainer() + ")\n"
+		data["offset"] = "offset := ::.fixedSize()\n"
 	}
 	str := execTmpl(tmpl, data)
 	return appendObjSignature(str, v)

@@ -273,7 +273,7 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 	// If the struct is dynamic we create a set of offset variables that will be readed later.
 
 	tmpl := `size := len(buf)
-	fixedSize := ::.SizeSSZ(false)
+	fixedSize := ::.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}

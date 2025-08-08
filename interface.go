@@ -4,11 +4,11 @@ package ssz
 type Marshaler interface {
 	MarshalSSZTo(dst []byte) ([]byte, error)
 	MarshalSSZ() ([]byte, error)
-	SizeSSZ(bool) int
+	SizeSSZ() int
 }
 
 type SSZSizer interface {
-	SizeSSZ(bool) int
+	SizeSSZ() int
 }
 
 // Unmarshaler is the interface implemented by types that can unmarshal a SSZ description of themselves
@@ -118,7 +118,7 @@ func UnmarshalSliceSSZ[T any, PT PtrConstraint[T]](
 	// Create a zero value to get the size
 	var zero T
 	var zeroPtr PT = PT(&zero)
-	itemSize := zeroPtr.SizeSSZ(false)
+	itemSize := zeroPtr.SizeSSZ()
 
 	return UnmarshalSliceWithIndexCallback(slice, buf, itemSize, maxItems,
 		func(ii int, itemBuf []byte) error {

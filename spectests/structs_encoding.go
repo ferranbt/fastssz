@@ -15,7 +15,7 @@ func (a *AggregateAndProof) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the AggregateAndProof object to a target array
 func (a *AggregateAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((108))
+	offset := a.fixedSize()
 
 	// Field (0) 'Index'
 	dst = ssz.MarshalValue(dst, a.Index)
@@ -42,7 +42,7 @@ func (a *AggregateAndProof) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the AggregateAndProof object and returns the remaining bufferº
 func (a *AggregateAndProof) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := a.SizeSSZ(false)
+	fixedSize := a.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -70,17 +70,20 @@ func (a *AggregateAndProof) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the AggregateAndProof object
-func (a *AggregateAndProof) SizeSSZ(includeDynamic bool) (size int) {
-	size = (108)
+// fixedSize returns the fixed size of the AggregateAndProof object
+func (a *AggregateAndProof) fixedSize() int {
+	return 108
+}
 
-	if includeDynamic {
-		// Field (1) 'Aggregate'
-		if a.Aggregate == nil {
-			a.Aggregate = new(Attestation)
-		}
-		size += a.Aggregate.SizeSSZ(true)
+// SizeSSZ returns the ssz encoded size in bytes for the AggregateAndProof object
+func (a *AggregateAndProof) SizeSSZ() (size int) {
+	size = a.fixedSize()
+
+	// Field (1) 'Aggregate'
+	if a.Aggregate == nil {
+		a.Aggregate = new(Attestation)
 	}
+	size += a.Aggregate.SizeSSZ()
 
 	return
 }
@@ -144,7 +147,7 @@ func (c *Checkpoint) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Checkpoint object and returns the remaining bufferº
 func (c *Checkpoint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := c.SizeSSZ(false)
+	fixedSize := c.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -158,9 +161,14 @@ func (c *Checkpoint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Checkpoint object
+func (c *Checkpoint) fixedSize() int {
+	return 40
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Checkpoint object
-func (c *Checkpoint) SizeSSZ(includeDynamic bool) (size int) {
-	size = (40)
+func (c *Checkpoint) SizeSSZ() (size int) {
+	size = c.fixedSize()
 	return
 }
 
@@ -237,7 +245,7 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the AttestationData object and returns the remaining bufferº
 func (a *AttestationData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := a.SizeSSZ(false)
+	fixedSize := a.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -268,9 +276,14 @@ func (a *AttestationData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the AttestationData object
+func (a *AttestationData) fixedSize() int {
+	return 128
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the AttestationData object
-func (a *AttestationData) SizeSSZ(includeDynamic bool) (size int) {
-	size = (48 + (40) + (40))
+func (a *AttestationData) SizeSSZ() (size int) {
+	size = a.fixedSize()
 	return
 }
 
@@ -325,7 +338,7 @@ func (a *Attestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Attestation object to a target array
 func (a *Attestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((100 + (48 + (40) + (40))))
+	offset := a.fixedSize()
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -359,7 +372,7 @@ func (a *Attestation) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Attestation object and returns the remaining bufferº
 func (a *Attestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := a.SizeSSZ(false)
+	fixedSize := a.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -389,14 +402,17 @@ func (a *Attestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Attestation object
-func (a *Attestation) SizeSSZ(includeDynamic bool) (size int) {
-	size = (100 + (48 + (40) + (40)))
+// fixedSize returns the fixed size of the Attestation object
+func (a *Attestation) fixedSize() int {
+	return 228
+}
 
-	if includeDynamic {
-		// Field (0) 'AggregationBits'
-		size += len(a.AggregationBits)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the Attestation object
+func (a *Attestation) SizeSSZ() (size int) {
+	size = a.fixedSize()
+
+	// Field (0) 'AggregationBits'
+	size += len(a.AggregationBits)
 
 	return
 }
@@ -473,7 +489,7 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the DepositData object and returns the remaining bufferº
 func (d *DepositData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := d.SizeSSZ(false)
+	fixedSize := d.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -493,9 +509,14 @@ func (d *DepositData) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the DepositData object
+func (d *DepositData) fixedSize() int {
+	return 184
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the DepositData object
-func (d *DepositData) SizeSSZ(includeDynamic bool) (size int) {
-	size = (184)
+func (d *DepositData) SizeSSZ() (size int) {
+	size = d.fixedSize()
 	return
 }
 
@@ -574,7 +595,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Deposit object and returns the remaining bufferº
 func (d *Deposit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := d.SizeSSZ(false)
+	fixedSize := d.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -593,9 +614,14 @@ func (d *Deposit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Deposit object
+func (d *Deposit) fixedSize() int {
+	return 1240
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Deposit object
-func (d *Deposit) SizeSSZ(includeDynamic bool) (size int) {
-	size = ((33 * 32) + (184))
+func (d *Deposit) SizeSSZ() (size int) {
+	size = d.fixedSize()
 	return
 }
 
@@ -679,7 +705,7 @@ func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the DepositMessage object and returns the remaining bufferº
 func (d *DepositMessage) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := d.SizeSSZ(false)
+	fixedSize := d.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -696,9 +722,14 @@ func (d *DepositMessage) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the DepositMessage object
+func (d *DepositMessage) fixedSize() int {
+	return 88
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the DepositMessage object
-func (d *DepositMessage) SizeSSZ(includeDynamic bool) (size int) {
-	size = (88)
+func (d *DepositMessage) SizeSSZ() (size int) {
+	size = d.fixedSize()
 	return
 }
 
@@ -745,7 +776,7 @@ func (i *IndexedAttestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the IndexedAttestation object to a target array
 func (i *IndexedAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((100 + (48 + (40) + (40))))
+	offset := i.fixedSize()
 
 	// Offset (0) 'AttestationIndices'
 	dst = ssz.WriteOffset(dst, offset)
@@ -785,7 +816,7 @@ func (i *IndexedAttestation) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the IndexedAttestation object and returns the remaining bufferº
 func (i *IndexedAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := i.SizeSSZ(false)
+	fixedSize := i.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -818,14 +849,17 @@ func (i *IndexedAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the IndexedAttestation object
-func (i *IndexedAttestation) SizeSSZ(includeDynamic bool) (size int) {
-	size = (100 + (48 + (40) + (40)))
+// fixedSize returns the fixed size of the IndexedAttestation object
+func (i *IndexedAttestation) fixedSize() int {
+	return 228
+}
 
-	if includeDynamic {
-		// Field (0) 'AttestationIndices'
-		size += len(i.AttestationIndices) * 8
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the IndexedAttestation object
+func (i *IndexedAttestation) SizeSSZ() (size int) {
+	size = i.fixedSize()
+
+	// Field (0) 'AttestationIndices'
+	size += len(i.AttestationIndices) * 8
 
 	return
 }
@@ -886,7 +920,7 @@ func (p *PendingAttestation) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PendingAttestation object to a target array
 func (p *PendingAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((20 + (48 + (40) + (40))))
+	offset := p.fixedSize()
 
 	// Offset (0) 'AggregationBits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -923,7 +957,7 @@ func (p *PendingAttestation) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the PendingAttestation object and returns the remaining bufferº
 func (p *PendingAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := p.SizeSSZ(false)
+	fixedSize := p.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -956,14 +990,17 @@ func (p *PendingAttestation) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the PendingAttestation object
-func (p *PendingAttestation) SizeSSZ(includeDynamic bool) (size int) {
-	size = (20 + (48 + (40) + (40)))
+// fixedSize returns the fixed size of the PendingAttestation object
+func (p *PendingAttestation) fixedSize() int {
+	return 148
+}
 
-	if includeDynamic {
-		// Field (0) 'AggregationBits'
-		size += len(p.AggregationBits)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the PendingAttestation object
+func (p *PendingAttestation) SizeSSZ() (size int) {
+	size = p.fixedSize()
+
+	// Field (0) 'AggregationBits'
+	size += len(p.AggregationBits)
 
 	return
 }
@@ -1044,7 +1081,7 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Fork object and returns the remaining bufferº
 func (f *Fork) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := f.SizeSSZ(false)
+	fixedSize := f.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1061,9 +1098,14 @@ func (f *Fork) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Fork object
+func (f *Fork) fixedSize() int {
+	return 16
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Fork object
-func (f *Fork) SizeSSZ(includeDynamic bool) (size int) {
-	size = (16)
+func (f *Fork) SizeSSZ() (size int) {
+	size = f.fixedSize()
 	return
 }
 
@@ -1154,7 +1196,7 @@ func (v *Validator) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Validator object and returns the remaining bufferº
 func (v *Validator) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := v.SizeSSZ(false)
+	fixedSize := v.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1186,9 +1228,14 @@ func (v *Validator) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Validator object
+func (v *Validator) fixedSize() int {
+	return 121
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Validator object
-func (v *Validator) SizeSSZ(includeDynamic bool) (size int) {
-	size = (121)
+func (v *Validator) SizeSSZ() (size int) {
+	size = v.fixedSize()
 	return
 }
 
@@ -1268,7 +1315,7 @@ func (v *VoluntaryExit) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the VoluntaryExit object and returns the remaining bufferº
 func (v *VoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := v.SizeSSZ(false)
+	fixedSize := v.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1282,9 +1329,14 @@ func (v *VoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the VoluntaryExit object
+func (v *VoluntaryExit) fixedSize() int {
+	return 16
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the VoluntaryExit object
-func (v *VoluntaryExit) SizeSSZ(includeDynamic bool) (size int) {
-	size = (16)
+func (v *VoluntaryExit) SizeSSZ() (size int) {
+	size = v.fixedSize()
 	return
 }
 
@@ -1343,7 +1395,7 @@ func (s *SignedVoluntaryExit) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedVoluntaryExit object and returns the remaining bufferº
 func (s *SignedVoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1359,9 +1411,14 @@ func (s *SignedVoluntaryExit) UnmarshalSSZTail(buf []byte) (rest []byte, err err
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the SignedVoluntaryExit object
+func (s *SignedVoluntaryExit) fixedSize() int {
+	return 112
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedVoluntaryExit object
-func (s *SignedVoluntaryExit) SizeSSZ(includeDynamic bool) (size int) {
-	size = (96 + (16))
+func (s *SignedVoluntaryExit) SizeSSZ() (size int) {
+	size = s.fixedSize()
 	return
 }
 
@@ -1427,7 +1484,7 @@ func (e *Eth1Block) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Eth1Block object and returns the remaining bufferº
 func (e *Eth1Block) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1444,9 +1501,14 @@ func (e *Eth1Block) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Eth1Block object
+func (e *Eth1Block) fixedSize() int {
+	return 48
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Eth1Block object
-func (e *Eth1Block) SizeSSZ(includeDynamic bool) (size int) {
-	size = (48)
+func (e *Eth1Block) SizeSSZ() (size int) {
+	size = e.fixedSize()
 	return
 }
 
@@ -1518,7 +1580,7 @@ func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Eth1Data object and returns the remaining bufferº
 func (e *Eth1Data) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1535,9 +1597,14 @@ func (e *Eth1Data) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Eth1Data object
+func (e *Eth1Data) fixedSize() int {
+	return 72
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Eth1Data object
-func (e *Eth1Data) SizeSSZ(includeDynamic bool) (size int) {
-	size = (72)
+func (e *Eth1Data) SizeSSZ() (size int) {
+	size = e.fixedSize()
 	return
 }
 
@@ -1610,7 +1677,7 @@ func (s *SigningRoot) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SigningRoot object and returns the remaining bufferº
 func (s *SigningRoot) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1624,9 +1691,14 @@ func (s *SigningRoot) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the SigningRoot object
+func (s *SigningRoot) fixedSize() int {
+	return 40
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the SigningRoot object
-func (s *SigningRoot) SizeSSZ(includeDynamic bool) (size int) {
-	size = (40)
+func (s *SigningRoot) SizeSSZ() (size int) {
+	size = s.fixedSize()
 	return
 }
 
@@ -1700,7 +1772,7 @@ func (h *HistoricalBatch) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the HistoricalBatch object and returns the remaining bufferº
 func (h *HistoricalBatch) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := h.SizeSSZ(false)
+	fixedSize := h.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1720,9 +1792,14 @@ func (h *HistoricalBatch) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the HistoricalBatch object
+func (h *HistoricalBatch) fixedSize() int {
+	return 524288
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the HistoricalBatch object
-func (h *HistoricalBatch) SizeSSZ(includeDynamic bool) (size int) {
-	size = ((8192 * 32) + (8192 * 32))
+func (h *HistoricalBatch) SizeSSZ() (size int) {
+	size = h.fixedSize()
 	return
 }
 
@@ -1806,7 +1883,7 @@ func (p *ProposerSlashing) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ProposerSlashing object and returns the remaining bufferº
 func (p *ProposerSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := p.SizeSSZ(false)
+	fixedSize := p.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1824,9 +1901,14 @@ func (p *ProposerSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the ProposerSlashing object
+func (p *ProposerSlashing) fixedSize() int {
+	return 416
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the ProposerSlashing object
-func (p *ProposerSlashing) SizeSSZ(includeDynamic bool) (size int) {
-	size = ((96 + (112)) + (96 + (112)))
+func (p *ProposerSlashing) SizeSSZ() (size int) {
+	size = p.fixedSize()
 	return
 }
 
@@ -1872,14 +1954,14 @@ func (a *AttesterSlashing) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the AttesterSlashing object to a target array
 func (a *AttesterSlashing) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((8))
+	offset := a.fixedSize()
 
 	// Offset (0) 'Attestation1'
 	dst = ssz.WriteOffset(dst, offset)
 	if a.Attestation1 == nil {
 		a.Attestation1 = new(IndexedAttestation)
 	}
-	offset += a.Attestation1.SizeSSZ(true)
+	offset += a.Attestation1.SizeSSZ()
 
 	// Offset (1) 'Attestation2'
 	dst = ssz.WriteOffset(dst, offset)
@@ -1905,7 +1987,7 @@ func (a *AttesterSlashing) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the AttesterSlashing object and returns the remaining bufferº
 func (a *AttesterSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := a.SizeSSZ(false)
+	fixedSize := a.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -1937,23 +2019,26 @@ func (a *AttesterSlashing) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return
 }
 
+// fixedSize returns the fixed size of the AttesterSlashing object
+func (a *AttesterSlashing) fixedSize() int {
+	return 8
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the AttesterSlashing object
-func (a *AttesterSlashing) SizeSSZ(includeDynamic bool) (size int) {
-	size = (8)
+func (a *AttesterSlashing) SizeSSZ() (size int) {
+	size = a.fixedSize()
 
-	if includeDynamic {
-		// Field (0) 'Attestation1'
-		if a.Attestation1 == nil {
-			a.Attestation1 = new(IndexedAttestation)
-		}
-		size += a.Attestation1.SizeSSZ(true)
-
-		// Field (1) 'Attestation2'
-		if a.Attestation2 == nil {
-			a.Attestation2 = new(IndexedAttestation)
-		}
-		size += a.Attestation2.SizeSSZ(true)
+	// Field (0) 'Attestation1'
+	if a.Attestation1 == nil {
+		a.Attestation1 = new(IndexedAttestation)
 	}
+	size += a.Attestation1.SizeSSZ()
+
+	// Field (1) 'Attestation2'
+	if a.Attestation2 == nil {
+		a.Attestation2 = new(IndexedAttestation)
+	}
+	size += a.Attestation2.SizeSSZ()
 
 	return
 }
@@ -1994,7 +2079,7 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlock object to a target array
 func (b *BeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((84))
+	offset := b.fixedSize()
 
 	// Field (0) 'Slot'
 	dst = ssz.MarshalValue(dst, b.Slot)
@@ -2035,7 +2120,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlock object and returns the remaining bufferº
 func (b *BeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -2069,17 +2154,20 @@ func (b *BeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlock object
-func (b *BeaconBlock) SizeSSZ(includeDynamic bool) (size int) {
-	size = (84)
+// fixedSize returns the fixed size of the BeaconBlock object
+func (b *BeaconBlock) fixedSize() int {
+	return 84
+}
 
-	if includeDynamic {
-		// Field (4) 'Body'
-		if b.Body == nil {
-			b.Body = new(BeaconBlockBodyPhase0)
-		}
-		size += b.Body.SizeSSZ(true)
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlock object
+func (b *BeaconBlock) SizeSSZ() (size int) {
+	size = b.fixedSize()
+
+	// Field (4) 'Body'
+	if b.Body == nil {
+		b.Body = new(BeaconBlockBodyPhase0)
 	}
+	size += b.Body.SizeSSZ()
 
 	return
 }
@@ -2135,7 +2223,7 @@ func (s *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the SignedBeaconBlock object to a target array
 func (s *SignedBeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((100))
+	offset := s.fixedSize()
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
@@ -2163,7 +2251,7 @@ func (s *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBeaconBlock object and returns the remaining bufferº
 func (s *SignedBeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -2188,17 +2276,20 @@ func (s *SignedBeaconBlock) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlock object
-func (s *SignedBeaconBlock) SizeSSZ(includeDynamic bool) (size int) {
-	size = (100)
+// fixedSize returns the fixed size of the SignedBeaconBlock object
+func (s *SignedBeaconBlock) fixedSize() int {
+	return 100
+}
 
-	if includeDynamic {
-		// Field (0) 'Block'
-		if s.Block == nil {
-			s.Block = new(BeaconBlock)
-		}
-		size += s.Block.SizeSSZ(true)
+// SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlock object
+func (s *SignedBeaconBlock) SizeSSZ() (size int) {
+	size = s.fixedSize()
+
+	// Field (0) 'Block'
+	if s.Block == nil {
+		s.Block = new(BeaconBlock)
 	}
+	size += s.Block.SizeSSZ()
 
 	return
 }
@@ -2282,7 +2373,7 @@ func (t *Transfer) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Transfer object and returns the remaining bufferº
 func (t *Transfer) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := t.SizeSSZ(false)
+	fixedSize := t.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -2311,9 +2402,14 @@ func (t *Transfer) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Transfer object
+func (t *Transfer) fixedSize() int {
+	return 184
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Transfer object
-func (t *Transfer) SizeSSZ(includeDynamic bool) (size int) {
-	size = (184)
+func (t *Transfer) SizeSSZ() (size int) {
+	size = t.fixedSize()
 	return
 }
 
@@ -2372,7 +2468,7 @@ func (b *BeaconState) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconState object to a target array
 func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((81 + (16) + (112) + (rootsSize * 32) + (rootsSize * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40)))
+	offset := b.fixedSize()
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -2443,14 +2539,14 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * (72)
+	offset += len(b.Eth1DataVotes) * 72
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * (121)
+	offset += len(b.Validators) * 121
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -2482,7 +2578,7 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.PreviousEpochAttestations); ii++ {
 		offset += 4
-		offset += b.PreviousEpochAttestations[ii].SizeSSZ(true)
+		offset += b.PreviousEpochAttestations[ii].SizeSSZ()
 	}
 
 	// Offset (16) 'CurrentEpochAttestations'
@@ -2572,7 +2668,7 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		offset = 4 * len(b.PreviousEpochAttestations)
 		for ii := 0; ii < len(b.PreviousEpochAttestations); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.PreviousEpochAttestations[ii].SizeSSZ(true)
+			offset += b.PreviousEpochAttestations[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.PreviousEpochAttestations); ii++ {
@@ -2590,7 +2686,7 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		offset = 4 * len(b.CurrentEpochAttestations)
 		for ii := 0; ii < len(b.CurrentEpochAttestations); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.CurrentEpochAttestations[ii].SizeSSZ(true)
+			offset += b.CurrentEpochAttestations[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.CurrentEpochAttestations); ii++ {
@@ -2610,7 +2706,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconState object and returns the remaining bufferº
 func (b *BeaconState) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -2757,34 +2853,37 @@ func (b *BeaconState) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconState object
+func (b *BeaconState) fixedSize() int {
+	return (2163089 + (rootsSize * 32) + (rootsSize * 32))
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
-func (b *BeaconState) SizeSSZ(includeDynamic bool) (size int) {
-	size = (81 + (16) + (112) + (rootsSize * 32) + (rootsSize * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40))
+func (b *BeaconState) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (7) 'HistoricalRoots'
-		size += len(b.HistoricalRoots) * 32
+	// Field (7) 'HistoricalRoots'
+	size += len(b.HistoricalRoots) * 32
 
-		// Field (9) 'Eth1DataVotes'
-		size += len(b.Eth1DataVotes) * (72)
+	// Field (9) 'Eth1DataVotes'
+	size += len(b.Eth1DataVotes) * 72
 
-		// Field (11) 'Validators'
-		size += len(b.Validators) * (121)
+	// Field (11) 'Validators'
+	size += len(b.Validators) * 121
 
-		// Field (12) 'Balances'
-		size += len(b.Balances) * 8
+	// Field (12) 'Balances'
+	size += len(b.Balances) * 8
 
-		// Field (15) 'PreviousEpochAttestations'
-		for ii := 0; ii < len(b.PreviousEpochAttestations); ii++ {
-			size += 4
-			size += b.PreviousEpochAttestations[ii].SizeSSZ(true)
-		}
+	// Field (15) 'PreviousEpochAttestations'
+	for ii := 0; ii < len(b.PreviousEpochAttestations); ii++ {
+		size += 4
+		size += b.PreviousEpochAttestations[ii].SizeSSZ()
+	}
 
-		// Field (16) 'CurrentEpochAttestations'
-		for ii := 0; ii < len(b.CurrentEpochAttestations); ii++ {
-			size += 4
-			size += b.CurrentEpochAttestations[ii].SizeSSZ(true)
-		}
+	// Field (16) 'CurrentEpochAttestations'
+	for ii := 0; ii < len(b.CurrentEpochAttestations); ii++ {
+		size += 4
+		size += b.CurrentEpochAttestations[ii].SizeSSZ()
 	}
 
 	return
@@ -3048,7 +3147,7 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyPhase0 object to a target array
 func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((148 + (72)))
+	offset := b.fixedSize()
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -3070,25 +3169,25 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	offset += len(b.ProposerSlashings) * 416
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 		offset += 4
-		offset += b.AttesterSlashings[ii].SizeSSZ(true)
+		offset += b.AttesterSlashings[ii].SizeSSZ()
 	}
 
 	// Offset (5) 'Attestations'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.Attestations); ii++ {
 		offset += 4
-		offset += b.Attestations[ii].SizeSSZ(true)
+		offset += b.Attestations[ii].SizeSSZ()
 	}
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * ((33 * 32) + (184))
+	offset += len(b.Deposits) * 1240
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3113,7 +3212,7 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 		offset = 4 * len(b.AttesterSlashings)
 		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.AttesterSlashings[ii].SizeSSZ(true)
+			offset += b.AttesterSlashings[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -3131,7 +3230,7 @@ func (b *BeaconBlockBodyPhase0) MarshalSSZTo(buf []byte) (dst []byte, err error)
 		offset = 4 * len(b.Attestations)
 		for ii := 0; ii < len(b.Attestations); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.Attestations[ii].SizeSSZ(true)
+			offset += b.Attestations[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.Attestations); ii++ {
@@ -3173,7 +3272,7 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyPhase0 object and returns the remaining bufferº
 func (b *BeaconBlockBodyPhase0) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -3246,32 +3345,35 @@ func (b *BeaconBlockBodyPhase0) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconBlockBodyPhase0 object
+func (b *BeaconBlockBodyPhase0) fixedSize() int {
+	return 220
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyPhase0 object
-func (b *BeaconBlockBodyPhase0) SizeSSZ(includeDynamic bool) (size int) {
-	size = (148 + (72))
+func (b *BeaconBlockBodyPhase0) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (3) 'ProposerSlashings'
-		size += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	// Field (3) 'ProposerSlashings'
+	size += len(b.ProposerSlashings) * 416
 
-		// Field (4) 'AttesterSlashings'
-		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
-			size += 4
-			size += b.AttesterSlashings[ii].SizeSSZ(true)
-		}
-
-		// Field (5) 'Attestations'
-		for ii := 0; ii < len(b.Attestations); ii++ {
-			size += 4
-			size += b.Attestations[ii].SizeSSZ(true)
-		}
-
-		// Field (6) 'Deposits'
-		size += len(b.Deposits) * ((33 * 32) + (184))
-
-		// Field (7) 'VoluntaryExits'
-		size += len(b.VoluntaryExits) * (96 + (16))
+	// Field (4) 'AttesterSlashings'
+	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
+		size += 4
+		size += b.AttesterSlashings[ii].SizeSSZ()
 	}
+
+	// Field (5) 'Attestations'
+	for ii := 0; ii < len(b.Attestations); ii++ {
+		size += 4
+		size += b.Attestations[ii].SizeSSZ()
+	}
+
+	// Field (6) 'Deposits'
+	size += len(b.Deposits) * 1240
+
+	// Field (7) 'VoluntaryExits'
+	size += len(b.VoluntaryExits) * 112
 
 	return
 }
@@ -3400,7 +3502,7 @@ func (b *BeaconBlockBodyAltair) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyAltair object to a target array
 func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((148 + (72) + (160)))
+	offset := b.fixedSize()
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -3422,25 +3524,25 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	offset += len(b.ProposerSlashings) * 416
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 		offset += 4
-		offset += b.AttesterSlashings[ii].SizeSSZ(true)
+		offset += b.AttesterSlashings[ii].SizeSSZ()
 	}
 
 	// Offset (5) 'Attestations'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.Attestations); ii++ {
 		offset += 4
-		offset += b.Attestations[ii].SizeSSZ(true)
+		offset += b.Attestations[ii].SizeSSZ()
 	}
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * ((33 * 32) + (184))
+	offset += len(b.Deposits) * 1240
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
@@ -3473,7 +3575,7 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 		offset = 4 * len(b.AttesterSlashings)
 		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.AttesterSlashings[ii].SizeSSZ(true)
+			offset += b.AttesterSlashings[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -3491,7 +3593,7 @@ func (b *BeaconBlockBodyAltair) MarshalSSZTo(buf []byte) (dst []byte, err error)
 		offset = 4 * len(b.Attestations)
 		for ii := 0; ii < len(b.Attestations); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.Attestations[ii].SizeSSZ(true)
+			offset += b.Attestations[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.Attestations); ii++ {
@@ -3533,7 +3635,7 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyAltair object and returns the remaining bufferº
 func (b *BeaconBlockBodyAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -3611,32 +3713,35 @@ func (b *BeaconBlockBodyAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconBlockBodyAltair object
+func (b *BeaconBlockBodyAltair) fixedSize() int {
+	return 380
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyAltair object
-func (b *BeaconBlockBodyAltair) SizeSSZ(includeDynamic bool) (size int) {
-	size = (148 + (72) + (160))
+func (b *BeaconBlockBodyAltair) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (3) 'ProposerSlashings'
-		size += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	// Field (3) 'ProposerSlashings'
+	size += len(b.ProposerSlashings) * 416
 
-		// Field (4) 'AttesterSlashings'
-		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
-			size += 4
-			size += b.AttesterSlashings[ii].SizeSSZ(true)
-		}
-
-		// Field (5) 'Attestations'
-		for ii := 0; ii < len(b.Attestations); ii++ {
-			size += 4
-			size += b.Attestations[ii].SizeSSZ(true)
-		}
-
-		// Field (6) 'Deposits'
-		size += len(b.Deposits) * ((33 * 32) + (184))
-
-		// Field (7) 'VoluntaryExits'
-		size += len(b.VoluntaryExits) * (96 + (16))
+	// Field (4) 'AttesterSlashings'
+	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
+		size += 4
+		size += b.AttesterSlashings[ii].SizeSSZ()
 	}
+
+	// Field (5) 'Attestations'
+	for ii := 0; ii < len(b.Attestations); ii++ {
+		size += 4
+		size += b.Attestations[ii].SizeSSZ()
+	}
+
+	// Field (6) 'Deposits'
+	size += len(b.Deposits) * 1240
+
+	// Field (7) 'VoluntaryExits'
+	size += len(b.VoluntaryExits) * 112
 
 	return
 }
@@ -3773,7 +3878,7 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyBellatrix object to a target array
 func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((152 + (72) + (160)))
+	offset := b.fixedSize()
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -3795,29 +3900,29 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	offset += len(b.ProposerSlashings) * 416
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 		offset += 4
-		offset += b.AttesterSlashings[ii].SizeSSZ(true)
+		offset += b.AttesterSlashings[ii].SizeSSZ()
 	}
 
 	// Offset (5) 'Attestations'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.Attestations); ii++ {
 		offset += 4
-		offset += b.Attestations[ii].SizeSSZ(true)
+		offset += b.Attestations[ii].SizeSSZ()
 	}
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * ((33 * 32) + (184))
+	offset += len(b.Deposits) * 1240
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.VoluntaryExits) * (96 + (16))
+	offset += len(b.VoluntaryExits) * 112
 
 	// Field (8) 'SyncAggregate'
 	if b.SyncAggregate == nil {
@@ -3850,7 +3955,7 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 		offset = 4 * len(b.AttesterSlashings)
 		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.AttesterSlashings[ii].SizeSSZ(true)
+			offset += b.AttesterSlashings[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -3868,7 +3973,7 @@ func (b *BeaconBlockBodyBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err err
 		offset = 4 * len(b.Attestations)
 		for ii := 0; ii < len(b.Attestations); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.Attestations[ii].SizeSSZ(true)
+			offset += b.Attestations[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.Attestations); ii++ {
@@ -3915,7 +4020,7 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyBellatrix object and returns the remaining bufferº
 func (b *BeaconBlockBodyBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -4003,38 +4108,41 @@ func (b *BeaconBlockBodyBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, er
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconBlockBodyBellatrix object
+func (b *BeaconBlockBodyBellatrix) fixedSize() int {
+	return 384
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyBellatrix object
-func (b *BeaconBlockBodyBellatrix) SizeSSZ(includeDynamic bool) (size int) {
-	size = (152 + (72) + (160))
+func (b *BeaconBlockBodyBellatrix) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (3) 'ProposerSlashings'
-		size += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	// Field (3) 'ProposerSlashings'
+	size += len(b.ProposerSlashings) * 416
 
-		// Field (4) 'AttesterSlashings'
-		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
-			size += 4
-			size += b.AttesterSlashings[ii].SizeSSZ(true)
-		}
-
-		// Field (5) 'Attestations'
-		for ii := 0; ii < len(b.Attestations); ii++ {
-			size += 4
-			size += b.Attestations[ii].SizeSSZ(true)
-		}
-
-		// Field (6) 'Deposits'
-		size += len(b.Deposits) * ((33 * 32) + (184))
-
-		// Field (7) 'VoluntaryExits'
-		size += len(b.VoluntaryExits) * (96 + (16))
-
-		// Field (9) 'ExecutionPayload'
-		if b.ExecutionPayload == nil {
-			b.ExecutionPayload = new(ExecutionPayload)
-		}
-		size += b.ExecutionPayload.SizeSSZ(true)
+	// Field (4) 'AttesterSlashings'
+	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
+		size += 4
+		size += b.AttesterSlashings[ii].SizeSSZ()
 	}
+
+	// Field (5) 'Attestations'
+	for ii := 0; ii < len(b.Attestations); ii++ {
+		size += 4
+		size += b.Attestations[ii].SizeSSZ()
+	}
+
+	// Field (6) 'Deposits'
+	size += len(b.Deposits) * 1240
+
+	// Field (7) 'VoluntaryExits'
+	size += len(b.VoluntaryExits) * 112
+
+	// Field (9) 'ExecutionPayload'
+	if b.ExecutionPayload == nil {
+		b.ExecutionPayload = new(ExecutionPayload)
+	}
+	size += b.ExecutionPayload.SizeSSZ()
 
 	return
 }
@@ -4176,7 +4284,7 @@ func (b *BeaconStateAltair) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconStateAltair object to a target array
 func (b *BeaconStateAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((2199023255629 + (16) + (112) + (8192 * 32) + (8192 * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40) + (48 + (512 * 48)) + (48 + (512 * 48))))
+	offset := b.fixedSize()
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -4247,14 +4355,14 @@ func (b *BeaconStateAltair) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * (72)
+	offset += len(b.Eth1DataVotes) * 72
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * (121)
+	offset += len(b.Validators) * 121
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -4418,7 +4526,7 @@ func (b *BeaconStateAltair) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconStateAltair object and returns the remaining bufferº
 func (b *BeaconStateAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -4588,32 +4696,35 @@ func (b *BeaconStateAltair) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconStateAltair object
+func (b *BeaconStateAltair) fixedSize() int {
+	return 2199025992173
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateAltair object
-func (b *BeaconStateAltair) SizeSSZ(includeDynamic bool) (size int) {
-	size = (2199023255629 + (16) + (112) + (8192 * 32) + (8192 * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40) + (48 + (512 * 48)) + (48 + (512 * 48)))
+func (b *BeaconStateAltair) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (7) 'HistoricalRoots'
-		size += len(b.HistoricalRoots) * 32
+	// Field (7) 'HistoricalRoots'
+	size += len(b.HistoricalRoots) * 32
 
-		// Field (9) 'Eth1DataVotes'
-		size += len(b.Eth1DataVotes) * (72)
+	// Field (9) 'Eth1DataVotes'
+	size += len(b.Eth1DataVotes) * 72
 
-		// Field (11) 'Validators'
-		size += len(b.Validators) * (121)
+	// Field (11) 'Validators'
+	size += len(b.Validators) * 121
 
-		// Field (12) 'Balances'
-		size += len(b.Balances) * 8
+	// Field (12) 'Balances'
+	size += len(b.Balances) * 8
 
-		// Field (15) 'PreviousEpochParticipation'
-		size += len(b.PreviousEpochParticipation)
+	// Field (15) 'PreviousEpochParticipation'
+	size += len(b.PreviousEpochParticipation)
 
-		// Field (16) 'CurrentEpochParticipation'
-		size += len(b.CurrentEpochParticipation)
+	// Field (16) 'CurrentEpochParticipation'
+	size += len(b.CurrentEpochParticipation)
 
-		// Field (21) 'InactivityScores'
-		size += len(b.InactivityScores) * 8
-	}
+	// Field (21) 'InactivityScores'
+	size += len(b.InactivityScores) * 8
 
 	return
 }
@@ -4899,7 +5010,7 @@ func (b *BeaconStateBellatrix) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconStateBellatrix object to a target array
 func (b *BeaconStateBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((2199023255633 + (16) + (112) + (8192 * 32) + (8192 * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40) + (48 + (512 * 48)) + (48 + (512 * 48))))
+	offset := b.fixedSize()
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -4970,14 +5081,14 @@ func (b *BeaconStateBellatrix) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * (72)
+	offset += len(b.Eth1DataVotes) * 72
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * (121)
+	offset += len(b.Validators) * 121
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -5150,7 +5261,7 @@ func (b *BeaconStateBellatrix) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconStateBellatrix object and returns the remaining bufferº
 func (b *BeaconStateBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -5330,38 +5441,41 @@ func (b *BeaconStateBellatrix) UnmarshalSSZTail(buf []byte) (rest []byte, err er
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconStateBellatrix object
+func (b *BeaconStateBellatrix) fixedSize() int {
+	return 2199025992177
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateBellatrix object
-func (b *BeaconStateBellatrix) SizeSSZ(includeDynamic bool) (size int) {
-	size = (2199023255633 + (16) + (112) + (8192 * 32) + (8192 * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40) + (48 + (512 * 48)) + (48 + (512 * 48)))
+func (b *BeaconStateBellatrix) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (7) 'HistoricalRoots'
-		size += len(b.HistoricalRoots) * 32
+	// Field (7) 'HistoricalRoots'
+	size += len(b.HistoricalRoots) * 32
 
-		// Field (9) 'Eth1DataVotes'
-		size += len(b.Eth1DataVotes) * (72)
+	// Field (9) 'Eth1DataVotes'
+	size += len(b.Eth1DataVotes) * 72
 
-		// Field (11) 'Validators'
-		size += len(b.Validators) * (121)
+	// Field (11) 'Validators'
+	size += len(b.Validators) * 121
 
-		// Field (12) 'Balances'
-		size += len(b.Balances) * 8
+	// Field (12) 'Balances'
+	size += len(b.Balances) * 8
 
-		// Field (15) 'PreviousEpochParticipation'
-		size += len(b.PreviousEpochParticipation)
+	// Field (15) 'PreviousEpochParticipation'
+	size += len(b.PreviousEpochParticipation)
 
-		// Field (16) 'CurrentEpochParticipation'
-		size += len(b.CurrentEpochParticipation)
+	// Field (16) 'CurrentEpochParticipation'
+	size += len(b.CurrentEpochParticipation)
 
-		// Field (21) 'InactivityScores'
-		size += len(b.InactivityScores) * 8
+	// Field (21) 'InactivityScores'
+	size += len(b.InactivityScores) * 8
 
-		// Field (24) 'LatestExecutionPayloadHeader'
-		if b.LatestExecutionPayloadHeader == nil {
-			b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeader)
-		}
-		size += b.LatestExecutionPayloadHeader.SizeSSZ(true)
+	// Field (24) 'LatestExecutionPayloadHeader'
+	if b.LatestExecutionPayloadHeader == nil {
+		b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeader)
 	}
+	size += b.LatestExecutionPayloadHeader.SizeSSZ()
 
 	return
 }
@@ -5679,7 +5793,7 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBeaconBlockHeader object and returns the remaining bufferº
 func (s *SignedBeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -5695,9 +5809,14 @@ func (s *SignedBeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the SignedBeaconBlockHeader object
+func (s *SignedBeaconBlockHeader) fixedSize() int {
+	return 208
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockHeader object
-func (s *SignedBeaconBlockHeader) SizeSSZ(includeDynamic bool) (size int) {
-	size = (96 + (112))
+func (s *SignedBeaconBlockHeader) SizeSSZ() (size int) {
+	size = s.fixedSize()
 	return
 }
 
@@ -5781,7 +5900,7 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockHeader object and returns the remaining bufferº
 func (b *BeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -5804,9 +5923,14 @@ func (b *BeaconBlockHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the BeaconBlockHeader object
+func (b *BeaconBlockHeader) fixedSize() int {
+	return 112
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader object
-func (b *BeaconBlockHeader) SizeSSZ(includeDynamic bool) (size int) {
-	size = (112)
+func (b *BeaconBlockHeader) SizeSSZ() (size int) {
+	size = b.fixedSize()
 	return
 }
 
@@ -5863,7 +5987,7 @@ func (e *ErrorResponse) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ErrorResponse object to a target array
 func (e *ErrorResponse) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((256))
+	offset := e.fixedSize()
 
 	// Offset (0) 'Message'
 	dst = ssz.WriteOffset(dst, offset)
@@ -5886,7 +6010,7 @@ func (e *ErrorResponse) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ErrorResponse object and returns the remaining bufferº
 func (e *ErrorResponse) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -5908,14 +6032,17 @@ func (e *ErrorResponse) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ErrorResponse object
-func (e *ErrorResponse) SizeSSZ(includeDynamic bool) (size int) {
-	size = (256)
+// fixedSize returns the fixed size of the ErrorResponse object
+func (e *ErrorResponse) fixedSize() int {
+	return 256
+}
 
-	if includeDynamic {
-		// Field (0) 'Message'
-		size += len(e.Message)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the ErrorResponse object
+func (e *ErrorResponse) SizeSSZ() (size int) {
+	size = e.fixedSize()
+
+	// Field (0) 'Message'
+	size += len(e.Message)
 
 	return
 }
@@ -5970,7 +6097,7 @@ func (d *Dummy) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Dummy object and returns the remaining bufferº
 func (d *Dummy) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := d.SizeSSZ(false)
+	fixedSize := d.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -5978,9 +6105,14 @@ func (d *Dummy) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Dummy object
+func (d *Dummy) fixedSize() int {
+	return 0
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Dummy object
-func (d *Dummy) SizeSSZ(includeDynamic bool) (size int) {
-	size = (0)
+func (d *Dummy) SizeSSZ() (size int) {
+	size = d.fixedSize()
 	return
 }
 
@@ -6038,7 +6170,7 @@ func (s *SyncCommittee) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SyncCommittee object and returns the remaining bufferº
 func (s *SyncCommittee) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -6055,9 +6187,14 @@ func (s *SyncCommittee) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the SyncCommittee object
+func (s *SyncCommittee) fixedSize() int {
+	return 24624
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the SyncCommittee object
-func (s *SyncCommittee) SizeSSZ(includeDynamic bool) (size int) {
-	size = (48 + (512 * 48))
+func (s *SyncCommittee) SizeSSZ() (size int) {
+	size = s.fixedSize()
 	return
 }
 
@@ -6129,7 +6266,7 @@ func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SyncAggregate object and returns the remaining bufferº
 func (s *SyncAggregate) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -6143,9 +6280,14 @@ func (s *SyncAggregate) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the SyncAggregate object
+func (s *SyncAggregate) fixedSize() int {
+	return 160
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the SyncAggregate object
-func (s *SyncAggregate) SizeSSZ(includeDynamic bool) (size int) {
-	size = (160)
+func (s *SyncAggregate) SizeSSZ() (size int) {
+	size = s.fixedSize()
 	return
 }
 
@@ -6185,7 +6327,7 @@ func (e *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayload object to a target array
 func (e *ExecutionPayload) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((536))
+	offset := e.fixedSize()
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -6268,7 +6410,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayload object and returns the remaining bufferº
 func (e *ExecutionPayload) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -6341,19 +6483,22 @@ func (e *ExecutionPayload) UnmarshalSSZTail(buf []byte) (rest []byte, err error)
 	return
 }
 
+// fixedSize returns the fixed size of the ExecutionPayload object
+func (e *ExecutionPayload) fixedSize() int {
+	return 536
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayload object
-func (e *ExecutionPayload) SizeSSZ(includeDynamic bool) (size int) {
-	size = (536)
+func (e *ExecutionPayload) SizeSSZ() (size int) {
+	size = e.fixedSize()
 
-	if includeDynamic {
-		// Field (10) 'ExtraData'
-		size += len(e.ExtraData)
+	// Field (10) 'ExtraData'
+	size += len(e.ExtraData)
 
-		// Field (13) 'Transactions'
-		for ii := 0; ii < len(e.Transactions); ii++ {
-			size += 4
-			size += len(e.Transactions[ii])
-		}
+	// Field (13) 'Transactions'
+	for ii := 0; ii < len(e.Transactions); ii++ {
+		size += 4
+		size += len(e.Transactions[ii])
 	}
 
 	return
@@ -6456,7 +6601,7 @@ func (e *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeader object to a target array
 func (e *ExecutionPayloadHeader) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((564))
+	offset := e.fixedSize()
 
 	// Field (0) 'ParentHash'
 	if size := len(e.ParentHash); size != 32 {
@@ -6554,7 +6699,7 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadHeader object and returns the remaining bufferº
 func (e *ExecutionPayloadHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -6615,14 +6760,17 @@ func (e *ExecutionPayloadHeader) UnmarshalSSZTail(buf []byte) (rest []byte, err 
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeader object
-func (e *ExecutionPayloadHeader) SizeSSZ(includeDynamic bool) (size int) {
-	size = (564)
+// fixedSize returns the fixed size of the ExecutionPayloadHeader object
+func (e *ExecutionPayloadHeader) fixedSize() int {
+	return 564
+}
 
-	if includeDynamic {
-		// Field (10) 'ExtraData'
-		size += len(e.ExtraData)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeader object
+func (e *ExecutionPayloadHeader) SizeSSZ() (size int) {
+	size = e.fixedSize()
+
+	// Field (10) 'ExtraData'
+	size += len(e.ExtraData)
 
 	return
 }
@@ -6740,7 +6888,7 @@ func (e *ExecutionPayloadTransactions) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadTransactions object to a target array
 func (e *ExecutionPayloadTransactions) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((4))
+	offset := e.fixedSize()
 
 	// Offset (0) 'Transactions'
 	dst = ssz.WriteOffset(dst, offset)
@@ -6776,7 +6924,7 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadTransactions object and returns the remaining bufferº
 func (e *ExecutionPayloadTransactions) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -6803,16 +6951,19 @@ func (e *ExecutionPayloadTransactions) UnmarshalSSZTail(buf []byte) (rest []byte
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadTransactions object
-func (e *ExecutionPayloadTransactions) SizeSSZ(includeDynamic bool) (size int) {
-	size = (4)
+// fixedSize returns the fixed size of the ExecutionPayloadTransactions object
+func (e *ExecutionPayloadTransactions) fixedSize() int {
+	return 4
+}
 
-	if includeDynamic {
-		// Field (0) 'Transactions'
-		for ii := 0; ii < len(e.Transactions); ii++ {
-			size += 4
-			size += len(e.Transactions[ii])
-		}
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadTransactions object
+func (e *ExecutionPayloadTransactions) SizeSSZ() (size int) {
+	size = e.fixedSize()
+
+	// Field (0) 'Transactions'
+	for ii := 0; ii < len(e.Transactions); ii++ {
+		size += 4
+		size += len(e.Transactions[ii])
 	}
 
 	return
@@ -6867,7 +7018,7 @@ func (e *ExecutionPayloadCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadCapella object to a target array
 func (e *ExecutionPayloadCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((540))
+	offset := e.fixedSize()
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -6968,7 +7119,7 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadCapella object and returns the remaining bufferº
 func (e *ExecutionPayloadCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -7051,23 +7202,26 @@ func (e *ExecutionPayloadCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err
 	return
 }
 
+// fixedSize returns the fixed size of the ExecutionPayloadCapella object
+func (e *ExecutionPayloadCapella) fixedSize() int {
+	return 540
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadCapella object
-func (e *ExecutionPayloadCapella) SizeSSZ(includeDynamic bool) (size int) {
-	size = (540)
+func (e *ExecutionPayloadCapella) SizeSSZ() (size int) {
+	size = e.fixedSize()
 
-	if includeDynamic {
-		// Field (10) 'ExtraData'
-		size += len(e.ExtraData)
+	// Field (10) 'ExtraData'
+	size += len(e.ExtraData)
 
-		// Field (13) 'Transactions'
-		for ii := 0; ii < len(e.Transactions); ii++ {
-			size += 4
-			size += len(e.Transactions[ii])
-		}
-
-		// Field (14) 'Withdrawals'
-		size += len(e.Withdrawals) * (44)
+	// Field (13) 'Transactions'
+	for ii := 0; ii < len(e.Transactions); ii++ {
+		size += 4
+		size += len(e.Transactions[ii])
 	}
+
+	// Field (14) 'Withdrawals'
+	size += len(e.Withdrawals) * 44
 
 	return
 }
@@ -7185,7 +7339,7 @@ func (e *ExecutionPayloadHeaderCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeaderCapella object to a target array
 func (e *ExecutionPayloadHeaderCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((596))
+	offset := e.fixedSize()
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -7250,7 +7404,7 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadHeaderCapella object and returns the remaining bufferº
 func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -7314,14 +7468,17 @@ func (e *ExecutionPayloadHeaderCapella) UnmarshalSSZTail(buf []byte) (rest []byt
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderCapella object
-func (e *ExecutionPayloadHeaderCapella) SizeSSZ(includeDynamic bool) (size int) {
-	size = (596)
+// fixedSize returns the fixed size of the ExecutionPayloadHeaderCapella object
+func (e *ExecutionPayloadHeaderCapella) fixedSize() int {
+	return 596
+}
 
-	if includeDynamic {
-		// Field (10) 'ExtraData'
-		size += len(e.ExtraData)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderCapella object
+func (e *ExecutionPayloadHeaderCapella) SizeSSZ() (size int) {
+	size = e.fixedSize()
+
+	// Field (10) 'ExtraData'
+	size += len(e.ExtraData)
 
 	return
 }
@@ -7427,7 +7584,7 @@ func (b *BLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BLSToExecutionChange object and returns the remaining bufferº
 func (b *BLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -7444,9 +7601,14 @@ func (b *BLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err er
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the BLSToExecutionChange object
+func (b *BLSToExecutionChange) fixedSize() int {
+	return 76
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BLSToExecutionChange object
-func (b *BLSToExecutionChange) SizeSSZ(includeDynamic bool) (size int) {
-	size = (76)
+func (b *BLSToExecutionChange) SizeSSZ() (size int) {
+	size = b.fixedSize()
 	return
 }
 
@@ -7503,7 +7665,7 @@ func (h *HistoricalSummary) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the HistoricalSummary object and returns the remaining bufferº
 func (h *HistoricalSummary) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := h.SizeSSZ(false)
+	fixedSize := h.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -7517,9 +7679,14 @@ func (h *HistoricalSummary) UnmarshalSSZTail(buf []byte) (rest []byte, err error
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the HistoricalSummary object
+func (h *HistoricalSummary) fixedSize() int {
+	return 64
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the HistoricalSummary object
-func (h *HistoricalSummary) SizeSSZ(includeDynamic bool) (size int) {
-	size = (64)
+func (h *HistoricalSummary) SizeSSZ() (size int) {
+	size = h.fixedSize()
 	return
 }
 
@@ -7578,7 +7745,7 @@ func (s *SignedBLSToExecutionChange) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBLSToExecutionChange object and returns the remaining bufferº
 func (s *SignedBLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -7594,9 +7761,14 @@ func (s *SignedBLSToExecutionChange) UnmarshalSSZTail(buf []byte) (rest []byte, 
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the SignedBLSToExecutionChange object
+func (s *SignedBLSToExecutionChange) fixedSize() int {
+	return 172
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBLSToExecutionChange object
-func (s *SignedBLSToExecutionChange) SizeSSZ(includeDynamic bool) (size int) {
-	size = (96 + (76))
+func (s *SignedBLSToExecutionChange) SizeSSZ() (size int) {
+	size = s.fixedSize()
 	return
 }
 
@@ -7661,7 +7833,7 @@ func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the Withdrawal object and returns the remaining bufferº
 func (w *Withdrawal) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := w.SizeSSZ(false)
+	fixedSize := w.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -7681,9 +7853,14 @@ func (w *Withdrawal) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Withdrawal object
+func (w *Withdrawal) fixedSize() int {
+	return 44
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Withdrawal object
-func (w *Withdrawal) SizeSSZ(includeDynamic bool) (size int) {
-	size = (44)
+func (w *Withdrawal) SizeSSZ() (size int) {
+	size = w.fixedSize()
 	return
 }
 
@@ -7725,7 +7902,7 @@ func (b *BeaconStateCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconStateCapella object to a target array
 func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((2199023255653 + (16) + (112) + (8192 * 32) + (8192 * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40) + (48 + (512 * 48)) + (48 + (512 * 48))))
+	offset := b.fixedSize()
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalValue(dst, b.GenesisTime)
@@ -7776,14 +7953,14 @@ func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (9) 'Eth1DataVotes'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Eth1DataVotes) * (72)
+	offset += len(b.Eth1DataVotes) * 72
 
 	// Field (10) 'Eth1DepositIndex'
 	dst = ssz.MarshalValue(dst, b.Eth1DepositIndex)
 
 	// Offset (11) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * (121)
+	offset += len(b.Validators) * 121
 
 	// Offset (12) 'Balances'
 	dst = ssz.WriteOffset(dst, offset)
@@ -7863,7 +8040,7 @@ func (b *BeaconStateCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	if b.LatestExecutionPayloadHeader == nil {
 		b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeaderCapella)
 	}
-	offset += b.LatestExecutionPayloadHeader.SizeSSZ(true)
+	offset += b.LatestExecutionPayloadHeader.SizeSSZ()
 
 	// Field (25) 'NextWithdrawalIndex'
 	dst = ssz.MarshalValue(dst, b.NextWithdrawalIndex)
@@ -7968,7 +8145,7 @@ func (b *BeaconStateCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconStateCapella object and returns the remaining bufferº
 func (b *BeaconStateCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -8164,41 +8341,44 @@ func (b *BeaconStateCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconStateCapella object
+func (b *BeaconStateCapella) fixedSize() int {
+	return 2199025992197
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconStateCapella object
-func (b *BeaconStateCapella) SizeSSZ(includeDynamic bool) (size int) {
-	size = (2199023255653 + (16) + (112) + (8192 * 32) + (8192 * 32) + (72) + (65536 * 32) + (8192 * 8) + (40) + (40) + (40) + (48 + (512 * 48)) + (48 + (512 * 48)))
+func (b *BeaconStateCapella) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (7) 'HistoricalRoots'
-		size += len(b.HistoricalRoots) * 32
+	// Field (7) 'HistoricalRoots'
+	size += len(b.HistoricalRoots) * 32
 
-		// Field (9) 'Eth1DataVotes'
-		size += len(b.Eth1DataVotes) * (72)
+	// Field (9) 'Eth1DataVotes'
+	size += len(b.Eth1DataVotes) * 72
 
-		// Field (11) 'Validators'
-		size += len(b.Validators) * (121)
+	// Field (11) 'Validators'
+	size += len(b.Validators) * 121
 
-		// Field (12) 'Balances'
-		size += len(b.Balances) * 8
+	// Field (12) 'Balances'
+	size += len(b.Balances) * 8
 
-		// Field (15) 'PreviousEpochParticipation'
-		size += len(b.PreviousEpochParticipation)
+	// Field (15) 'PreviousEpochParticipation'
+	size += len(b.PreviousEpochParticipation)
 
-		// Field (16) 'CurrentEpochParticipation'
-		size += len(b.CurrentEpochParticipation)
+	// Field (16) 'CurrentEpochParticipation'
+	size += len(b.CurrentEpochParticipation)
 
-		// Field (21) 'InactivityScores'
-		size += len(b.InactivityScores) * 8
+	// Field (21) 'InactivityScores'
+	size += len(b.InactivityScores) * 8
 
-		// Field (24) 'LatestExecutionPayloadHeader'
-		if b.LatestExecutionPayloadHeader == nil {
-			b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeaderCapella)
-		}
-		size += b.LatestExecutionPayloadHeader.SizeSSZ(true)
-
-		// Field (27) 'HistoricalSummaries'
-		size += len(b.HistoricalSummaries) * (64)
+	// Field (24) 'LatestExecutionPayloadHeader'
+	if b.LatestExecutionPayloadHeader == nil {
+		b.LatestExecutionPayloadHeader = new(ExecutionPayloadHeaderCapella)
 	}
+	size += b.LatestExecutionPayloadHeader.SizeSSZ()
+
+	// Field (27) 'HistoricalSummaries'
+	size += len(b.HistoricalSummaries) * 64
 
 	return
 }
@@ -8479,7 +8659,7 @@ func (s *SignedBeaconBlockCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the SignedBeaconBlockCapella object to a target array
 func (s *SignedBeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((100))
+	offset := s.fixedSize()
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
@@ -8507,7 +8687,7 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the SignedBeaconBlockCapella object and returns the remaining bufferº
 func (s *SignedBeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := s.SizeSSZ(false)
+	fixedSize := s.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -8532,17 +8712,20 @@ func (s *SignedBeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, er
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockCapella object
-func (s *SignedBeaconBlockCapella) SizeSSZ(includeDynamic bool) (size int) {
-	size = (100)
+// fixedSize returns the fixed size of the SignedBeaconBlockCapella object
+func (s *SignedBeaconBlockCapella) fixedSize() int {
+	return 100
+}
 
-	if includeDynamic {
-		// Field (0) 'Block'
-		if s.Block == nil {
-			s.Block = new(BeaconBlockCapella)
-		}
-		size += s.Block.SizeSSZ(true)
+// SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockCapella object
+func (s *SignedBeaconBlockCapella) SizeSSZ() (size int) {
+	size = s.fixedSize()
+
+	// Field (0) 'Block'
+	if s.Block == nil {
+		s.Block = new(BeaconBlockCapella)
 	}
+	size += s.Block.SizeSSZ()
 
 	return
 }
@@ -8585,7 +8768,7 @@ func (b *BeaconBlockCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockCapella object to a target array
 func (b *BeaconBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((84))
+	offset := b.fixedSize()
 
 	// Field (0) 'Slot'
 	dst = ssz.MarshalValue(dst, b.Slot)
@@ -8618,7 +8801,7 @@ func (b *BeaconBlockCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockCapella object and returns the remaining bufferº
 func (b *BeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -8652,17 +8835,20 @@ func (b *BeaconBlockCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err erro
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockCapella object
-func (b *BeaconBlockCapella) SizeSSZ(includeDynamic bool) (size int) {
-	size = (84)
+// fixedSize returns the fixed size of the BeaconBlockCapella object
+func (b *BeaconBlockCapella) fixedSize() int {
+	return 84
+}
 
-	if includeDynamic {
-		// Field (4) 'Body'
-		if b.Body == nil {
-			b.Body = new(BeaconBlockBodyCapella)
-		}
-		size += b.Body.SizeSSZ(true)
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockCapella object
+func (b *BeaconBlockCapella) SizeSSZ() (size int) {
+	size = b.fixedSize()
+
+	// Field (4) 'Body'
+	if b.Body == nil {
+		b.Body = new(BeaconBlockBodyCapella)
 	}
+	size += b.Body.SizeSSZ()
 
 	return
 }
@@ -8710,7 +8896,7 @@ func (b *BeaconBlockBodyCapella) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyCapella object to a target array
 func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((156 + (72) + (160)))
+	offset := b.fixedSize()
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -8732,29 +8918,29 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 
 	// Offset (3) 'ProposerSlashings'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	offset += len(b.ProposerSlashings) * 416
 
 	// Offset (4) 'AttesterSlashings'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 		offset += 4
-		offset += b.AttesterSlashings[ii].SizeSSZ(true)
+		offset += b.AttesterSlashings[ii].SizeSSZ()
 	}
 
 	// Offset (5) 'Attestations'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(b.Attestations); ii++ {
 		offset += 4
-		offset += b.Attestations[ii].SizeSSZ(true)
+		offset += b.Attestations[ii].SizeSSZ()
 	}
 
 	// Offset (6) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Deposits) * ((33 * 32) + (184))
+	offset += len(b.Deposits) * 1240
 
 	// Offset (7) 'VoluntaryExits'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.VoluntaryExits) * (96 + (16))
+	offset += len(b.VoluntaryExits) * 112
 
 	// Field (8) 'SyncAggregate'
 	if b.SyncAggregate == nil {
@@ -8769,7 +8955,7 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 	if b.ExecutionPayload == nil {
 		b.ExecutionPayload = new(ExecutionPayloadCapella)
 	}
-	offset += b.ExecutionPayload.SizeSSZ(true)
+	offset += b.ExecutionPayload.SizeSSZ()
 
 	// Offset (10) 'BlsToExecutionChanges'
 	dst = ssz.WriteOffset(dst, offset)
@@ -8794,7 +8980,7 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 		offset = 4 * len(b.AttesterSlashings)
 		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.AttesterSlashings[ii].SizeSSZ(true)
+			offset += b.AttesterSlashings[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
@@ -8812,7 +8998,7 @@ func (b *BeaconBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error
 		offset = 4 * len(b.Attestations)
 		for ii := 0; ii < len(b.Attestations); ii++ {
 			dst = ssz.WriteOffset(dst, offset)
-			offset += b.Attestations[ii].SizeSSZ(true)
+			offset += b.Attestations[ii].SizeSSZ()
 		}
 	}
 	for ii := 0; ii < len(b.Attestations); ii++ {
@@ -8870,7 +9056,7 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the BeaconBlockBodyCapella object and returns the remaining bufferº
 func (b *BeaconBlockBodyCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := b.SizeSSZ(false)
+	fixedSize := b.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -8968,41 +9154,44 @@ func (b *BeaconBlockBodyCapella) UnmarshalSSZTail(buf []byte) (rest []byte, err 
 	return
 }
 
+// fixedSize returns the fixed size of the BeaconBlockBodyCapella object
+func (b *BeaconBlockBodyCapella) fixedSize() int {
+	return 388
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyCapella object
-func (b *BeaconBlockBodyCapella) SizeSSZ(includeDynamic bool) (size int) {
-	size = (156 + (72) + (160))
+func (b *BeaconBlockBodyCapella) SizeSSZ() (size int) {
+	size = b.fixedSize()
 
-	if includeDynamic {
-		// Field (3) 'ProposerSlashings'
-		size += len(b.ProposerSlashings) * ((96 + (112)) + (96 + (112)))
+	// Field (3) 'ProposerSlashings'
+	size += len(b.ProposerSlashings) * 416
 
-		// Field (4) 'AttesterSlashings'
-		for ii := 0; ii < len(b.AttesterSlashings); ii++ {
-			size += 4
-			size += b.AttesterSlashings[ii].SizeSSZ(true)
-		}
-
-		// Field (5) 'Attestations'
-		for ii := 0; ii < len(b.Attestations); ii++ {
-			size += 4
-			size += b.Attestations[ii].SizeSSZ(true)
-		}
-
-		// Field (6) 'Deposits'
-		size += len(b.Deposits) * ((33 * 32) + (184))
-
-		// Field (7) 'VoluntaryExits'
-		size += len(b.VoluntaryExits) * (96 + (16))
-
-		// Field (9) 'ExecutionPayload'
-		if b.ExecutionPayload == nil {
-			b.ExecutionPayload = new(ExecutionPayloadCapella)
-		}
-		size += b.ExecutionPayload.SizeSSZ(true)
-
-		// Field (10) 'BlsToExecutionChanges'
-		size += len(b.BlsToExecutionChanges) * (96 + (76))
+	// Field (4) 'AttesterSlashings'
+	for ii := 0; ii < len(b.AttesterSlashings); ii++ {
+		size += 4
+		size += b.AttesterSlashings[ii].SizeSSZ()
 	}
+
+	// Field (5) 'Attestations'
+	for ii := 0; ii < len(b.Attestations); ii++ {
+		size += 4
+		size += b.Attestations[ii].SizeSSZ()
+	}
+
+	// Field (6) 'Deposits'
+	size += len(b.Deposits) * 1240
+
+	// Field (7) 'VoluntaryExits'
+	size += len(b.VoluntaryExits) * 112
+
+	// Field (9) 'ExecutionPayload'
+	if b.ExecutionPayload == nil {
+		b.ExecutionPayload = new(ExecutionPayloadCapella)
+	}
+	size += b.ExecutionPayload.SizeSSZ()
+
+	// Field (10) 'BlsToExecutionChanges'
+	size += len(b.BlsToExecutionChanges) * 172
 
 	return
 }
@@ -9160,7 +9349,7 @@ func (e *ExecutionPayloadDeneb) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadDeneb object to a target array
 func (e *ExecutionPayloadDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((556))
+	offset := e.fixedSize()
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -9267,7 +9456,7 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadDeneb object and returns the remaining bufferº
 func (e *ExecutionPayloadDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -9356,23 +9545,26 @@ func (e *ExecutionPayloadDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err e
 	return
 }
 
+// fixedSize returns the fixed size of the ExecutionPayloadDeneb object
+func (e *ExecutionPayloadDeneb) fixedSize() int {
+	return 556
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadDeneb object
-func (e *ExecutionPayloadDeneb) SizeSSZ(includeDynamic bool) (size int) {
-	size = (556)
+func (e *ExecutionPayloadDeneb) SizeSSZ() (size int) {
+	size = e.fixedSize()
 
-	if includeDynamic {
-		// Field (10) 'ExtraData'
-		size += len(e.ExtraData)
+	// Field (10) 'ExtraData'
+	size += len(e.ExtraData)
 
-		// Field (13) 'Transactions'
-		for ii := 0; ii < len(e.Transactions); ii++ {
-			size += 4
-			size += len(e.Transactions[ii])
-		}
-
-		// Field (14) 'Withdrawals'
-		size += len(e.Withdrawals) * (44)
+	// Field (13) 'Transactions'
+	for ii := 0; ii < len(e.Transactions); ii++ {
+		size += 4
+		size += len(e.Transactions[ii])
 	}
+
+	// Field (14) 'Withdrawals'
+	size += len(e.Withdrawals) * 44
 
 	return
 }
@@ -9496,7 +9688,7 @@ func (e *ExecutionPayloadHeaderDeneb) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeaderDeneb object to a target array
 func (e *ExecutionPayloadHeaderDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int((612))
+	offset := e.fixedSize()
 
 	// Field (0) 'ParentHash'
 	dst = append(dst, e.ParentHash[:]...)
@@ -9567,7 +9759,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZ(buf []byte) error {
 // UnmarshalSSZTail unmarshals the ExecutionPayloadHeaderDeneb object and returns the remaining bufferº
 func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	size := len(buf)
-	fixedSize := e.SizeSSZ(false)
+	fixedSize := e.fixedSize()
 	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
@@ -9637,14 +9829,17 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalSSZTail(buf []byte) (rest []byte,
 	return
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderDeneb object
-func (e *ExecutionPayloadHeaderDeneb) SizeSSZ(includeDynamic bool) (size int) {
-	size = (612)
+// fixedSize returns the fixed size of the ExecutionPayloadHeaderDeneb object
+func (e *ExecutionPayloadHeaderDeneb) fixedSize() int {
+	return 612
+}
 
-	if includeDynamic {
-		// Field (10) 'ExtraData'
-		size += len(e.ExtraData)
-	}
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderDeneb object
+func (e *ExecutionPayloadHeaderDeneb) SizeSSZ() (size int) {
+	size = e.fixedSize()
+
+	// Field (10) 'ExtraData'
+	size += len(e.ExtraData)
 
 	return
 }

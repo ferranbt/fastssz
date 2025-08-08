@@ -12,19 +12,19 @@ import (
 // Note that if any of the internal fields of the struct is nil, we will not fail, only not add up
 // that field to the size. It is up to other methods like marshal to fail on that scenario.
 func (e *env) size(name string, v *Value) string {
-	tmpl := `// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
-	func (:: *{{.name}}) SizeSSZ(includeDynamic bool) (size int) {
-		size = {{.fixed}}{{if .dynamic}}
-		
-		if includeDynamic {
+	tmpl := `// fixedSize returns the fixed size of the {{.name}} object
+	func (:: *{{.name}}) fixedSize() int {
+		return {{.fixed}}
+	}
+	
+	// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
+	func (:: *{{.name}}) SizeSSZ() (size int) {
+		size = ::.fixedSize(){{if .dynamic}}
+
 		{{.dynamic}}
-		}
 		{{end}}
 		return
 	}`
-
-	fmt.Println("XX")
-	fmt.Println(name, v.name)
 
 	str := execTmpl(tmpl, map[string]interface{}{
 		"name":    name,
@@ -56,6 +56,10 @@ func NewSizeAccumulator() *SizeAccumulator {
 	}
 }
 
+func (s *SizeAccumulator) IsVariable() bool {
+	return len(s.Vars) > 0
+}
+
 func (s *SizeAccumulator) AddVar(name string) {
 	if name == "" {
 		return
@@ -68,7 +72,15 @@ func (s *SizeAccumulator) AddInt(size uint64) {
 }
 
 func (s *SizeAccumulator) Merge(ss *SizeAccumulator) {
-	s.Vars = append(s.Vars, "("+ss.String()+")")
+	if ss.IsVariable() {
+		// If there are variables, that means the value cannot be accumulated as a fixed
+		// int, it includes arightmetic operations and we have to use the parenthesis to
+		// avoid precedence issues
+		s.Vars = append(s.Vars, "("+ss.String()+")")
+	} else {
+		// If there are no variables, just merge the size as an int
+		s.Size += ss.Size
+	}
 }
 
 func (s *SizeAccumulator) String() string {
@@ -91,14 +103,33 @@ func (v *Value) fixedSizeForContainerAcc(acc *SizeAccumulator) {
 	for _, f := range v.getObjs() {
 		switch obj := f.typ.(type) {
 		case *Vector:
-			var innerElemSize string
 			if obj.Elem.isFixed() {
-				innerElemSize = obj.Elem.fixedSize()
+				vectorAcc := NewSizeAccumulator()
+				obj.Elem.fixedSizeAcc(vectorAcc)
+
+				if obj.Size.Size != 0 {
+					// two cases: fixed size or variable size for the inner element
+					if vectorAcc.IsVariable() {
+						// variable size, accumulate on top of subAcc
+						subAcc.AddVar(fmt.Sprintf("(%d * %s)", obj.Size.Size, vectorAcc.String()))
+					} else {
+						// fixed size, we can precompute all the size
+						subAcc.AddInt(obj.Size.Size * vectorAcc.Size)
+					}
+				} else {
+					// variable size, it is going to be an arithmetic expression
+					subAcc.AddVar(fmt.Sprintf("(%s * %s)", obj.Size.VarSize, vectorAcc.String()))
+				}
 			} else {
-				innerElemSize = fmt.Sprintf("%d", bytesPerLengthOffset)
+				if obj.Size.Size != 0 {
+					// known size at compilation time. precompute it.
+					subAcc.AddInt(obj.Size.Size * bytesPerLengthOffset)
+				} else {
+					// variable
+					subAcc.AddVar(fmt.Sprintf("(%s * %d)", obj.Size.VarSize, bytesPerLengthOffset))
+				}
 			}
 
-			subAcc.AddVar(fmt.Sprintf("(%s * %s)", obj.Size.MarshalTemplate(), innerElemSize))
 		case *List:
 			// lists are variable size, so we don't add them to the fixed size
 			subAcc.AddInt(bytesPerLengthOffset)
@@ -150,7 +181,7 @@ func (v *Value) sizeContainer(name string, start bool) string {
 		tmpl := `{{if .check}} if ::.{{.name}} == nil {
 			::.{{.name}} = new({{ref .obj}})
 		}
-		{{end}} {{ .dst }} += ::.{{.name}}.SizeSSZ(true)`
+		{{end}} {{ .dst }} += ::.{{.name}}.SizeSSZ()`
 
 		check := true
 		if v.isListElem() {
