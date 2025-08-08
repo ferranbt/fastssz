@@ -27,15 +27,15 @@ var (
 	ErrTailNotEmpty          = fmt.Errorf("buffer was not totally consumed")
 )
 
-func ErrBytesLengthFn(name string, found, expected int) error {
+func ErrBytesLengthFn(name string, found, expected uint64) error {
 	return fmt.Errorf("%s (%v): expected %d and %d found", name, ErrBytesLength, expected, found)
 }
 
-func ErrVectorLengthFn(name string, found, expected int) error {
+func ErrVectorLengthFn(name string, found, expected uint64) error {
 	return fmt.Errorf("%s (%v): expected %d and %d found", name, ErrBytesLength, expected, found)
 }
 
-func ErrListTooBigFn(name string, found, max int) error {
+func ErrListTooBigFn(name string, found, max uint64) error {
 	return fmt.Errorf("%s (%v): max expected %d and %d found", name, ErrListTooBig, max, found)
 }
 
@@ -178,12 +178,12 @@ func safeReadOffset(buf []byte) (uint64, []byte, error) {
 // ---- extend functions ----
 
 // Extend extends a slice buffer to a given size
-func Extend[T any](b []T, needLen int) []T {
+func Extend[T any](b []T, needLen uint64) []T {
 	if b == nil {
 		b = []T{}
 	}
 	b = b[:cap(b)]
-	if n := needLen - cap(b); n > 0 {
+	if n := needLen - uint64(cap(b)); n > 0 {
 		b = append(b, make([]T, n)...)
 	}
 	return b[:needLen]
@@ -226,7 +226,7 @@ func ValidateBitlist(buf []byte, bitLimit uint64) error {
 }
 
 // DecodeDynamicLength decodes the length from the dynamic input
-func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
+func DecodeDynamicLength(buf []byte, maxSize uint64) (uint64, error) {
 	if len(buf) == 0 {
 		return 0, nil
 	}
@@ -234,7 +234,7 @@ func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
 		return 0, fmt.Errorf("not enough data")
 	}
 	offset := binary.LittleEndian.Uint32(buf[:4])
-	length, ok := DivideInt(int(offset), bytesPerLengthOffset)
+	length, ok := DivideInt(uint64(offset), bytesPerLengthOffset)
 	if !ok {
 		return 0, fmt.Errorf("incorrect length division")
 	}
@@ -245,7 +245,7 @@ func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
 }
 
 // UnmarshalDynamic unmarshals the dynamic items from the input
-func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) error {
+func UnmarshalDynamic(src []byte, length uint64, f func(indx uint64, b []byte) error) error {
 	var err error
 	size := uint64(len(src))
 
@@ -256,7 +256,7 @@ func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) 
 		return nil
 	}
 
-	indx := 0
+	indx := uint64(0)
 	dst := src
 
 	var offset, endOffset uint64
@@ -294,7 +294,7 @@ func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) 
 	return nil
 }
 
-func DivideInt2(a, b, max int) (int, error) {
+func DivideInt2(a, b, max uint64) (uint64, error) {
 	num, ok := DivideInt(a, b)
 	if !ok {
 		return 0, fmt.Errorf("failed to divide int %d by %d", a, b)
@@ -306,7 +306,7 @@ func DivideInt2(a, b, max int) (int, error) {
 }
 
 // DivideInt divides the int fully
-func DivideInt(a, b int) (int, bool) {
+func DivideInt(a, b uint64) (uint64, bool) {
 	return a / b, a%b == 0
 }
 

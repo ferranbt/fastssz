@@ -17,3 +17,4 @@ function download {
 }
 
 download "mainnet"
+download "minimal"

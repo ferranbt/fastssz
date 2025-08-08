@@ -1,13 +1,13 @@
 package generator
 
-func validateBytesArray(name string, size uint64, fixed bool) string {
+func validateBytesArray(name string, size Size, fixed bool) string {
 	// for variable size values, we want to ensure it doesn't exceed max size bound
 	cmp := ">"
 	if fixed {
 		cmp = "!="
 	}
 
-	tmpl := `if size := len(::.{{.name}}); size {{.cmp}} {{.size}} {
+	tmpl := `if size := uint64(len(::.{{.name}})); size {{.cmp}} {{.size}} {
 			err = ssz.ErrBytesLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
@@ -22,7 +22,7 @@ func validateBytesArray(name string, size uint64, fixed bool) string {
 func (v *Value) validate() string {
 	switch obj := v.typ.(type) {
 	case *BitList:
-		return validateBytesArray(v.name, obj.Size, false)
+		return validateBytesArray(v.name, NewSizeNum(obj.Size), false)
 	case *Bytes:
 		if obj.IsList {
 			// for lists of bytes, we need to validate the size of the buffer
@@ -39,7 +39,7 @@ func (v *Value) validate() string {
 		}
 
 		// We only have vectors for [][]byte roots
-		tmpl := `if size := len(::.{{.name}}); size != {{.size}} {
+		tmpl := `if size := uint64(len(::.{{.name}})); size != {{.size}} {
 			err = ssz.ErrVectorLengthFn("--.{{.name}}", size, {{.size}})
 			return
 		}
@@ -48,9 +48,8 @@ func (v *Value) validate() string {
 			"name": v.name,
 			"size": obj.Size,
 		})
-
 	case *List:
-		tmpl := `if size := len(::.{{.name}}); size > {{.size}} {
+		tmpl := `if size := uint64(len(::.{{.name}})); size > {{.size}} {
 			err = ssz.ErrListTooBigFn("--.{{.name}}", size, {{.size}})
 			return
 		}

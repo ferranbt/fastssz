@@ -35,8 +35,9 @@ func (i *Issue153) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Issue153 object and returns the remaining bufferº
 func (i *Issue153) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 128 {
+	size := len(buf)
+	fixedSize := i.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -52,9 +53,14 @@ func (i *Issue153) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Issue153 object
+func (i *Issue153) fixedSize() int {
+	return int(128)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Issue153 object
 func (i *Issue153) SizeSSZ() (size int) {
-	size = 128
+	size = i.fixedSize()
 	return
 }
 

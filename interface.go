@@ -7,6 +7,10 @@ type Marshaler interface {
 	SizeSSZ() int
 }
 
+type SSZSizer interface {
+	SizeSSZ() int
+}
+
 // Unmarshaler is the interface implemented by types that can unmarshal a SSZ description of themselves
 type Unmarshaler interface {
 	UnmarshalSSZ(buf []byte) error
@@ -49,6 +53,7 @@ type HashWalker interface {
 type PtrConstraint[T any] interface {
 	*T
 	Unmarshaler
+	SSZSizer
 }
 
 func UnmarshalFieldTail[T any, PT PtrConstraint[T]](field *PT, buf []byte) ([]byte, error) {
@@ -69,17 +74,17 @@ func UnmarshalField[T any, PT PtrConstraint[T]](field *PT, buf []byte) error {
 func UnmarshalSliceWithIndexCallback[T any](
 	slice *[]T,
 	buf []byte,
-	itemSize int,
-	maxItems int,
-	unmarshalCallback func(int, []byte) error,
+	itemSize uint64,
+	maxItems uint64,
+	unmarshalCallback func(uint64, []byte) error,
 ) error {
-	num, err := DivideInt2(len(buf), itemSize, maxItems)
+	num, err := DivideInt2(uint64(len(buf)), itemSize, maxItems)
 	if err != nil {
 		return err
 	}
 
 	*slice = make([]T, num)
-	for ii := 0; ii < num; ii++ {
+	for ii := uint64(0); ii < num; ii++ {
 		start := ii * itemSize
 		end := (ii + 1) * itemSize
 		if err := unmarshalCallback(ii, buf[start:end]); err != nil {
@@ -93,8 +98,8 @@ func UnmarshalSliceWithIndexCallback[T any](
 func UnmarshalDynamicSliceWithCallback[T any](
 	slice *[]T,
 	buf []byte,
-	maxElements int,
-	unmarshalCallback func(int, []byte) error,
+	maxElements uint64,
+	unmarshalCallback func(uint64, []byte) error,
 ) error {
 	num, err := DecodeDynamicLength(buf, maxElements)
 	if err != nil {
@@ -108,11 +113,15 @@ func UnmarshalDynamicSliceWithCallback[T any](
 func UnmarshalSliceSSZ[T any, PT PtrConstraint[T]](
 	slice *[]PT,
 	buf []byte,
-	itemSize int,
-	maxItems int,
+	maxItems uint64,
 ) error {
+	// Create a zero value to get the size
+	var zero T
+	var zeroPtr PT = PT(&zero)
+	itemSize := uint64(zeroPtr.SizeSSZ())
+
 	return UnmarshalSliceWithIndexCallback(slice, buf, itemSize, maxItems,
-		func(ii int, itemBuf []byte) error {
+		func(ii uint64, itemBuf []byte) error {
 			return UnmarshalField[T, PT](&(*slice)[ii], itemBuf)
 		})
 }
@@ -121,10 +130,10 @@ func UnmarshalSliceSSZ[T any, PT PtrConstraint[T]](
 func UnmarshalDynamicSliceSSZ[T any, PT PtrConstraint[T]](
 	slice *[]PT,
 	buf []byte,
-	maxElements int,
+	maxElements uint64,
 ) error {
 	return UnmarshalDynamicSliceWithCallback(slice, buf, maxElements,
-		func(indx int, itemBuf []byte) error {
+		func(indx uint64, itemBuf []byte) error {
 			return UnmarshalField[T, PT](&(*slice)[indx], itemBuf)
 		})
 }

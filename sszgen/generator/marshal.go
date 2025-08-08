@@ -29,7 +29,7 @@ func (e *env) marshal(name string, v *Value) string {
 	}
 	if !v.isFixed() {
 		// offset is the position where the offset starts
-		data["offset"] = fmt.Sprintf("offset := int(%d)\n", v.fixedSize())
+		data["offset"] = "offset := ::.fixedSize()\n"
 	}
 	str := execTmpl(tmpl, data)
 	return appendObjSignature(str, v)
@@ -132,7 +132,7 @@ func (v *Value) marshalVector() (str string) {
 	obj := v.typ.(*Vector)
 	inner.name = fmt.Sprintf("%s[ii]", v.name)
 
-	tmpl := `{{.validate}}for ii := 0; ii < {{.size}}; ii++ {
+	tmpl := `{{.validate}}for ii := uint64(0); ii < {{.size}}; ii++ {
 		{{.marshal}}
 	}`
 	return execTmpl(tmpl, map[string]interface{}{

@@ -15,13 +15,13 @@ func (c *Case1A) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Case1A object to a target array
 func (c *Case1A) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := c.fixedSize()
 
 	// Offset (0) 'Foo'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'Foo'
-	if size := len(c.Foo); size > 2048 {
+	if size := uint64(len(c.Foo)); size > 2048 {
 		err = ssz.ErrBytesLengthFn("Case1A.Foo", size, 2048)
 		return
 	}
@@ -37,17 +37,18 @@ func (c *Case1A) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Case1A object and returns the remaining bufferº
 func (c *Case1A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := c.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'Foo'
-	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+	if o0, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
@@ -59,9 +60,14 @@ func (c *Case1A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+// fixedSize returns the fixed size of the Case1A object
+func (c *Case1A) fixedSize() int {
+	return int(4)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Case1A object
 func (c *Case1A) SizeSSZ() (size int) {
-	size = 4
+	size = c.fixedSize()
 
 	// Field (0) 'Foo'
 	size += len(c.Foo)
@@ -107,13 +113,13 @@ func (c *Case1B) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Case1B object to a target array
 func (c *Case1B) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := c.fixedSize()
 
 	// Offset (0) 'Bar'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'Bar'
-	if size := len(c.Bar); size > 32 {
+	if size := uint64(len(c.Bar)); size > 32 {
 		err = ssz.ErrBytesLengthFn("Case1B.Bar", size, 32)
 		return
 	}
@@ -129,17 +135,18 @@ func (c *Case1B) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Case1B object and returns the remaining bufferº
 func (c *Case1B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := c.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'Bar'
-	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+	if o0, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
@@ -151,9 +158,14 @@ func (c *Case1B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+// fixedSize returns the fixed size of the Case1B object
+func (c *Case1B) fixedSize() int {
+	return int(4)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Case1B object
 func (c *Case1B) SizeSSZ() (size int) {
-	size = 4
+	size = c.fixedSize()
 
 	// Field (0) 'Bar'
 	size += len(c.Bar)

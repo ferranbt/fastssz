@@ -106,8 +106,8 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [][32]byte `json:"block_roots" ssz-size:"8192,32"`
-	StateRoots [][32]byte `json:"state_roots" ssz-size:"8192,32"`
+	BlockRoots [][32]byte `json:"block_roots" ssz-size:"var(historicalRoots),32"`
+	StateRoots [][32]byte `json:"state_roots" ssz-size:"var(historicalRoots),32"`
 }
 
 type ProposerSlashing struct {
@@ -149,18 +149,18 @@ type BeaconState struct {
 	Slot                        uint64                `json:"slot"`
 	Fork                        *Fork                 `json:"fork"`
 	LatestBlockHeader           *BeaconBlockHeader    `json:"latest_block_header"`
-	BlockRoots                  [][]byte              `json:"block_roots" ssz-size:"8192,32"`
-	StateRoots                  [][]byte              `json:"state_roots" ssz-size:"8192,32"`
+	BlockRoots                  [][]byte              `json:"block_roots" ssz-size:"var(rootsSize),32"`
+	StateRoots                  [][]byte              `json:"state_roots" ssz-size:"var(rootsSize),32"`
 	HistoricalRoots             [][]byte              `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data                    *Eth1Data             `json:"eth1_data"`
-	Eth1DataVotes               []*Eth1Data           `json:"eth1_data_votes" ssz-max:"2048"`
+	Eth1DataVotes               []*Eth1Data           `json:"eth1_data_votes" ssz-max:"var(eth1DataVotes)"`
 	Eth1DepositIndex            uint64                `json:"eth1_deposit_index"`
 	Validators                  []*Validator          `json:"validators" ssz-max:"1099511627776"`
 	Balances                    []uint64              `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes                 [][]byte              `json:"randao_mixes" ssz-size:"65536,32"`
-	Slashings                   []uint64              `json:"slashings" ssz-size:"8192"`
-	PreviousEpochAttestations   []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"4096"`
-	CurrentEpochAttestations    []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"4096"`
+	RandaoMixes                 [][]byte              `json:"randao_mixes" ssz-size:"var(randaoMixes),32"`
+	Slashings                   []uint64              `json:"slashings" ssz-size:"var(slashings)"`
+	PreviousEpochAttestations   []*PendingAttestation `json:"previous_epoch_attestations" ssz-max:"var(epochAttestations)"`
+	CurrentEpochAttestations    []*PendingAttestation `json:"current_epoch_attestations" ssz-max:"var(epochAttestations)"`
 	JustificationBits           []byte                `json:"justification_bits" ssz-size:"1"`
 	PreviousJustifiedCheckpoint *Checkpoint           `json:"previous_justified_checkpoint"`
 	CurrentJustifiedCheckpoint  *Checkpoint           `json:"current_justified_checkpoint"`
@@ -201,16 +201,16 @@ type BeaconStateAltair struct {
 	Slot                        uint64             `json:"slot"`
 	Fork                        *Fork              `json:"fork"`
 	LatestBlockHeader           *BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots                  [][]byte           `json:"block_roots" ssz-size:"8192,32"`
-	StateRoots                  [][]byte           `json:"state_roots" ssz-size:"8192,32"`
+	BlockRoots                  [][]byte           `json:"block_roots" ssz-size:"var(rootsSize),32"`
+	StateRoots                  [][]byte           `json:"state_roots" ssz-size:"var(rootsSize),32"`
 	HistoricalRoots             [][]byte           `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data                    *Eth1Data          `json:"eth1_data"`
-	Eth1DataVotes               []*Eth1Data        `json:"eth1_data_votes" ssz-max:"2048"`
+	Eth1DataVotes               []*Eth1Data        `json:"eth1_data_votes" ssz-max:"var(eth1DataVotes)"`
 	Eth1DepositIndex            uint64             `json:"eth1_deposit_index"`
 	Validators                  []*Validator       `json:"validators" ssz-max:"1099511627776"`
 	Balances                    []uint64           `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes                 [][]byte           `json:"randao_mixes" ssz-size:"65536,32"`
-	Slashings                   []uint64           `json:"slashings" ssz-size:"8192"`
+	RandaoMixes                 [][]byte           `json:"randao_mixes" ssz-size:"var(randaoMixes),32"`
+	Slashings                   []uint64           `json:"slashings" ssz-size:"var(slashings)"`
 	PreviousEpochParticipation  []byte             `json:"previous_epoch_participation" ssz-max:"1099511627776"`
 	CurrentEpochParticipation   []byte             `json:"current_epoch_participation" ssz-max:"1099511627776"`
 	JustificationBits           []byte             `json:"justification_bits" cast-type:"github.com/prysmaticlabs/go-bitfield.Bitvector4" ssz-size:"1"`
@@ -228,16 +228,16 @@ type BeaconStateBellatrix struct {
 	Slot                         uint64                  `json:"slot"`
 	Fork                         *Fork                   `json:"fork"`
 	LatestBlockHeader            *BeaconBlockHeader      `json:"latest_block_header"`
-	BlockRoots                   [][]byte                `json:"block_roots" ssz-size:"8192,32"`
-	StateRoots                   [][]byte                `json:"state_roots" ssz-size:"8192,32"`
+	BlockRoots                   [][]byte                `json:"block_roots" ssz-size:"var(rootsSize),32"`
+	StateRoots                   [][]byte                `json:"state_roots" ssz-size:"var(rootsSize),32"`
 	HistoricalRoots              [][]byte                `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data                     *Eth1Data               `json:"eth1_data"`
-	Eth1DataVotes                []*Eth1Data             `json:"eth1_data_votes" ssz-max:"2048"`
+	Eth1DataVotes                []*Eth1Data             `json:"eth1_data_votes" ssz-max:"var(eth1DataVotes)"`
 	Eth1DepositIndex             uint64                  `json:"eth1_deposit_index"`
 	Validators                   []*Validator            `json:"validators" ssz-max:"1099511627776"`
 	Balances                     []uint64                `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes                  [][]byte                `json:"randao_mixes" ssz-size:"65536,32"`
-	Slashings                    []uint64                `json:"slashings" ssz-size:"8192"`
+	RandaoMixes                  [][]byte                `json:"randao_mixes" ssz-size:"var(randaoMixes),32"`
+	Slashings                    []uint64                `json:"slashings" ssz-size:"var(slashings)"`
 	PreviousEpochParticipation   []byte                  `json:"previous_epoch_participation" ssz-max:"1099511627776"`
 	CurrentEpochParticipation    []byte                  `json:"current_epoch_participation" ssz-max:"1099511627776"`
 	JustificationBits            []byte                  `json:"justification_bits" cast-type:"github.com/prysmaticlabs/go-bitfield.Bitvector4" ssz-size:"1"`
@@ -272,12 +272,12 @@ type Dummy struct{}
 type Interface interface{}
 
 type SyncCommittee struct {
-	PubKeys         [][]byte `json:"pubkeys" ssz-size:"512,48"`
+	PubKeys         [][]byte `json:"pubkeys" ssz-size:"var(syncCommitteePubKeys),48"`
 	AggregatePubKey [48]byte `json:"aggregate_pubkey" ssz-size:"48"`
 }
 
 type SyncAggregate struct {
-	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"64"`
+	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"var(syncCommitteeBits)"`
 	SyncCommiteeSignature [96]byte `json:"sync_committee_signature" ssz-size:"96"`
 }
 
@@ -341,7 +341,7 @@ type ExecutionPayloadCapella struct {
 	BaseFeePerGas Uint256       `ssz-size:"32" json:"base_fee_per_gas"`
 	BlockHash     [32]byte      `ssz-size:"32" json:"block_hash"`
 	Transactions  [][]byte      `ssz-max:"1048576,1073741824" ssz-size:"?,?" json:"transactions"`
-	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"16"`
+	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"var(withdrawals)"`
 }
 
 type ExecutionPayloadHeaderCapella struct {
@@ -391,16 +391,16 @@ type BeaconStateCapella struct {
 	Slot                         uint64                         `json:"slot"`
 	Fork                         *Fork                          `json:"fork"`
 	LatestBlockHeader            *BeaconBlockHeader             `json:"latest_block_header"`
-	BlockRoots                   [8192][32]byte                 `json:"block_roots" ssz-size:"8192,32"`
-	StateRoots                   [8192][32]byte                 `json:"state_roots" ssz-size:"8192,32"`
+	BlockRoots                   [][]byte                       `json:"block_roots" ssz-size:"var(rootsSize),32"`
+	StateRoots                   [][]byte                       `json:"state_roots" ssz-size:"var(rootsSize),32"`
 	HistoricalRoots              [][]byte                       `json:"historical_roots" ssz-max:"16777216" ssz-size:"?,32"`
 	Eth1Data                     *Eth1Data                      `json:"eth1_data"`
-	Eth1DataVotes                []*Eth1Data                    `json:"eth1_data_votes" ssz-max:"2048"`
+	Eth1DataVotes                []*Eth1Data                    `json:"eth1_data_votes" ssz-max:"var(eth1DataVotes)"`
 	Eth1DepositIndex             uint64                         `json:"eth1_deposit_index"`
 	Validators                   []*Validator                   `json:"validators" ssz-max:"1099511627776"`
 	Balances                     []uint64                       `json:"balances" ssz-max:"1099511627776"`
-	RandaoMixes                  [65536][32]byte                `json:"randao_mixes" ssz-size:"65536,32"`
-	Slashings                    []uint64                       `json:"slashings" ssz-size:"8192"`
+	RandaoMixes                  [][]byte                       `json:"randao_mixes" ssz-size:"var(randaoMixes),32"`
+	Slashings                    []uint64                       `json:"slashings" ssz-size:"var(slashings)"`
 	PreviousEpochParticipation   []byte                         `json:"previous_epoch_participation" ssz-max:"1099511627776"`
 	CurrentEpochParticipation    []byte                         `json:"current_epoch_participation" ssz-max:"1099511627776"`
 	JustificationBits            [1]byte                        `json:"justification_bits" ssz-size:"1"`
@@ -460,7 +460,7 @@ type ExecutionPayloadDeneb struct {
 	BaseFeePerGas Uint256       `ssz-size:"32" json:"base_fee_per_gas"`
 	BlockHash     [32]byte      `ssz-size:"32" json:"block_hash"`
 	Transactions  [][]byte      `ssz-max:"1048576,1073741824" ssz-size:"?,?" json:"transactions"`
-	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"16"`
+	Withdrawals   []*Withdrawal `json:"withdrawals" ssz-max:"var(withdrawals)"`
 	BlobGasUsed   uint64        `json:"blob_gas_used"`
 	ExcessBlobGas uint64        `json:"excess_blob_gas"`
 }

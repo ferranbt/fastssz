@@ -15,7 +15,7 @@ func (i *IntegrationUint) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the IntegrationUint object to a target array
 func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(31)
+	offset := i.fixedSize()
 
 	// Field (0) 'A'
 	dst = ssz.MarshalValue(dst, i.A)
@@ -45,7 +45,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (4) 'A1'
-	if size := len(i.A1); size > 400 {
+	if size := uint64(len(i.A1)); size > 400 {
 		err = ssz.ErrListTooBigFn("IntegrationUint.A1", size, 400)
 		return
 	}
@@ -54,7 +54,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (5) 'A2'
-	if size := len(i.A2); size > 400 {
+	if size := uint64(len(i.A2)); size > 400 {
 		err = ssz.ErrListTooBigFn("IntegrationUint.A2", size, 400)
 		return
 	}
@@ -63,7 +63,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (6) 'A3'
-	if size := len(i.A3); size > 400 {
+	if size := uint64(len(i.A3)); size > 400 {
 		err = ssz.ErrListTooBigFn("IntegrationUint.A3", size, 400)
 		return
 	}
@@ -72,7 +72,7 @@ func (i *IntegrationUint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 
 	// Field (7) 'A4'
-	if size := len(i.A4); size > 400 {
+	if size := uint64(len(i.A4)); size > 400 {
 		err = ssz.ErrListTooBigFn("IntegrationUint.A4", size, 400)
 		return
 	}
@@ -90,14 +90,15 @@ func (i *IntegrationUint) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the IntegrationUint object and returns the remaining bufferº
 func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 31 {
+	size := len(buf)
+	fixedSize := i.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o4, o5, o6, o7 uint64
-	marker := ssz.NewOffsetMarker(size, 31)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Field (0) 'A'
 	i.A, buf = ssz.UnmarshallValue[uint8](buf)
@@ -127,12 +128,12 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	}
 
 	// Offset (7) 'A4'
-	if o7, buf, err = marker.ReadOffset(buf); err != nil {
+	if o7, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
 	// Field (4) 'A1'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A1, tail[o4:o5], 1, 400, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A1, tail[o4:o5], 1, 400, func(ii uint64, buf []byte) (err error) {
 		i.A1[ii], buf = ssz.UnmarshallValue[uint8](buf)
 		return nil
 	}); err != nil {
@@ -140,7 +141,7 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	}
 
 	// Field (5) 'A2'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A2, tail[o5:o6], 2, 400, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A2, tail[o5:o6], 2, 400, func(ii uint64, buf []byte) (err error) {
 		i.A2[ii], buf = ssz.UnmarshallValue[uint16](buf)
 		return nil
 	}); err != nil {
@@ -148,7 +149,7 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	}
 
 	// Field (6) 'A3'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A3, tail[o6:o7], 4, 400, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A3, tail[o6:o7], 4, 400, func(ii uint64, buf []byte) (err error) {
 		i.A3[ii], buf = ssz.UnmarshallValue[uint32](buf)
 		return nil
 	}); err != nil {
@@ -156,7 +157,7 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	}
 
 	// Field (7) 'A4'
-	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A4, tail[o7:], 8, 400, func(ii int, buf []byte) (err error) {
+	if err = ssz.UnmarshalSliceWithIndexCallback(&i.A4, tail[o7:], 8, 400, func(ii uint64, buf []byte) (err error) {
 		i.A4[ii], buf = ssz.UnmarshallValue[uint64](buf)
 		return nil
 	}); err != nil {
@@ -166,9 +167,14 @@ func (i *IntegrationUint) UnmarshalSSZTail(buf []byte) (rest []byte, err error) 
 	return
 }
 
+// fixedSize returns the fixed size of the IntegrationUint object
+func (i *IntegrationUint) fixedSize() int {
+	return int(31)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the IntegrationUint object
 func (i *IntegrationUint) SizeSSZ() (size int) {
-	size = 31
+	size = i.fixedSize()
 
 	// Field (4) 'A1'
 	size += len(i.A1) * 1
@@ -208,7 +214,7 @@ func (i *IntegrationUint) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (4) 'A1'
 	{
-		if size := len(i.A1); size > 400 {
+		if size := uint64(len(i.A1)); size > 400 {
 			err = ssz.ErrListTooBigFn("IntegrationUint.A1", size, 400)
 			return
 		}
@@ -223,7 +229,7 @@ func (i *IntegrationUint) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (5) 'A2'
 	{
-		if size := len(i.A2); size > 400 {
+		if size := uint64(len(i.A2)); size > 400 {
 			err = ssz.ErrListTooBigFn("IntegrationUint.A2", size, 400)
 			return
 		}
@@ -238,7 +244,7 @@ func (i *IntegrationUint) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (6) 'A3'
 	{
-		if size := len(i.A3); size > 400 {
+		if size := uint64(len(i.A3)); size > 400 {
 			err = ssz.ErrListTooBigFn("IntegrationUint.A3", size, 400)
 			return
 		}
@@ -253,7 +259,7 @@ func (i *IntegrationUint) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 
 	// Field (7) 'A4'
 	{
-		if size := len(i.A4); size > 400 {
+		if size := uint64(len(i.A4)); size > 400 {
 			err = ssz.ErrListTooBigFn("IntegrationUint.A4", size, 400)
 			return
 		}

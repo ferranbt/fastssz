@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // vector -> fixed size
@@ -30,7 +31,7 @@ type Bool struct {
 func (b *Bool) isValue() {}
 
 type Bytes struct {
-	Size    uint64
+	Size    Size
 	IsList  bool
 	IsGoDyn bool // this is a fixed byte array but that is represented as a vector
 }
@@ -49,7 +50,7 @@ func (b *BitList) isValue() {}
 
 type Vector struct {
 	Elem  *Value
-	Size  uint64
+	Size  Size
 	IsDyn bool // this is a fixed byte array but that is represented as a vector
 }
 
@@ -57,13 +58,14 @@ func (v *Vector) isValue() {}
 
 type List struct {
 	Elem    *Value
-	MaxSize uint64
+	MaxSize Size
 }
 
 func (l *List) isValue() {}
 
 type Container struct {
-	Elems []*Value
+	ObjName string
+	Elems   []*Value
 }
 
 func (c *Container) isValue() {}
@@ -104,6 +106,13 @@ func (v *Value) isContainer() bool {
 	return false
 }
 
+func lowerFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToLower(s[:1]) + s[1:]
+}
+
 func (v *Value) Type() string {
 	switch v.typ.(type) {
 	case *Bool:
@@ -128,5 +137,38 @@ func (v *Value) Type() string {
 		return "time"
 	default:
 		panic(fmt.Errorf("unknown type %s", reflect.TypeOf(v.typ)))
+	}
+}
+
+type Size struct {
+	Size    uint64
+	VarSize string
+}
+
+func (s Size) Num() uint64 {
+	if s.VarSize != "" {
+		panic(fmt.Sprintf("Size.Num called on variable size %s", s.VarSize))
+	}
+	return s.Size
+}
+
+func (s Size) MarshalTemplate() string {
+	if s.VarSize != "" {
+		return s.VarSize
+	}
+	return fmt.Sprintf("%d", s.Size)
+}
+
+func NewSizeNum(size uint64) Size {
+	return Size{
+		Size:    size,
+		VarSize: "",
+	}
+}
+
+func NewSizeVar(varSize string) Size {
+	return Size{
+		Size:    0,
+		VarSize: varSize,
 	}
 }

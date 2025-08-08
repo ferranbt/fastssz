@@ -29,8 +29,9 @@ func (i *Issue64) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Issue64 object and returns the remaining bufferº
 func (i *Issue64) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 120 {
+	size := len(buf)
+	fixedSize := i.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -40,9 +41,14 @@ func (i *Issue64) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Issue64 object
+func (i *Issue64) fixedSize() int {
+	return int(120)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Issue64 object
 func (i *Issue64) SizeSSZ() (size int) {
-	size = 120
+	size = i.fixedSize()
 	return
 }
 

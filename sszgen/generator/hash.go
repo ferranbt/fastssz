@@ -33,12 +33,12 @@ func (v *Value) hashRoots(isList bool) string {
 
 	inner := ""
 	if obj, ok := innerObj.typ.(*Bytes); ok && (obj.IsGoDyn || obj.IsList) {
-		inner = `if len(i) != %d {
+		inner = `if len(i) != %s {
 			err = ssz.ErrBytesLength
 			return
 		}
 		`
-		inner = fmt.Sprintf(inner, obj.Size)
+		inner = fmt.Sprintf(inner, obj.Size.MarshalTemplate())
 	}
 
 	var appendFn string
@@ -51,19 +51,20 @@ func (v *Value) hashRoots(isList bool) string {
 		}
 
 		// [][]byte
-		if obj.Size != 32 {
+		if obj.Size.Size != 32 { // TODO: hardcoding this as this use case has not been variable yet
 			// we need to use PutBytes in order to hash the result since
 			// is higher than 32 bytes
 			appendFn = "PutBytes"
-			elemSize = obj.Size
+			elemSize = obj.Size.Size
 		} else {
 			appendFn = "Append"
 			elemSize = 32
 		}
 	} else {
 		// []uint64
-		appendFn = "Append" + uintVToName2(*innerObj.typ.(*Uint))
-		elemSize = uint64(innerObj.fixedSize())
+		elem := *innerObj.typ.(*Uint)
+		appendFn = "Append" + uintVToName2(elem)
+		elemSize = elem.Size
 	}
 
 	var merkleize string
@@ -139,7 +140,7 @@ func (v *Value) hashTreeRoot(name string, appendBytes bool) string {
 			// alias to uint*
 			name = fmt.Sprintf("%s(%s)", uintVToLowerCaseName2(obj), name)
 		}
-		bitLen := v.fixedSize() * 8
+		bitLen := obj.Size * 8
 		return fmt.Sprintf("hh.PutUint%d(%s)", bitLen, name)
 
 	case *BitList:

@@ -15,13 +15,13 @@ func (o *Obj2) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Obj2 object to a target array
 func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(4)
+	offset := o.fixedSize()
 
 	// Offset (0) 'T1'
 	dst = ssz.WriteOffset(dst, offset)
 
 	// Field (0) 'T1'
-	if size := len(o.T1); size > 1024 {
+	if size := uint64(len(o.T1)); size > 1024 {
 		err = ssz.ErrListTooBigFn("Obj2.T1", size, 1024)
 		return
 	}
@@ -33,7 +33,7 @@ func (o *Obj2) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		}
 	}
 	for ii := 0; ii < len(o.T1); ii++ {
-		if size := len(o.T1[ii]); size > 256 {
+		if size := uint64(len(o.T1[ii])); size > 256 {
 			err = ssz.ErrBytesLengthFn("Obj2.T1[ii]", size, 256)
 			return
 		}
@@ -50,22 +50,23 @@ func (o *Obj2) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Obj2 object and returns the remaining bufferº
 func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 4 {
+	size := len(buf)
+	fixedSize := o.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
 	tail := buf
 	var o0 uint64
-	marker := ssz.NewOffsetMarker(size, 4)
+	marker := ssz.NewOffsetMarker(uint64(size), uint64(fixedSize))
 
 	// Offset (0) 'T1'
-	if o0, buf, err = marker.ReadOffset(buf); err != nil {
+	if o0, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
 	// Field (0) 'T1'
-	if err = ssz.UnmarshalDynamicSliceWithCallback(&o.T1, tail[o0:], 1024, func(indx int, buf []byte) (err error) {
+	if err = ssz.UnmarshalDynamicSliceWithCallback(&o.T1, tail[o0:], 1024, func(indx uint64, buf []byte) (err error) {
 		if o.T1[indx], err = ssz.UnmarshalDynamicBytes(o.T1[indx], buf, 256); err != nil {
 			return
 		}
@@ -77,9 +78,14 @@ func (o *Obj2) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return
 }
 
+// fixedSize returns the fixed size of the Obj2 object
+func (o *Obj2) fixedSize() int {
+	return int(4)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Obj2 object
 func (o *Obj2) SizeSSZ() (size int) {
-	size = 4
+	size = o.fixedSize()
 
 	// Field (0) 'T1'
 	for ii := 0; ii < len(o.T1); ii++ {

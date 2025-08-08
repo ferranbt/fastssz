@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -13,9 +12,14 @@ import (
 // Note that if any of the internal fields of the struct is nil, we will not fail, only not add up
 // that field to the size. It is up to other methods like marshal to fail on that scenario.
 func (e *env) size(name string, v *Value) string {
-	tmpl := `// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
+	tmpl := `// fixedSize returns the fixed size of the {{.name}} object
+	func (:: *{{.name}}) fixedSize() int {
+		return int({{.fixed}})
+	}
+	
+	// SizeSSZ returns the ssz encoded size in bytes for the {{.name}} object
 	func (:: *{{.name}}) SizeSSZ() (size int) {
-		size = {{.fixed}}{{if .dynamic}}
+		size = ::.fixedSize(){{if .dynamic}}
 
 		{{.dynamic}}
 		{{end}}
@@ -24,51 +28,157 @@ func (e *env) size(name string, v *Value) string {
 
 	str := execTmpl(tmpl, map[string]interface{}{
 		"name":    name,
-		"fixed":   v.fixedSize(),
+		"fixed":   v.fixedSizeForContainer(),
 		"dynamic": v.sizeContainer("size", true),
 	})
 	return appendObjSignature(str, v)
 }
 
-func (v *Value) fixedSize() uint64 {
+func (v *Value) fixedSizeForContainer() string {
+	acc := &SizeAccumulator{
+		Size: 0,
+		Vars: []string{},
+	}
+
+	v.fixedSizeForContainerAcc(acc)
+	return acc.String()
+}
+
+type SizeAccumulator struct {
+	Size uint64
+	Vars []string
+}
+
+func NewSizeAccumulator() *SizeAccumulator {
+	return &SizeAccumulator{
+		Size: 0,
+		Vars: []string{},
+	}
+}
+
+func (s *SizeAccumulator) IsVariable() bool {
+	return len(s.Vars) > 0
+}
+
+func (s *SizeAccumulator) AddVar(name string) {
+	if name == "" {
+		return
+	}
+	s.Vars = append(s.Vars, name)
+}
+
+func (s *SizeAccumulator) AddInt(size uint64) {
+	s.Size += size
+}
+
+func (s *SizeAccumulator) Merge(ss *SizeAccumulator) {
+	if ss.IsVariable() {
+		// If there are variables, that means the value cannot be accumulated as a fixed
+		// int, it includes arightmetic operations and we have to use the parenthesis to
+		// avoid precedence issues
+		s.Vars = append(s.Vars, "("+ss.String()+")")
+	} else {
+		// If there are no variables, just merge the size as an int
+		s.Size += ss.Size
+	}
+}
+
+func (s *SizeAccumulator) String() string {
+	vars := s.Vars
+	if s.Size != 0 {
+		vars = append([]string{fmt.Sprintf("%d", s.Size)}, vars...)
+	}
+	if len(vars) == 0 {
+		return "0"
+	}
+	return strings.Join(vars, " + ")
+}
+
+func (v *Value) fixedSizeForContainerAcc(acc *SizeAccumulator) {
+	if !v.isContainer() {
+		panic(fmt.Sprintf("fixedSizeForContainer called on non-container type %s", reflect.TypeOf(v.typ)))
+	}
+
+	subAcc := NewSizeAccumulator()
+	for _, f := range v.getObjs() {
+		switch obj := f.typ.(type) {
+		case *Vector:
+			if obj.Elem.isFixed() {
+				vectorAcc := NewSizeAccumulator()
+				obj.Elem.fixedSizeAcc(vectorAcc)
+
+				if obj.Size.Size != 0 {
+					// two cases: fixed size or variable size for the inner element
+					if vectorAcc.IsVariable() {
+						// variable size, accumulate on top of subAcc
+						subAcc.AddVar(fmt.Sprintf("(%d * %s)", obj.Size.Size, vectorAcc.String()))
+					} else {
+						// fixed size, we can precompute all the size
+						subAcc.AddInt(obj.Size.Size * vectorAcc.Size)
+					}
+				} else {
+					// variable size, it is going to be an arithmetic expression
+					subAcc.AddVar(fmt.Sprintf("(%s * %s)", obj.Size.VarSize, vectorAcc.String()))
+				}
+			} else {
+				if obj.Size.Size != 0 {
+					// known size at compilation time. precompute it.
+					subAcc.AddInt(obj.Size.Size * bytesPerLengthOffset)
+				} else {
+					// variable
+					subAcc.AddVar(fmt.Sprintf("(%s * %d)", obj.Size.VarSize, bytesPerLengthOffset))
+				}
+			}
+
+		case *List:
+			// lists are variable size, so we don't add them to the fixed size
+			subAcc.AddInt(bytesPerLengthOffset)
+		default:
+			f.fixedSizeAcc(subAcc)
+		}
+	}
+
+	acc.Merge(subAcc)
+}
+
+func (v *Value) fixedSize() string {
+	acc := &SizeAccumulator{
+		Size: 0,
+		Vars: []string{},
+	}
+
+	v.fixedSizeAcc(acc)
+	return acc.String()
+}
+
+func (v *Value) fixedSizeAcc(acc *SizeAccumulator) {
 	switch obj := v.typ.(type) {
 	case *Bool:
-		return 1
+		acc.AddInt(1)
 	case *Uint:
-		return obj.Size
+		acc.AddInt(obj.Size)
 	case *Int:
-		return obj.Size
+		acc.AddInt(obj.Size)
 	case *Bytes:
-		return obj.Size
-	case *BitList:
-		return obj.Size
-	case *Container:
-		var fixed uint64
-		for _, f := range v.getObjs() {
-			if f.isFixed() {
-				fixed += f.fixedSize()
+		if obj.IsList {
+			acc.AddInt(bytesPerLengthOffset)
+		} else {
+			if obj.Size.Size != 0 {
+				acc.AddInt(obj.Size.Size)
 			} else {
-				// we don't want variable size objects to recursively calculate their inner sizes
-				fixed += bytesPerLengthOffset
+				acc.AddVar(obj.Size.VarSize)
 			}
 		}
-		return fixed
-	case *Vector:
-		if obj.Elem.isFixed() {
-			return obj.Size * obj.Elem.fixedSize()
-		} else {
-			return obj.Size * bytesPerLengthOffset
-		}
-
-	case *Reference:
-		if !v.isFixed() {
-			return bytesPerLengthOffset
-		}
-		return obj.Size
-
+	case *BitList:
+		acc.AddInt(bytesPerLengthOffset)
 	case *Time:
-		return 8
-
+		acc.AddInt(8)
+	case *Container:
+		if v.isFixed() {
+			v.fixedSizeForContainerAcc(acc)
+		} else {
+			acc.AddInt(bytesPerLengthOffset)
+		}
 	default:
 		panic(fmt.Errorf("fixed size not implemented for type %s", reflect.TypeOf(v.typ)))
 	}
@@ -111,10 +221,7 @@ func (v *Value) size(name string) string {
 		if _, ok := v.typ.(*Container); ok {
 			return v.sizeContainer(name, false)
 		}
-		if v.fixedSize() == 1 {
-			return name + "++"
-		}
-		return name + " += " + strconv.Itoa(int(v.fixedSize()))
+		return name + " += " + v.fixedSize()
 	}
 
 	switch v.typ.(type) {
@@ -131,7 +238,7 @@ func (v *Value) size(name string) string {
 		inner := getElem(v.typ)
 
 		if inner.isFixed() {
-			return fmt.Sprintf("%s += len(::.%s) * %d", name, v.name, inner.fixedSize())
+			return fmt.Sprintf("%s += len(::.%s) * %s", name, v.name, inner.fixedSize())
 		}
 		inner.name = v.name + "[ii]"
 		tmpl := `for ii := 0; ii < len(::.{{.name}}); ii++ {

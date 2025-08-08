@@ -866,7 +866,7 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 			size, _ := getTagsInt(tags, "ssz-size")
 			v = &Value{noPtr: raw.obj == nil, typ: &Reference{Size: size}}
 		} else if raw.obj != nil {
-			v, err = e.parseASTStructType(name)
+			v, err = e.parseASTStructType(raw.name, name)
 		} else {
 			v, err = e.parseASTFieldType(name, tags, raw.typ)
 		}
@@ -890,13 +890,14 @@ func (e *env) encodeItem(name, tags string) (*Value, error) {
 }
 
 // parse the Go AST struct
-func (e *env) parseASTStructType(name string) (*Value, error) {
+func (e *env) parseASTStructType(objTypeName string, name string) (*Value, error) {
 	v := &Value{
 		name: name,
 	}
 
 	v2 := &Container{
-		Elems: []*Value{},
+		ObjName: objTypeName,
+		Elems:   []*Value{},
 	}
 
 	visited := map[string]struct{}{}
@@ -1078,7 +1079,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					// we cannot do here dynamic because we rely on the size
 					// on the tags
 					outer.typ = &Bytes{
-						Size: *astSize,
+						Size: NewSizeNum(*astSize),
 					}
 				} else {
 					outer.typ = &Bytes{
@@ -1104,7 +1105,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if astSize != nil {
 				outer.typ = &Vector{
 					Elem: innerTyp,
-					Size: *astSize,
+					Size: NewSizeNum(*astSize),
 				}
 			} else {
 				outer.typ = &List{
@@ -1137,15 +1138,15 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				// At this point we have a list because the internal vector/list did not have a concrete size
 				// Now is the time where we check the dimensions and update the size of the list type accordingly
 				// if it is a vector.
-				if obj.MaxSize != 0 {
+				if obj.MaxSize.Num() != 0 {
 					return nil, fmt.Errorf("list should not have a max size at this point")
 				}
 				if dim.IsList() {
-					obj.MaxSize = uint64(dim.ListLen())
+					obj.MaxSize = dim.ListLen()
 				} else if dim.IsVector() {
 					outerRef.typ = &Vector{
 						Elem:  obj.Elem,
-						Size:  uint64(dim.VectorLen()),
+						Size:  dim.VectorLen(),
 						IsDyn: true,
 					}
 				}
@@ -1153,25 +1154,25 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			case *Vector:
 				// Validate that the vector fixed size specified in the ssz tags matches the size of the Go array
 				if !dim.IsVector() {
-					return nil, fmt.Errorf("fixed size %d but the ssz tag is not a vector", obj.Size)
+					return nil, fmt.Errorf("fixed size %d but the ssz tag is not a vector", obj.Size.Num())
 				}
-				vectorLen := dim.VectorLen()
-				if vectorLen != int(obj.Size) {
-					return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size, vectorLen)
-				}
+				//vectorLen := dim.VectorLen()
+				//if vectorLen != int(obj.Size.Num()) {
+				//	return nil, fmt.Errorf("vector size mismatch: expected %d but got %d", obj.Size.Num(), vectorLen)
+				//}
 
 			case *Bytes:
 				if obj.IsList {
 					// Same case as with the List above.
 					// We have a []byte object for which we have to resolve the size now that we have the dimensions
-					if obj.Size != 0 {
+					if obj.Size.Size != 0 {
 						return nil, fmt.Errorf("bytes should not have a size at this point")
 					}
 					if dim.IsList() {
-						obj.Size = uint64(dim.ListLen())
+						obj.Size = dim.ListLen()
 					} else if dim.IsVector() {
 						outerRef.typ = &Bytes{
-							Size:    uint64(dim.VectorLen()),
+							Size:    dim.VectorLen(),
 							IsGoDyn: true,
 						}
 					}
@@ -1182,7 +1183,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 
 			if dim.IsBitlist() {
 				outerRef.typ = &BitList{
-					Size: uint64(dim.ListLen()),
+					Size: dim.ListLen().Num(),
 				}
 			}
 
@@ -1261,7 +1262,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{typ: &Bytes{Size: uint64(tailDim.VectorLen())}}, nil
+			return &Value{typ: &Bytes{Size: tailDim.VectorLen()}}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1359,7 +1360,19 @@ func (v *Value) isFixed() bool {
 	}
 }
 
-func execTmpl(tpl string, input interface{}) string {
+type TemplateMarshal interface {
+	MarshalTemplate() string
+}
+
+func execTmpl(tpl string, input map[string]interface{}) string {
+	for k, v := range input {
+		if tmpl, ok := v.(TemplateMarshal); ok {
+			// if the value is a TemplateMarshal, we want to use its template
+			// instead of the default one.
+			input[k] = tmpl.MarshalTemplate()
+		}
+	}
+
 	funcs := template.FuncMap{
 		"ref": func(v *Value) string {
 			return v.objRef()

@@ -77,11 +77,6 @@ func GetSSZTags(tag string) (map[string]string, error) {
 	return tags, nil
 }
 
-// cannot compare untyped nil to typed nil
-// this value gives us a nil with type of *int
-// to compare to ssz-size = '?' values
-var nilInt *int
-
 // handle tag structured like 'ssz:"bitlist"'
 // this is not used in prysm but needs to be supported for fastssz tests
 func isBitList(tags map[string]string) bool {
@@ -144,22 +139,22 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 			if mxi == "?" || mxi == "" {
 				return nil, fmt.Errorf("no numeric ssz-size or ssz-max tag for value at dimesion %d", i)
 			}
-			m, err := strconv.Atoi(mxi)
+			m, err := parseSize(mxi)
 			if err != nil {
-				return nil, fmt.Errorf("atoi failed on value %s for ssz-max at dimension %d err=%s", mxi, i, err)
+				return nil, fmt.Errorf("failed to parse ssz-size at dimension %d err=%s", i, err)
 			}
 			dims[i] = &SSZDimension{
 				isBitlist:  isbl,
-				ListLength: &m,
+				ListLength: m,
 			}
 		default: // szi is not empty or "?"
-			s, err := strconv.Atoi(szi)
+			s, err := parseSize(szi)
 			if err != nil {
-				return nil, fmt.Errorf("atoi failed on value %s for ssz-size at dimension %d, err=%s", szi, i, err)
+				return nil, fmt.Errorf("failed to parse ssz-size at dimension %d, err=%s", i, err)
 			}
 			dims[i] = &SSZDimension{
 				isBitlist:    isbl,
-				VectorLength: &s,
+				VectorLength: s,
 			}
 			continue
 		}
@@ -167,9 +162,34 @@ func extractSSZDimensions(tag string) ([]*SSZDimension, error) {
 	return dims, nil
 }
 
+func parseSize(tagValue string) (*Size, error) {
+	if strings.HasPrefix(tagValue, "var(") {
+		// variable declaration
+		tagValue = strings.TrimPrefix(tagValue, "var(")
+		tagValue = strings.TrimSuffix(tagValue, ")")
+
+		if tagValue == "" {
+			return nil, fmt.Errorf("variable size tag cannot be empty")
+		}
+		return &Size{
+			Size:    0,
+			VarSize: tagValue,
+		}, nil
+	}
+
+	m, err := strconv.Atoi(tagValue)
+	if err != nil {
+		return nil, fmt.Errorf("atoi failed on value %s err=%s", tagValue, err)
+	}
+	return &Size{
+		Size:    uint64(m),
+		VarSize: "",
+	}, nil
+}
+
 type SSZDimension struct {
-	VectorLength *int
-	ListLength   *int
+	VectorLength *Size
+	ListLength   *Size
 	isBitlist    bool
 }
 
@@ -187,34 +207,23 @@ func (dim *SSZDimension) Type() string {
 }
 
 func (dim *SSZDimension) IsVector() bool {
-	return dim.VectorLength != nilInt
+	return dim.VectorLength != nil
 }
 
 func (dim *SSZDimension) IsList() bool {
-	return dim.ListLength != nilInt
+	return dim.ListLength != nil
 }
 
 func (dim *SSZDimension) IsBitlist() bool {
 	return dim.isBitlist
 }
 
-func (dim *SSZDimension) ListLen() int {
+func (dim *SSZDimension) ListLen() Size {
 	return *dim.ListLength
 }
 
-func (dim *SSZDimension) VectorLen() int {
+func (dim *SSZDimension) VectorLen() Size {
 	return *dim.VectorLength
-}
-
-// ValueType returns ssz-max or ssz-size, to be used in the construction of a fastssz Value type
-func (dim *SSZDimension) ValueLen() uint64 {
-	if dim.IsList() {
-		return uint64(dim.ListLen())
-	}
-	if dim.IsVector() {
-		return uint64(dim.VectorLen())
-	}
-	return 0
 }
 
 func trimTagQuotes(s string) string {

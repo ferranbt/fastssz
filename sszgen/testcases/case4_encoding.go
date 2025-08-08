@@ -35,7 +35,7 @@ func (c *Case4) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.MarshalValue(dst, uint64(c.C))
 
 	// Field (3) 'D'
-	if size := len(c.D); size != 96 {
+	if size := uint64(len(c.D)); size != 96 {
 		err = ssz.ErrBytesLengthFn("Case4.D", size, 96)
 		return
 	}
@@ -54,8 +54,9 @@ func (c *Case4) UnmarshalSSZ(buf []byte) error {
 
 // UnmarshalSSZTail unmarshals the Case4 object and returns the remaining bufferº
 func (c *Case4) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
-	size := uint64(len(buf))
-	if size < 200 {
+	size := len(buf)
+	fixedSize := c.fixedSize()
+	if size < fixedSize {
 		return nil, ssz.ErrSize
 	}
 
@@ -85,9 +86,14 @@ func (c *Case4) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	return buf, nil
 }
 
+// fixedSize returns the fixed size of the Case4 object
+func (c *Case4) fixedSize() int {
+	return int(200)
+}
+
 // SizeSSZ returns the ssz encoded size in bytes for the Case4 object
 func (c *Case4) SizeSSZ() (size int) {
-	size = 200
+	size = c.fixedSize()
 	return
 }
 
@@ -117,7 +123,7 @@ func (c *Case4) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutUint64(uint64(c.C))
 
 	// Field (3) 'D'
-	if size := len(c.D); size != 96 {
+	if size := uint64(len(c.D)); size != 96 {
 		err = ssz.ErrBytesLengthFn("Case4.D", size, 96)
 		return
 	}
