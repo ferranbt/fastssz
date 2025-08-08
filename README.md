@@ -106,3 +106,20 @@ There are some caveats required to use this functionality.
 `Fastssz` integrates with Prysm [gohashtree](github.com/prysmaticlabs/gohashtree) library to do high performance and concurrent Sha256 hashing. It achieves a 2x performance improvement with respect to the normal sequential hashing.
 
 In order to use this feature, enable manually the hash function in the Hasher like in the benchmark example.
+
+## Dynamic Struct Tags for Multi-Chain Support
+
+FastSSZ supports dynamic struct tags to accommodate different chain specifications and network presets using variable-based sizing. This feature addresses the need to support multiple blockchain networks (like Ethereum, Gnosis, etc.) and different network presets.
+
+Use the `var(<variable_name>)` syntax in SSZ tags to define variable-based sizing:
+
+```go
+type ExecutionPayload struct {
+    Withdrawals []*Withdrawal `ssz-max:"var(maxWithdrawals)"`
+    BlockRoots  [][]byte      `ssz-size:"var(historicalRootSize),32"`
+}
+```
+
+FastSSZ generates code that references the specified variable for size constraints and comparisons, but does not generate the variable itself. You must provide a uint64 variable with the specified name in the destination package.
+
+This feature has been tested on the [Ethereum eth2.0 specs](https://github.com/ferranbt/fastssz/blob/main/spectests/structs.go) and all types from there are supported. However, some edge cases might not be fully ready yet - please open an issue if you encounter any problems.
