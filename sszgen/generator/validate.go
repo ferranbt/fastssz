@@ -19,10 +19,29 @@ func validateBytesArray(name string, size Size, fixed bool) string {
 	})
 }
 
+func validateBitListArray(name string, size Size, fixed bool) string {
+	// for variable size values, we want to ensure it doesn't exceed max size bound
+	cmp := ">"
+	if fixed {
+		cmp = "!="
+	}
+
+	tmpl := `if size := ssz.BitlistLen(::.{{.name}}); size {{.cmp}} {{.size}} {
+			err = ssz.ErrBytesLengthFn("--.{{.name}}", size, {{.size}})
+			return
+		}
+		`
+	return execTmpl(tmpl, map[string]interface{}{
+		"cmp":  cmp,
+		"name": name,
+		"size": size,
+	})
+}
+
 func (v *Value) validate() string {
 	switch obj := v.typ.(type) {
 	case *BitList:
-		return validateBytesArray(v.name, NewSizeNum(obj.Size), false)
+		return validateBitListArray(v.name, NewSizeNum(obj.Size), false)
 	case *Bytes:
 		if obj.IsList {
 			// for lists of bytes, we need to validate the size of the buffer

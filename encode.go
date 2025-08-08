@@ -225,6 +225,26 @@ func ValidateBitlist(buf []byte, bitLimit uint64) error {
 	return nil
 }
 
+// BitlistLen provides the bitlist length of a byte array
+func BitlistLen(b []byte) uint64 {
+	if len(b) == 0 {
+		return 0
+	}
+	// The most significant bit is present in the last byte in the array.
+	last := b[len(b)-1]
+
+	// Determine the position of the most significant bit.
+	msb := bits.Len8(last)
+	if msb == 0 {
+		return 0
+	}
+
+	// The absolute position of the most significant bit will be the number of
+	// bits in the preceding bytes plus the position of the most significant
+	// bit. Subtract this value by 1 to determine the length of the bitlist.
+	return uint64(8*(len(b)-1) + msb - 1)
+}
+
 // DecodeDynamicLength decodes the length from the dynamic input
 func DecodeDynamicLength(buf []byte, maxSize uint64) (uint64, error) {
 	if len(buf) == 0 {
