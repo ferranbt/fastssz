@@ -324,8 +324,12 @@ func (v *Value) umarshalContainer(start bool, dst string) (str string) {
 				data["more"] = ""
 			}
 
+			// the last offset has to elide the 'buf' variable becuase it is not
+			// used anymore and the lint complains about it
+			data["isLastOffset"] = indx == len(v.getObjs())-1
+
 			tmpl := `// Offset ({{.indx}}) '{{.name}}'
-			if {{.offset}}, buf, err = marker.ReadOffset(buf); err != nil {
+			if {{.offset}}, {{if .isLastOffset}}_ {{else}}buf {{end}}, err = marker.ReadOffset(buf); err != nil {
 				return nil, err
 			}`
 			res = execTmpl(tmpl, data)

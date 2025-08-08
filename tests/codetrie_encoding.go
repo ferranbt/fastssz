@@ -240,7 +240,7 @@ func (c *CodeTrieSmall) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Offset (1) 'Chunks'
-	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+	if o1, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
@@ -367,7 +367,7 @@ func (c *CodeTrieBig) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	}
 
 	// Offset (1) 'Chunks'
-	if o1, buf, err = marker.ReadOffset(buf); err != nil {
+	if o1, _, err = marker.ReadOffset(buf); err != nil {
 		return nil, err
 	}
 
