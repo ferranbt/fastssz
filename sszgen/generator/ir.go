@@ -31,7 +31,7 @@ type Bool struct {
 func (b *Bool) isValue() {}
 
 type Bytes struct {
-	Size    uint64
+	Size    Size
 	IsList  bool
 	IsGoDyn bool // this is a fixed byte array but that is represented as a vector
 }

@@ -10,7 +10,11 @@ var (
 	rootsSize         uint64
 
 	// altair
-	syncCommitteeBits uint64
+	syncCommitteeBits    uint64
+	syncCommitteePubKeys uint64
+
+	// deneb
+	withdrawals uint64
 )
 
 func init() {
@@ -25,6 +29,8 @@ func setMainnetSpec() {
 	randaoMixes = 65536
 	rootsSize = 8192
 	syncCommitteeBits = 64
+	syncCommitteePubKeys = 512
+	withdrawals = 16
 }
 
 func setMinimalSpec() {
@@ -35,4 +41,6 @@ func setMinimalSpec() {
 	randaoMixes = 64
 	rootsSize = 64
 	syncCommitteeBits = 4
+	syncCommitteePubKeys = 32
+	withdrawals = 4
 }

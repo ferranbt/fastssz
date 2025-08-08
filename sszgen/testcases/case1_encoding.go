@@ -62,7 +62,7 @@ func (c *Case1A) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the Case1A object
 func (c *Case1A) fixedSize() int {
-	return int(2048)
+	return int(4)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case1A object
@@ -160,7 +160,7 @@ func (c *Case1B) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the Case1B object
 func (c *Case1B) fixedSize() int {
-	return int(32)
+	return int(4)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Case1B object

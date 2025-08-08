@@ -83,7 +83,7 @@ func (i *Issue165) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 
 // fixedSize returns the fixed size of the Issue165 object
 func (i *Issue165) fixedSize() int {
-	return int(0)
+	return int(8)
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Issue165 object

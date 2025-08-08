@@ -1079,7 +1079,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 					// we cannot do here dynamic because we rely on the size
 					// on the tags
 					outer.typ = &Bytes{
-						Size: *astSize,
+						Size: NewSizeNum(*astSize),
 					}
 				} else {
 					outer.typ = &Bytes{
@@ -1165,14 +1165,14 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 				if obj.IsList {
 					// Same case as with the List above.
 					// We have a []byte object for which we have to resolve the size now that we have the dimensions
-					if obj.Size != 0 {
+					if obj.Size.Size != 0 {
 						return nil, fmt.Errorf("bytes should not have a size at this point")
 					}
 					if dim.IsList() {
-						obj.Size = dim.ListLen().Num()
+						obj.Size = dim.ListLen()
 					} else if dim.IsVector() {
 						outerRef.typ = &Bytes{
-							Size:    dim.VectorLen().Num(),
+							Size:    dim.VectorLen(),
 							IsGoDyn: true,
 						}
 					}
@@ -1262,7 +1262,7 @@ func (e *env) parseASTFieldType(name, tags string, expr ast.Expr) (*Value, error
 			if !tailDim.IsVector() {
 				return nil, fmt.Errorf("bitvector tag parse failed (no ssz-size for last dim) %s, err=%s", name, err)
 			}
-			return &Value{typ: &Bytes{Size: tailDim.VectorLen().Num()}}, nil
+			return &Value{typ: &Bytes{Size: tailDim.VectorLen()}}, nil
 		}
 		// external reference
 		vv, err := e.encodeItem(sel, tags)
@@ -1320,51 +1320,6 @@ func getTags(str string, field string) (string, bool) {
 		return vals, true
 	}
 	return "", false
-}
-
-// isFixedSize checks if the value is fixed size and returns the size if it is
-// If the value is not fixed size, it returns false and 0.
-// TODO: Try to merge with isFixed
-func (v *Value) isFixedSize() (bool, uint64) {
-	switch obj := v.typ.(type) {
-	case *Uint:
-		return true, obj.Size
-	case *Bool:
-		return true, 1
-	case *Time:
-		return true, 8
-	case *BitList:
-		return false, 0
-	case *Bytes:
-		if obj.IsList {
-			return false, 0
-		}
-		return true, obj.Size
-	case *List:
-		return false, 0
-	case *Vector:
-		panic("TODO")
-	case *Container:
-		sum := uint64(0)
-		for _, f := range v.getObjs() {
-			// if any contained value is not fixed, it is not fixed
-			ok, size := f.isFixedSize()
-			if !ok {
-				return false, 0
-			}
-			sum += size
-		}
-		// if all values within the container are fixed, it is fixed
-		return true, sum
-	case *Reference:
-		if obj.Size != 0 {
-			return true, obj.Size
-		}
-		return false, 0
-
-	default:
-		panic(fmt.Errorf("is fixed not implemented for type %s named %s, %s", v.Type(), v.name, reflect.TypeOf(v.typ)))
-	}
 }
 
 func (v *Value) isFixed() bool {

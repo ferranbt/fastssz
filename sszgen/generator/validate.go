@@ -1,6 +1,6 @@
 package generator
 
-func validateBytesArray(name string, size uint64, fixed bool) string {
+func validateBytesArray(name string, size Size, fixed bool) string {
 	// for variable size values, we want to ensure it doesn't exceed max size bound
 	cmp := ">"
 	if fixed {
@@ -22,7 +22,7 @@ func validateBytesArray(name string, size uint64, fixed bool) string {
 func (v *Value) validate() string {
 	switch obj := v.typ.(type) {
 	case *BitList:
-		return validateBytesArray(v.name, obj.Size, false)
+		return validateBytesArray(v.name, NewSizeNum(obj.Size), false)
 	case *Bytes:
 		if obj.IsList {
 			// for lists of bytes, we need to validate the size of the buffer

@@ -159,7 +159,7 @@ func (v *Value) unmarshalList(dst string) string {
 			case *Uint:
 				innerSize = fmt.Sprintf("%d", obj.Size)
 			case *Bytes:
-				innerSize = fmt.Sprintf("%d", obj.Size)
+				innerSize = obj.Size.MarshalTemplate()
 			case *Container:
 				innerSize = inner.fixedSizeForContainer()
 			default:
@@ -423,7 +423,7 @@ func (v *Value) createSlice(useNumVariable bool) string {
 		}
 
 		if obj.IsFixed() {
-			return fmt.Sprintf("::.%s = make([][%d]byte, %s)", v.name, obj.Size, size)
+			return fmt.Sprintf("::.%s = make([][%s]byte, %s)", v.name, obj.Size.MarshalTemplate(), size)
 		}
 
 		return fmt.Sprintf("::.%s = make([][]byte, %s)", v.name, size)

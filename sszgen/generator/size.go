@@ -98,9 +98,16 @@ func (v *Value) fixedSizeForContainerAcc(acc *SizeAccumulator) {
 	if !v.isContainer() {
 		panic(fmt.Sprintf("fixedSizeForContainer called on non-container type %s", reflect.TypeOf(v.typ)))
 	}
+	if strings.HasPrefix(v.name, "BeaconState") {
+		fmt.Println("Size accumulator for", v.name)
+	}
 
 	subAcc := NewSizeAccumulator()
 	for _, f := range v.getObjs() {
+		if strings.HasPrefix(v.name, "BeaconState") {
+			fmt.Println("[PRE] Size accumulator for field", v.name, f.name, subAcc.Size, subAcc.Vars, reflect.TypeOf(f.typ))
+		}
+
 		switch obj := f.typ.(type) {
 		case *Vector:
 			if obj.Elem.isFixed() {
@@ -136,6 +143,10 @@ func (v *Value) fixedSizeForContainerAcc(acc *SizeAccumulator) {
 		default:
 			f.fixedSizeAcc(subAcc)
 		}
+
+		if strings.HasPrefix(v.name, "BeaconState") {
+			fmt.Println("[POST] Size accumulator for field", v.name, f.name, subAcc.Size, subAcc.Vars)
+		}
 	}
 
 	acc.Merge(subAcc)
@@ -160,7 +171,15 @@ func (v *Value) fixedSizeAcc(acc *SizeAccumulator) {
 	case *Int:
 		acc.AddInt(obj.Size)
 	case *Bytes:
-		acc.AddInt(obj.Size)
+		if obj.IsList {
+			acc.AddInt(bytesPerLengthOffset)
+		} else {
+			if obj.Size.Size != 0 {
+				acc.AddInt(obj.Size.Size)
+			} else {
+				acc.AddVar(obj.Size.VarSize)
+			}
+		}
 	case *BitList:
 		acc.AddInt(bytesPerLengthOffset)
 	case *Time:
