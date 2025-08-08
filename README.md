@@ -69,21 +69,21 @@ $ go test -v ./spectests/... -run=XXX -bench=.
 goos: linux
 goarch: amd64
 pkg: github.com/ferranbt/fastssz/spectests
-cpu: AMD Ryzen 5 2400G with Radeon Vega Graphics
+cpu: AMD Ryzen 5 3600 6-Core Processor
 BenchmarkMarshal_Fast
-BenchmarkMarshal_Fast-8             	  291054	      4088 ns/op	    8192 B/op	       1 allocs/op
+BenchmarkMarshal_Fast-12                  511036              3208 ns/op            8192 B/op          1 allocs/op
 BenchmarkMarshal_SuperFast
-BenchmarkMarshal_SuperFast-8        	  798883	      1354 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMarshal_SuperFast-12            1448364               770.2 ns/op             0 B/op          0 allocs/op
 BenchmarkUnMarshal_Fast
-BenchmarkUnMarshal_Fast-8           	   64065	     17614 ns/op	   11900 B/op	     210 allocs/op
+BenchmarkUnMarshal_Fast-12                 93079             15928 ns/op           12280 B/op        230 allocs/op
 BenchmarkHashTreeRoot_Fast
-BenchmarkHashTreeRoot_Fast-8        	   25863	     45932 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHashTreeRoot_Fast-12              29918             39231 ns/op               0 B/op          0 allocs/op
 BenchmarkHashTreeRoot_SuperFast
-BenchmarkHashTreeRoot_SuperFast-8   	   54078	     21999 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHashTreeRoot_SuperFast-12         53028             20088 ns/op               0 B/op          0 allocs/op
 BenchmarkProof_Tree
-BenchmarkProof_Tree-8               	    3649	    312761 ns/op	  118145 B/op	    1605 allocs/op
+BenchmarkProof_Tree-12                      4958            245046 ns/op          117661 B/op       1601 allocs/op
 PASS
-ok  	github.com/ferranbt/fastssz/spectests	5.501s
+ok      github.com/ferranbt/fastssz/spectests   9.404s
 ```
 
 ## Package reference
@@ -126,3 +126,5 @@ type ExecutionPayload struct {
 FastSSZ generates code that references the specified variable for size constraints and comparisons, but does not generate the variable itself. You must provide a uint64 variable with the specified name in the destination package.
 
 This feature has been tested on the [Ethereum eth2.0 specs](https://github.com/ferranbt/fastssz/blob/main/spectests/structs.go) and all types from there are supported. However, some edge cases might not be fully ready yet - please open an issue if you encounter any problems.
+
+Using these variables does not add any performance overhead to the generated SSZ operations.RetryClaude can make mistakes. Please double-check responses.
