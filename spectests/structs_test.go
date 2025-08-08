@@ -22,6 +22,13 @@ type codec interface {
 	ssz.HashRoot
 }
 
+type preset string
+
+const (
+	minimal preset = "minimal"
+	mainnet preset = "mainnet"
+)
+
 type fork string
 
 const (
@@ -125,8 +132,14 @@ var codecs = map[string]testCallback{
 	"Withdrawal":                 func(f fork) codec { return new(Withdrawal) },
 }
 
-func testSpecFork(t *testing.T, fork fork) {
-	files := readDir(t, filepath.Join(testsPath, "/mainnet/"+string(fork)+"/ssz_static"))
+func testSpecForkForPreset(t *testing.T, preset preset, fork fork) {
+	if preset == minimal {
+		setMinimalSpec()
+	} else {
+		setMainnetSpec()
+	}
+
+	files := readDir(t, filepath.Join(testsPath, "/"+string(preset)+"/"+string(fork)+"/ssz_static"))
 	for _, f := range files {
 		spl := strings.Split(f, "/")
 		name := spl[len(spl)-1]
@@ -143,6 +156,17 @@ func testSpecFork(t *testing.T, fork fork) {
 			}
 		})
 	}
+}
+
+func testSpecFork(t *testing.T, fork fork) {
+	// Do not try to run these tests on parallel since they modify global variables
+	t.Run("minimal", func(t *testing.T) {
+		testSpecForkForPreset(t, minimal, fork)
+	})
+
+	t.Run("mainnet", func(t *testing.T) {
+		testSpecForkForPreset(t, mainnet, fork)
+	})
 }
 
 func TestSpec_Phase0(t *testing.T) {

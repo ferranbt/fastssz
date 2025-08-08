@@ -106,8 +106,8 @@ type SigningRoot struct {
 }
 
 type HistoricalBatch struct {
-	BlockRoots [][32]byte `json:"block_roots" ssz-size:"8192,32"` // 8192/64
-	StateRoots [][32]byte `json:"state_roots" ssz-size:"8192,32"` // 8192/64
+	BlockRoots [][32]byte `json:"block_roots" ssz-size:"var(historicalRoots),32"`
+	StateRoots [][32]byte `json:"state_roots" ssz-size:"var(historicalRoots),32"`
 }
 
 type ProposerSlashing struct {
@@ -277,7 +277,7 @@ type SyncCommittee struct {
 }
 
 type SyncAggregate struct {
-	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"64"`
+	SyncCommiteeBits      []byte   `json:"sync_committee_bits" ssz-size:"var(syncCommitteeBits)"`
 	SyncCommiteeSignature [96]byte `json:"sync_committee_signature" ssz-size:"96"`
 }
 
