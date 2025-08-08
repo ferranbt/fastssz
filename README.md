@@ -127,4 +127,4 @@ FastSSZ generates code that references the specified variable for size constrain
 
 This feature has been tested on the [Ethereum eth2.0 specs](https://github.com/ferranbt/fastssz/blob/main/spectests/structs.go) and all types from there are supported. However, some edge cases might not be fully ready yet - please open an issue if you encounter any problems.
 
-Using these variables does not add any performance overhead to the generated SSZ operations.RetryClaude can make mistakes. Please double-check responses.
+Using these variables does not add any performance overhead to the generated SSZ operations.
