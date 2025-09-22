@@ -1,13 +1,15 @@
 module github.com/ferranbt/fastssz
 
-go 1.18
+go 1.22
+
+toolchain go1.24.4
 
 require (
 	github.com/emicklei/dot v1.9.1
 	github.com/golang/snappy v0.0.3
 	github.com/minio/sha256-simd v1.0.0
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta
+	github.com/prysmaticlabs/gohashtree v0.0.5-beta
 	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v2 v2.3.0
 )
