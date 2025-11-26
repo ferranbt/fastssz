@@ -93,20 +93,18 @@ func (v *Value) unmarshal(dst string) string {
 			"objRef": objRef,
 		})
 
-		/*
-			if v.ref != "" {
-				// alias, we need to cast the value
-				return fmt.Sprintf("::.%s, buf = %s(ssz.UnmarshallValue[%s](buf))", v.name, v.objRef(), intType)
-			}
-			if v.obj != "" {
-				// alias to a type on the same package
-				return fmt.Sprintf("::.%s, buf = %s(ssz.UnmarshallValue[%s](buf))", v.name, v.obj, intType)
-			}
-			return fmt.Sprintf("::.%s, buf = ssz.UnmarshallValue[%s](buf)", v.name, intType)
-		*/
-
 	case *Bool:
-		return fmt.Sprintf("::.%s, buf = ssz.UnmarshallValue[bool](buf)", v.name)
+		// For now we are doing the boolean check here to avoid having
+		// to return an error during unmarshal value since this is the only type
+		// which can fail for now.
+		// https://github.com/ferranbt/fastssz/issues/222
+		tmpl := `if err = ssz.IsValidBool(buf); err != nil {
+			return
+		}
+		::.{{.name}}, buf = ssz.UnmarshallValue[bool](buf)`
+		return execTmpl(tmpl, map[string]interface{}{
+			"name": v.name,
+		})
 
 	case *Time:
 		return fmt.Sprintf("::.%s, buf = ssz.UnmarshalTime(buf)", v.name)
