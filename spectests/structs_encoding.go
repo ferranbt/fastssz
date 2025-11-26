@@ -1211,6 +1211,9 @@ func (v *Validator) UnmarshalSSZTail(buf []byte) (rest []byte, err error) {
 	v.EffectiveBalance, buf = ssz.UnmarshallValue[uint64](buf)
 
 	// Field (3) 'Slashed'
+	if err = ssz.IsValidBool(buf); err != nil {
+		return
+	}
 	v.Slashed, buf = ssz.UnmarshallValue[bool](buf)
 
 	// Field (4) 'ActivationEligibilityEpoch'

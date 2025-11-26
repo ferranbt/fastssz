@@ -116,6 +116,21 @@ func UnmarshalTime(src []byte) (time.Time, []byte) {
 	return time.Unix(int64(val), 0).UTC(), buf
 }
 
+func IsValidBool(src []byte) error {
+	if len(src) == 0 {
+		// Note, this should not happen since the code generator
+		// makes sure that there is at least one byte on src
+		return fmt.Errorf("empty slice")
+	}
+
+	val := src[0]
+	if val != 0 && val != 1 {
+		return fmt.Errorf("invalid SSZ boolean byte: 0x%02x", val)
+	}
+
+	return nil
+}
+
 // ---- Marshal functions ----
 
 type MarshallableType interface {
