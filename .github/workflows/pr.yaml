@@ -9,7 +9,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.18"
+          go-version: "1.22"
       - name: Validate codegen
         run: ./scripts/ci-validate-codegen.sh
       - name: Download vendor dependencies
