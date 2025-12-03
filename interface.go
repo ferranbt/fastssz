@@ -83,7 +83,7 @@ func UnmarshalSliceWithIndexCallback[T any](
 		return err
 	}
 
-	*slice = make([]T, num)
+	*slice = Extend(*slice, num)
 	for ii := uint64(0); ii < num; ii++ {
 		start := ii * itemSize
 		end := (ii + 1) * itemSize
@@ -106,7 +106,7 @@ func UnmarshalDynamicSliceWithCallback[T any](
 		return err
 	}
 
-	*slice = make([]T, num)
+	*slice = Extend(*slice, num)
 	return UnmarshalDynamic(buf, num, unmarshalCallback)
 }
 

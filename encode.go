@@ -166,14 +166,14 @@ func MarshalValue[T MarshallableType](dst []byte, value T) []byte {
 
 // MarshalTime marshals a time to dst
 func MarshalTime(dst []byte, t time.Time) []byte {
-	return MarshalValue[uint64](dst, uint64(t.Unix()))
+	return MarshalValue(dst, uint64(t.Unix()))
 }
 
 // ---- offset functions ----
 
 // WriteOffset writes an offset to dst
 func WriteOffset(dst []byte, i int) []byte {
-	return MarshalValue[uint32](dst, uint32(i))
+	return MarshalValue(dst, uint32(i))
 }
 
 // ReadOffset reads an offset from buf
@@ -198,7 +198,8 @@ func Extend[T any](b []T, needLen uint64) []T {
 		b = []T{}
 	}
 	b = b[:cap(b)]
-	if n := needLen - uint64(cap(b)); n > 0 {
+	if needLen > uint64(cap(b)) {
+		n := needLen - uint64(cap(b))
 		b = append(b, make([]T, n)...)
 	}
 	return b[:needLen]
