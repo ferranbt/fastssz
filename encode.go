@@ -348,14 +348,16 @@ func DivideInt(a, b uint64) (uint64, bool) {
 type OffsetMarker struct {
 	TotalSize  uint64
 	FixedSize  uint64
-	LastOffset *uint64
+	LastOffset uint64
+	HasOffset  bool
 }
 
 func NewOffsetMarker(totalSize, fixedSize uint64) *OffsetMarker {
 	return &OffsetMarker{
 		TotalSize:  totalSize,
 		FixedSize:  fixedSize,
-		LastOffset: nil,
+		LastOffset: 0,
+		HasOffset:  false,
 	}
 }
 
@@ -365,16 +367,17 @@ func (o *OffsetMarker) ReadOffset(buf []byte) (uint64, []byte, error) {
 	if offset > o.TotalSize {
 		return 0, nil, ErrOffset
 	}
-	if o.LastOffset == nil {
+	if !o.HasOffset {
 		if offset != o.FixedSize {
 			return 0, nil, ErrInvalidVariableOffset
 		}
+		o.HasOffset = true
 	} else {
-		if offset < *o.LastOffset {
+		if offset < o.LastOffset {
 			return 0, nil, ErrOffsetNotIncreasing
 		}
 	}
 
-	o.LastOffset = &offset
+	o.LastOffset = offset
 	return offset, buf, nil
 }

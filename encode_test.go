@@ -153,7 +153,7 @@ func TestReadOffset_ValidFirstOffset(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, uint64(100), result)
-	require.Equal(t, uint64(100), *om.LastOffset)
+	require.Equal(t, uint64(100), om.LastOffset)
 }
 
 func TestReadOffset_FirstOffsetDoesNotMatchFixedSize(t *testing.T) {
@@ -189,7 +189,7 @@ func TestReadOffset_SequentialOffsets(t *testing.T) {
 	result2, _, err := om.ReadOffset(buf2)
 	require.NoError(t, err)
 	require.Equal(t, uint64(200), result2)
-	require.Equal(t, uint64(200), *om.LastOffset)
+	require.Equal(t, uint64(200), om.LastOffset)
 
 	// Fourth offset (increasing again - valid)
 	buf3 := WriteOffset(nil, 300)
@@ -232,7 +232,7 @@ func TestReadOffset_MultipleValidOffsets(t *testing.T) {
 		require.Equal(t, uint64(offset), result)
 	}
 
-	require.Equal(t, uint64(500), *om.LastOffset)
+	require.Equal(t, uint64(500), om.LastOffset)
 }
 
 // Benchmark data - 8 bytes for uint64
@@ -276,5 +276,25 @@ func BenchmarkUint64MarshalGeneric(b *testing.B) {
 	buf := make([]byte, 8)
 	for i := 0; i < b.N; i++ {
 		_ = MarshalValue[uint64](buf[:0], 0x0102030405060708)
+	}
+}
+
+func BenchmarkOffsetMarker(b *testing.B) {
+	offsetData := []byte{}
+	offsetList := []int{100, 200, 300, 400, 500}
+	for _, offset := range offsetList {
+		offsetData = WriteOffset(offsetData, offset)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		om := NewOffsetMarker(1000, 100)
+		bOffset := offsetData
+
+		for j := 0; j < len(offsetList); j++ {
+			_, bOffset, _ = om.ReadOffset(bOffset)
+		}
 	}
 }
