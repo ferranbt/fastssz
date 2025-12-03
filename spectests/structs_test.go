@@ -151,8 +151,10 @@ func testSpecForkForPreset(t *testing.T, preset preset, fork fork) {
 
 		t.Run(name, func(t *testing.T) {
 			files := readDir(t, filepath.Join(f, "ssz_random"))
+			rootObj := base(fork)
+
 			for _, f := range files {
-				checkSSZEncoding(t, fork, f, name, base)
+				checkSSZEncoding(t, rootObj, fork, f, name, base)
 			}
 		})
 	}
@@ -189,7 +191,7 @@ func TestSpec_Deneb(t *testing.T) {
 	testSpecFork(t, deneb)
 }
 
-func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base testCallback) {
+func checkSSZEncoding(t *testing.T, rootObj ssz.Unmarshaler, fork fork, fileName, structName string, base testCallback) {
 	obj := base(fork)
 	if obj == nil {
 		// skip
@@ -217,6 +219,14 @@ func checkSSZEncoding(t *testing.T, fork fork, fileName, structName string, base
 	}
 	if !deepEqual(obj, obj2) {
 		fatal("UnmarshalSSZ_equal", fmt.Errorf("bad unmarshal"))
+	}
+
+	// Try to decode on top of rootObj to ensure the fast unmarshalling works
+	if err := rootObj.UnmarshalSSZ(output.ssz); err != nil {
+		fatal("UnmarshalFast", err)
+	}
+	if !deepEqual(obj, obj2) {
+		fatal("UnmarshalSSZFast_equal", fmt.Errorf("bad unmarshal"))
 	}
 
 	// Root
