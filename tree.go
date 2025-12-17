@@ -194,6 +194,10 @@ func TreeFromChunks(chunks [][]byte) (*Node, error) {
 func TreeFromNodes(leaves []*Node, limit int) (*Node, error) {
 	numLeaves := len(leaves)
 
+	if limit <= 0 {
+		return NewEmptyNode(make([]byte, 1024)[:32]), nil
+	}
+
 	depth := floorLog2(limit)
 	zeroOrderHashes := getZeroOrderHashes(depth)
 
@@ -225,7 +229,8 @@ func TreeFromNodes(leaves []*Node, limit int) (*Node, error) {
 	leavesStart := powerTwo(depth)
 	leafIndex := numLeaves - 1
 
-	nodes := make(map[int]*Node)
+	maxPotentialIndex := (leavesStart+numLeaves)*2 + 4
+	nodes := make([]*Node, maxPotentialIndex)
 
 	nodesStartIndex := leavesStart
 	nodesEndIndex := nodesStartIndex + numLeaves - 1
@@ -235,21 +240,24 @@ func TreeFromNodes(leaves []*Node, limit int) (*Node, error) {
 		for i := nodesEndIndex; i >= nodesStartIndex; i-- {
 			// leaf node, add to map
 			if k == depth {
+				if leafIndex < 0 {
+					return nil, errors.New("invalid leaf indexing")
+				}
 				nodes[i] = leaves[leafIndex]
 				leafIndex--
 			} else { // branch node, compute
 				leftIndex := i * 2
 				rightIndex := i*2 + 1
 				// both nodes are empty, unexpected condition
-				if nodes[leftIndex] == nil && nodes[rightIndex] == nil {
+				if (leftIndex >= len(nodes) || nodes[leftIndex] == nil) && (rightIndex >= len(nodes) || nodes[rightIndex] == nil) {
 					return nil, errors.New("unexpected empty right and left nodes")
 				}
 				// node with empty right node, add zero order hash as right node and mark right node as empty
-				if nodes[leftIndex] != nil && nodes[rightIndex] == nil {
+				if leftIndex < len(nodes) && nodes[leftIndex] != nil && (rightIndex >= len(nodes) || nodes[rightIndex] == nil) {
 					nodes[i] = NewNodeWithLR(nodes[leftIndex], NewEmptyNode(zeroOrderHashes[k+1]))
 				}
 				// node with left and right child
-				if nodes[leftIndex] != nil && nodes[rightIndex] != nil {
+				if leftIndex < len(nodes) && nodes[leftIndex] != nil && rightIndex < len(nodes) && nodes[rightIndex] != nil {
 					nodes[i] = NewNodeWithLR(nodes[leftIndex], nodes[rightIndex])
 				}
 			}
@@ -264,7 +272,7 @@ func TreeFromNodes(leaves []*Node, limit int) (*Node, error) {
 		return nil, errors.New("tree root node could not be computed")
 	}
 
-	return nodes[1], nil
+	return rootNode, nil
 }
 
 func TreeFromNodesWithMixin(leaves []*Node, num, limit int) (*Node, error) {
@@ -335,8 +343,8 @@ func hashNode(n *Node) []byte {
 
 // getZeroOrderHashes precomputes zero order hashes to create an easy map lookup
 // for zero leafs and their parent nodes.
-func getZeroOrderHashes(depth int) map[int][]byte {
-	zeroOrderHashes := make(map[int][]byte)
+func getZeroOrderHashes(depth int) [][]byte {
+	zeroOrderHashes := make([][]byte, depth+1)
 
 	emptyValue := make([]byte, 32)
 	zeroOrderHashes[depth] = emptyValue
@@ -365,10 +373,14 @@ func (n *Node) Prove(index int) (*Proof, error) {
 			siblingHash = hashNode(cur.right)
 			cur = cur.left
 		}
-		hashes = append([][]byte{siblingHash}, hashes...)
+		hashes = append(hashes, siblingHash)
 		if cur == nil {
 			return nil, errors.New("Node not found in tree")
 		}
+	}
+
+	for i, j := 0, len(hashes)-1; i < j; i, j = i+1, j-1 {
+		hashes[i], hashes[j] = hashes[j], hashes[i]
 	}
 
 	proof.Hashes = hashes
