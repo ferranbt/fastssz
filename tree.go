@@ -198,77 +198,67 @@ func TreeFromNodes(leaves []*Node, limit int) (*Node, error) {
 		return NewEmptyNode(zeroBytes[:32]), nil
 	}
 
-	depth := floorLog2(limit)
-	zeroOrderHashes := getZeroOrderHashes(depth)
-
-	// there are no leaves, return a zero order hash node
 	if numLeaves == 0 {
-		return NewEmptyNode(zeroOrderHashes[0]), nil
+		depth := floorLog2(limit)
+		return NewEmptyNode(getZeroOrderHashes(depth)[0]), nil
 	}
-
-	// now we know numLeaves are at least 1.
-
-	// if the max leaf limit is 1, return the one leaf we have
+	
 	if limit == 1 {
 		return leaves[0], nil
-	}
-	// if the max leaf limit is 2
-	if limit == 2 {
-		// but we only have 1 leaf, add a zero order hash as the right node
-		if numLeaves == 1 {
-			return NewNodeWithLR(leaves[0], NewEmptyNode(zeroOrderHashes[1])), nil
-		}
-		// otherwise return the two nodes we have
-		return NewNodeWithLR(leaves[0], leaves[1]), nil
 	}
 
 	if !isPowerOfTwo(limit) {
 		return nil, errors.New("number of leaves should be a power of 2")
 	}
 
-	leavesStart := powerTwo(depth)
-	leafIndex := numLeaves - 1
+	depth := floorLog2(limit)
+	zeroOrderHashes := getZeroOrderHashes(depth)
 
-	nodes := make(map[int]*Node)
-
-	nodesStartIndex := leavesStart
-	nodesEndIndex := nodesStartIndex + numLeaves - 1
-
-	// for each tree level
-	for k := depth; k >= 0; k-- {
-		for i := nodesEndIndex; i >= nodesStartIndex; i-- {
-			// leaf node, add to map
-			if k == depth {
-				nodes[i] = leaves[leafIndex]
-				leafIndex--
-			} else { // branch node, compute
-				leftIndex := i * 2
-				rightIndex := i*2 + 1
-				// both nodes are empty, unexpected condition
-				if nodes[leftIndex] == nil && nodes[rightIndex] == nil {
-					return nil, errors.New("unexpected empty right and left nodes")
-				}
-				// node with empty right node, add zero order hash as right node and mark right node as empty
-				if nodes[leftIndex] != nil && nodes[rightIndex] == nil {
-					nodes[i] = NewNodeWithLR(nodes[leftIndex], NewEmptyNode(zeroOrderHashes[k+1]))
-				}
-				// node with left and right child
-				if nodes[leftIndex] != nil && nodes[rightIndex] != nil {
-					nodes[i] = NewNodeWithLR(nodes[leftIndex], nodes[rightIndex])
-				}
-			}
+	if limit == 2 {
+		if numLeaves == 1 {
+			return NewNodeWithLR(leaves[0], NewEmptyNode(zeroOrderHashes[1])), nil
 		}
-		nodesStartIndex = nodesStartIndex / 2
-		nodesEndIndex = int(math.Floor(float64(nodesEndIndex)) / 2)
+		return NewNodeWithLR(leaves[0], leaves[1]), nil
 	}
 
-	rootNode := nodes[1]
+	// Pre-allocate exactly what we need for the first level to avoid slice growth
+	// Use numLeaves for the buffer size to stay O(N) memory
+	nodes := make([]*Node, (numLeaves+1)/2)
 
-	if rootNode == nil {
-		return nil, errors.New("tree root node could not be computed")
+	for i := 0; i < len(nodes); i++ {
+		leftIdx := i * 2
+		rightIdx := i*2 + 1
+
+		var left, right *Node
+		left = leaves[leftIdx]
+		if rightIdx < numLeaves {
+			right = leaves[rightIdx]
+		} else {
+			right = NewEmptyNode(zeroOrderHashes[depth])
+		}
+		nodes[i] = NewNodeWithLR(left, right)
 	}
 
-	return nodes[1], nil
+	activeCount := len(nodes)
+	for d := depth - 1; d > 0; d-- {
+		nextLevelCount := (activeCount + 1) / 2
+		for i := 0; i < nextLevelCount; i++ {
+			leftIdx := i * 2
+			rightIdx := i*2 + 1
+
+			var left, right *Node
+			left = nodes[leftIdx]
+			if rightIdx < activeCount {
+				right = nodes[rightIdx]
+			} else {
+				right = NewEmptyNode(zeroOrderHashes[d])
+			}
+			nodes[i] = NewNodeWithLR(left, right)
+		}
+		activeCount = nextLevelCount
+	}
+
+	return nodes[0], nil
 }
 
 func TreeFromNodesWithMixin(leaves []*Node, num, limit int) (*Node, error) {
