@@ -198,10 +198,6 @@ func TreeFromNodes(leaves []*Node, limit int) (*Node, error) {
 		return NewEmptyNode(zeroBytes[:32]), nil
 	}
 
-	if !isPowerOfTwo(limit) {
-		return nil, errors.New("limit must be power of 2")
-	}
-
 	depth := floorLog2(limit)
 	zeroOrderHashes := getZeroOrderHashes(depth)
 
