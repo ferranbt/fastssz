@@ -414,7 +414,7 @@ func BenchmarkTreeFromNodes(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
 
-			for b.Loop() {
+			for i := 0; i < b.N; i++ {
 				TreeFromNodes(bm.nodes, bm.limit)
 			}
 		})
