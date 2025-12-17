@@ -289,3 +289,134 @@ func BenchmarkProve(b *testing.B) {
 		}
 	}
 }
+
+var TestCasesTreeFromNodes = []struct {
+	name        string
+	nodes       []*Node
+	limit       int
+	expectError bool
+	validateFn  func(*testing.T, *Node)
+}{
+	{
+		name:        "zero limit returns empty node",
+		nodes:       []*Node{},
+		limit:       0,
+		expectError: false,
+		validateFn: func(t *testing.T, n *Node) {
+			if !n.isEmpty {
+				t.Error("expected empty node for zero limit")
+			}
+		},
+	},
+	{
+		name:        "no nodes with limit",
+		nodes:       []*Node{},
+		limit:       4,
+		expectError: false,
+		validateFn: func(t *testing.T, n *Node) {
+			if !n.isEmpty {
+				t.Error("expected empty node for no leaves")
+			}
+		},
+	},
+	{
+		name:        "single node with limit 1",
+		nodes:       []*Node{NewNodeWithValue([]byte{1})},
+		limit:       1,
+		expectError: false,
+		validateFn: func(t *testing.T, n *Node) {
+			if !(n.left == nil && n.right == nil) {
+				t.Error("expected leaf node")
+			}
+		},
+	},
+	{
+		name:        "single node with limit 2",
+		nodes:       []*Node{NewNodeWithValue([]byte{1})},
+		limit:       2,
+		expectError: false,
+		validateFn: func(t *testing.T, n *Node) {
+			if n.left == nil && n.right == nil {
+				t.Error("expected branch node")
+			}
+			if n.right == nil || !n.right.isEmpty {
+				t.Error("expected empty right child")
+			}
+		},
+	},
+	{
+		name:        "two nodes with limit 2",
+		nodes:       []*Node{NewNodeWithValue([]byte{1}), NewNodeWithValue([]byte{2})},
+		limit:       2,
+		expectError: false,
+		validateFn: func(t *testing.T, n *Node) {
+			if n.left == nil && n.right == nil {
+				t.Error("expected branch node")
+			}
+		},
+	},
+	{
+		name:        "non-power of 2 limit",
+		nodes:       []*Node{NewNodeWithValue([]byte{1})},
+		limit:       3,
+		expectError: true,
+	},
+	{
+		name: "four nodes with limit 8",
+		nodes: []*Node{
+			NewNodeWithValue([]byte{1}),
+			NewNodeWithValue([]byte{2}),
+			NewNodeWithValue([]byte{3}),
+			NewNodeWithValue([]byte{4}),
+		},
+		limit:       8,
+		expectError: false,
+		validateFn: func(t *testing.T, n *Node) {
+			// Should have padding on the right side
+			if n.left == nil && n.right == nil {
+				t.Error("expected branch node")
+			}
+		},
+	},
+}
+
+func TestTreeFromNodes(t *testing.T) {
+	for _, tt := range TestCasesTreeFromNodes {
+		t.Run(tt.name, func(t *testing.T) {
+			tree, err := TreeFromNodes(tt.nodes, tt.limit)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if tree == nil {
+				t.Fatal("tree should not be nil")
+			}
+
+			if tt.validateFn != nil {
+				tt.validateFn(t, tree)
+			}
+		})
+	}
+}
+
+func BenchmarkTreeFromNodes(b *testing.B) {
+	for _, bm := range TestCasesTreeFromNodes {
+		b.Run(bm.name, func(b *testing.B) {
+
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				TreeFromNodes(bm.nodes, bm.limit)
+			}
+		})
+	}
+}
