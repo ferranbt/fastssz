@@ -270,6 +270,12 @@ func DecodeDynamicLength(buf []byte, maxSize uint64) (uint64, error) {
 		return 0, fmt.Errorf("not enough data")
 	}
 	offset := binary.LittleEndian.Uint32(buf[:4])
+	// A valid first offset points just past the offset table, so it is always
+	// <= len(buf). Reject one that is not before deriving (and allocating) the
+	// element count, so a short input cannot claim the full ssz-max length.
+	if uint64(offset) > uint64(len(buf)) {
+		return 0, fmt.Errorf("offset %d exceeds buffer length %d", offset, len(buf))
+	}
 	length, ok := DivideInt(uint64(offset), bytesPerLengthOffset)
 	if !ok {
 		return 0, fmt.Errorf("incorrect length division")
